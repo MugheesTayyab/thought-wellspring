@@ -195,7 +195,7 @@ function Home() {
                 createdAt: Date.now(),
                 upvotes: 1,
                 reactions: { love: 0, cry: 0, fire: 0, hug: 0 },
-                mood: mood === "All" ? undefined : mood,
+                ...(mood === "All" ? {} : { mood }),
               };
               setThoughts((prev) => [posted, ...prev]);
               setJustPosted(posted);
