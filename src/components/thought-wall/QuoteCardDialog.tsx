@@ -43,7 +43,7 @@ export function QuoteCardDialog({
     canvas.height = H;
 
     const grad = ctx.createLinearGradient(0, 0, W, H);
-    grad.addColorStop(0, "#ff9game".slice(0, 0) || "#ff9a2b");
+    grad.addColorStop(0, "#ff9a2b");
     grad.addColorStop(1, "#e0192b");
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
