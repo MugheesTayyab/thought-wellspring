@@ -5,17 +5,17 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * BajiHears design system — dark-only "ember on ink".
- * Near-black warm ink, restrained ember accent used sparingly, sand highlight.
- * Editorial serif display + quiet sans body. Never hardcode colors in components.
+ * Thought Wall design system — dark-only, orange→red brand gradient.
+ * All colors in oklch. Never hardcode colors in components.
  */
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 3px);
-  --radius-md: calc(var(--radius) - 1px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 3px);
-  --radius-2xl: calc(var(--radius) + 6px);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -33,62 +33,59 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
-  --color-hairline: var(--hairline);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ember: var(--ember);
-  --color-sand: var(--sand);
+  --color-flame: var(--flame);
   --color-warn: var(--warn);
-  --font-display: "Instrument Serif", Georgia, serif;
-  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-display: "Archivo Black", system-ui, sans-serif;
+  --font-sans: "Hind", system-ui, sans-serif;
 }
 
 :root {
-  --radius: 0.5rem;
-  --background: oklch(0.145 0.008 40);
-  --foreground: oklch(0.955 0.008 70);
-  --card: oklch(0.195 0.009 40);
-  --card-foreground: oklch(0.955 0.008 70);
-  --popover: oklch(0.195 0.009 40);
-  --popover-foreground: oklch(0.955 0.008 70);
-  --primary: oklch(0.665 0.153 38);
-  --primary-foreground: oklch(0.145 0.008 40);
-  --secondary: oklch(0.235 0.009 40);
-  --secondary-foreground: oklch(0.955 0.008 70);
-  --muted: oklch(0.24 0.008 40);
-  --muted-foreground: oklch(0.685 0.014 55);
-  --accent: oklch(0.26 0.02 40);
-  --accent-foreground: oklch(0.955 0.008 70);
-  --destructive: oklch(0.58 0.19 25);
-  --destructive-foreground: oklch(0.96 0.008 70);
-  --border: oklch(0.275 0.01 40);
-  --hairline: oklch(0.245 0.008 40);
-  --input: oklch(0.26 0.01 40);
-  --ring: oklch(0.665 0.153 38);
-  --ember: oklch(0.665 0.153 38);
-  --sand: oklch(0.855 0.055 62);
-  --warn: oklch(0.8 0.13 80);
+  --radius: 1rem;
+  --background: oklch(0.16 0.014 40);
+  --foreground: oklch(0.97 0.007 60);
+  --card: oklch(0.212 0.017 40);
+  --card-foreground: oklch(0.97 0.007 60);
+  --popover: oklch(0.212 0.017 40);
+  --popover-foreground: oklch(0.97 0.007 60);
+  --primary: oklch(0.68 0.203 38);
+  --primary-foreground: oklch(0.16 0.014 40);
+  --secondary: oklch(0.27 0.02 40);
+  --secondary-foreground: oklch(0.97 0.007 60);
+  --muted: oklch(0.26 0.017 40);
+  --muted-foreground: oklch(0.7 0.024 50);
+  --accent: oklch(0.3 0.045 35);
+  --accent-foreground: oklch(0.97 0.007 60);
+  --destructive: oklch(0.6 0.235 25);
+  --destructive-foreground: oklch(0.97 0.007 60);
+  --border: oklch(0.32 0.024 40);
+  --input: oklch(0.3 0.02 40);
+  --ring: oklch(0.68 0.203 38);
+  --ember: oklch(0.76 0.17 62);
+  --flame: oklch(0.58 0.235 25);
+  --warn: oklch(0.8 0.16 80);
 
-  --shadow-lift: 0 1px 0 0 oklch(1 0 0 / 4%) inset, 0 24px 48px -32px oklch(0 0 0 / 70%);
-  --shadow-ember: 0 0 0 1px color-mix(in oklab, var(--ember) 26%, transparent);
+  --gradient-brand: linear-gradient(135deg, var(--ember), var(--flame));
+  --gradient-hero: linear-gradient(
+    160deg,
+    color-mix(in oklab, var(--ember) 20%, var(--card)),
+    var(--card) 60%
+  );
+  --shadow-glow: 0 18px 50px -20px color-mix(in oklab, var(--flame) 55%, transparent);
+  --shadow-card: 0 8px 24px -16px oklch(0 0 0 / 60%);
 }
 
 @layer base {
   * {
-    border-color: var(--color-hairline);
-  }
-
-  html {
-    -webkit-text-size-adjust: 100%;
+    border-color: var(--color-border);
   }
 
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    font-feature-settings: "ss01";
-    -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -96,65 +93,40 @@
   h2,
   h3 {
     font-family: var(--font-display);
-    font-weight: 400;
-    letter-spacing: -0.015em;
-  }
-
-  ::selection {
-    background: color-mix(in oklab, var(--ember) 35%, transparent);
+    letter-spacing: -0.01em;
   }
 }
 
-/* Small letterspaced label — used for section eyebrows and meta rows. */
-@utility eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  line-height: 1;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-muted-foreground);
+@utility text-brand-gradient {
+  background-image: var(--gradient-brand);
+  background-clip: text;
+  color: transparent;
 }
 
-@utility ember-rule {
-  background-image: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in oklab, var(--ember) 55%, transparent),
-    transparent
-  );
+@utility bg-brand-gradient {
+  background-image: var(--gradient-brand);
 }
 
-@utility shadow-lift {
-  box-shadow: var(--shadow-lift);
+@utility bg-hero-gradient {
+  background-image: var(--gradient-hero);
 }
 
-@utility ring-ember {
-  box-shadow: var(--shadow-ember);
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
 }
 
-/* Faint paper grain so flat dark panels don't read as plastic. */
-@utility grain {
-  position: relative;
-  &::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0.035;
-    background-image: radial-gradient(oklch(1 0 0) 0.5px, transparent 0.5px);
-    background-size: 3px 3px;
-    border-radius: inherit;
-  }
+@utility shadow-soft {
+  box-shadow: var(--shadow-card);
 }
 
-@utility rise {
-  animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+@utility pop-in {
+  animation: pop-in 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@keyframes rise {
+@keyframes pop-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(10px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -163,15 +135,15 @@
 }
 
 @utility bounce-once {
-  animation: bounce-once 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: bounce-once 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes bounce-once {
   0% {
     transform: scale(1);
   }
-  45% {
-    transform: scale(1.22);
+  40% {
+    transform: scale(1.28);
   }
   100% {
     transform: scale(1);
