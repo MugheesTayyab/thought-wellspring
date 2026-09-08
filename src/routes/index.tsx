@@ -177,9 +177,6 @@ function Home() {
       <h1 className="sr-only">BajiHears — The Wall of Unsaids</h1>
 
       <div className="mt-2 space-y-4">
-        <p className="text-muted-foreground text-xs tracking-widest uppercase">
-          Last cycle&apos;s winner
-        </p>
         <UnsaidCard
           unsaid={WINNER.unsaid}
           hero
