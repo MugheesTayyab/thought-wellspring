@@ -1,5 +1,21 @@
 import { useRef, useState } from "react";
-import { Copy, Flag, Heart, Instagram, MessageCircle } from "lucide-react";
+import {
+  Copy,
+  Flag,
+  Flame,
+  Heart,
+  HeartHandshake,
+  Instagram,
+  MessageCircle,
+  CloudRain,
+} from "lucide-react";
+
+const REACTION_ICON = {
+  heart: Heart,
+  sad: CloudRain,
+  fire: Flame,
+  hug: HeartHandshake,
+} as const;
 import { cn } from "@/lib/utils";
 import {
   REACTIONS,
