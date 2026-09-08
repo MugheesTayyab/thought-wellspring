@@ -101,8 +101,8 @@ export function UnsaidCard({
       )}
     >
       {burst && (
-        <span className="bounce-once pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-6xl">
-          ❤️
+        <span className="bounce-once pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+          <Heart className="text-primary size-20 fill-current drop-shadow" aria-hidden />
         </span>
       )}
 
@@ -144,9 +144,10 @@ export function UnsaidCard({
         />
       </div>
 
-      <div className="mt-4 flex items-center gap-1.5">
+      <div className={cn("mt-4 flex items-center gap-1.5", hero && "justify-center")}>
         {REACTIONS.map((rx) => {
           const active = mine.includes(rx.key);
+          const Icon = REACTION_ICON[rx.key];
           return (
             <button
               key={rx.key}
@@ -155,21 +156,22 @@ export function UnsaidCard({
               aria-pressed={active}
               onClick={() => react(rx.key)}
               className={cn(
-                "flex items-center gap-1 rounded-full border px-2.5 py-1.5 text-xs transition-colors",
+                "flex min-w-0 items-center gap-1 rounded-full border px-2.5 py-1.5 text-xs tabular-nums transition-colors",
                 active
                   ? "border-primary/60 bg-primary/15 text-foreground"
                   : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground",
               )}
             >
-              <span className={cn("text-sm", bounced === rx.key && "bounce-once inline-block")}>
-                {rx.key === "heart" ? (
-                  <Heart
-                    className={cn("size-3.5", active && "fill-current text-primary")}
-                    aria-hidden
-                  />
-                ) : (
-                  rx.emoji
+              <span
+                className={cn(
+                  "inline-flex shrink-0",
+                  bounced === rx.key && "bounce-once inline-block",
                 )}
+              >
+                <Icon
+                  className={cn("size-3.5", active && "text-primary fill-current")}
+                  aria-hidden
+                />
               </span>
               {compactCount(unsaid.reactions[rx.key])}
             </button>
@@ -199,7 +201,9 @@ export function UnsaidCard({
       <div className="mt-3 flex items-center gap-4 text-xs">
         {unsaid.echoes.length > 0 && (
           <button type="button" onClick={() => setOpenEchoes((v) => !v)} className="text-primary">
-            {openEchoes ? "hide Echoes" : `${unsaid.echoes.length} Echoes`}
+            {openEchoes
+              ? "Hide Echoes"
+              : `${unsaid.echoes.length} ${unsaid.echoes.length === 1 ? "Echo" : "Echoes"}`}
           </button>
         )}
         <button
