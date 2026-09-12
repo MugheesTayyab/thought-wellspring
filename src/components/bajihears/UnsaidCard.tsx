@@ -96,8 +96,8 @@ export function UnsaidCard({
     <article
       onPointerUp={onCardPointerUp}
       className={cn(
-        "pop-in relative rounded-2xl border p-5 shadow-soft",
-        hero ? "bg-hero-gradient border-primary/40 shadow-glow px-5 py-7" : "bg-card border-border",
+        "pop-in tilt-card relative overflow-hidden rounded-3xl border p-4 shadow-soft",
+        hero ? "bg-hero-gradient border-primary/40 shadow-glow px-4 py-6" : "bg-card border-border",
       )}
     >
       {burst && (
@@ -120,7 +120,7 @@ export function UnsaidCard({
       <p
         className={cn(
           "font-display text-balance",
-          hero ? "mt-2 text-center text-2xl leading-snug sm:text-3xl" : "text-lg leading-snug",
+          hero ? "mt-2 text-center text-xl leading-snug sm:text-2xl" : "text-base leading-snug",
         )}
       >
         {unsaid.text}
@@ -144,7 +144,12 @@ export function UnsaidCard({
         />
       </div>
 
-      <div className={cn("mt-4 flex items-center gap-1.5", hero && "justify-center")}>
+      <div
+        className={cn(
+          "mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-2",
+          hero && "justify-center gap-x-2 px-1",
+        )}
+      >
         {REACTIONS.map((rx) => {
           const active = mine.includes(rx.key);
           const Icon = REACTION_ICON[rx.key];
