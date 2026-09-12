@@ -187,7 +187,10 @@ export function UnsaidCard({
           type="button"
           onClick={copy}
           aria-label="Copy text"
-          className="text-muted-foreground hover:text-foreground ml-auto p-1.5 transition-colors"
+          className={cn(
+            "text-muted-foreground hover:text-foreground p-1.5 transition-colors",
+            !hero && "ml-auto",
+          )}
         >
           <Copy className="size-4" aria-hidden />
         </button>
