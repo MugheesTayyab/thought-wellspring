@@ -6,7 +6,10 @@ import { WritingBox } from "@/components/bajihears/WritingBox";
 import { QuoteCardDialog } from "@/components/bajihears/QuoteCardDialog";
 import { RevealCountdown } from "@/components/bajihears/RevealCountdown";
 import { CornerMenu } from "@/components/bajihears/CornerMenu";
+import { Logo } from "@/components/bajihears/Logo";
+import { cn } from "@/lib/utils";
 import {
+  CATEGORIES,
   MOCK_UNSAIDS,
   REPORT_THRESHOLD,
   WINNER,
@@ -23,6 +26,7 @@ import {
   writeMyEchoes,
   writeMyReactions,
   writeMyReports,
+  type Category,
   type MyReactions,
   type ReactionKey,
   type Unsaid,
@@ -54,6 +58,7 @@ function Home() {
   const [failed, setFailed] = useState(false);
   const [unsaids, setUnsaids] = useState<Unsaid[]>([]);
   const [visible, setVisible] = useState(PAGE);
+  const [filters, setFilters] = useState<Category[]>([]);
   const [myReactions, setMyReactions] = useState<MyReactions>({});
   const [myEchoes, setMyEchoes] = useState<string[]>([]);
   const [myReports, setMyReports] = useState<string[]>([]);
@@ -63,7 +68,7 @@ function Home() {
   const [lastSubmitAt, setLastSubmitAt] = useState<number | null>(null);
   const [shareTarget, setShareTarget] = useState<Unsaid | null>(null);
   const sentinel = useRef<HTMLDivElement | null>(null);
-  const writeRef = useRef<HTMLDivElement | null>(null);
+  const backdrop = useRef<HTMLDivElement | null>(null);
 
   // MOCKED: simulated Wall fetch. Replace with a real query later.
   const load = useCallback(() => {
@@ -72,7 +77,7 @@ function Home() {
     window.setTimeout(() => {
       setUnsaids(MOCK_UNSAIDS);
       setLoading(false);
-    }, 500);
+    }, 400);
   }, []);
 
   useEffect(() => {
@@ -91,12 +96,37 @@ function Home() {
     load();
   }, [load]);
 
+  // Slow-moving backdrop behind fast-scrolling cards.
+  useEffect(() => {
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = 0;
+        backdrop.current?.style.setProperty("--wall-shift", `${window.scrollY}px`);
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, []);
+
   const wall = useMemo(
-    () => unsaids.filter((u) => !hiddenIds.includes(u.id)),
-    [unsaids, hiddenIds],
+    () =>
+      unsaids.filter(
+        (u) =>
+          !hiddenIds.includes(u.id) && (filters.length === 0 || filters.includes(u.category)),
+      ),
+    [unsaids, hiddenIds, filters],
   );
   const shown = wall.slice(0, visible);
   const atEnd = shown.length >= wall.length;
+
+  useEffect(() => {
+    setVisible(PAGE);
+  }, [filters]);
 
   useEffect(() => {
     const node = sentinel.current;
@@ -107,6 +137,9 @@ function Home() {
     io.observe(node);
     return () => io.disconnect();
   }, [atEnd, shown.length]);
+
+  const toggleFilter = (c: Category) =>
+    setFilters((prev) => (prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]));
 
   const onReact = (id: string, key: ReactionKey) => {
     // Optimistic: update instantly, never wait on a round trip.
@@ -166,33 +199,36 @@ function Home() {
   };
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-xl px-4 pb-24">
-      <header className="bg-background/85 sticky top-0 z-30 -mx-4 flex items-center justify-between px-4 py-3 backdrop-blur">
-        <span className="font-display text-brand-gradient text-lg">BajiHears</span>
-        <div className="flex items-center gap-3">
+    <div className="relative min-h-screen">
+      <div ref={backdrop} className="wall-backdrop" aria-hidden />
+
+      <div className="mx-auto w-full max-w-md px-5 pb-28">
+        <header className="bg-background/70 sticky top-0 z-30 -mx-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 py-3 backdrop-blur-md">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <Logo size={32} />
+            <span className="font-display text-brand-gradient truncate text-base">BajiHears</span>
+          </div>
           <CornerMenu seed={seed} />
-        </div>
-      </header>
+        </header>
 
-      <h1 className="sr-only">BajiHears — The Wall of Unsaids</h1>
+        <h1 className="sr-only">BajiHears — The Wall of Unsaids</h1>
 
-      <div className="mt-2 space-y-4">
-        <UnsaidCard
-          unsaid={WINNER.unsaid}
-          hero
-          hook={WINNER.hook}
-          mine={myReactions[WINNER.unsaid.id] ?? []}
-          echoed={myEchoes.includes(WINNER.unsaid.id)}
-          reported={myReports.includes(WINNER.unsaid.id)}
-          myHandle={handle}
-          onReact={onReact}
-          onEcho={onEcho}
-          onReport={onReport}
-          onShare={setShareTarget}
-        />
-        <RevealCountdown />
+        <div className="wall-3d mt-3 space-y-5">
+          <UnsaidCard
+            unsaid={WINNER.unsaid}
+            hero
+            hook={WINNER.hook}
+            mine={myReactions[WINNER.unsaid.id] ?? []}
+            echoed={myEchoes.includes(WINNER.unsaid.id)}
+            reported={myReports.includes(WINNER.unsaid.id)}
+            myHandle={handle}
+            onReact={onReact}
+            onEcho={onEcho}
+            onReport={onReport}
+            onShare={setShareTarget}
+          />
+          <RevealCountdown />
 
-        <div ref={writeRef}>
           <WritingBox
             lastSubmitAt={lastSubmitAt}
             myHandle={handle}
@@ -217,57 +253,99 @@ function Home() {
               setLastSubmitAt(ts);
             }}
           />
-        </div>
 
-        {loading && <FeedSkeleton count={3} />}
-
-        {!loading && failed && (
-          <div className="bg-card border-border rounded-2xl border p-6 text-center">
-            <p className="font-display text-xl">The Wall didn&apos;t load.</p>
-            <p className="text-muted-foreground mt-2 text-sm">Happens sometimes. Try once more?</p>
-            <button
-              type="button"
-              onClick={load}
-              className="bg-brand-gradient text-primary-foreground mt-4 rounded-xl px-5 py-2.5 text-sm font-semibold"
-            >
-              Try again
-            </button>
+          <div className="border-border/60 bg-card/60 -mx-1 rounded-3xl border px-3 py-3">
+            <div className="flex items-center justify-between gap-3 px-1">
+              <p className="text-muted-foreground text-[11px] tracking-widest uppercase">
+                What do you want to hear?
+              </p>
+              {filters.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setFilters([])}
+                  className="text-primary shrink-0 text-[11px]"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <div className="no-scrollbar mt-2 flex gap-2 overflow-x-auto px-1 pb-1">
+              {CATEGORIES.map((c) => {
+                const on = filters.includes(c);
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => toggleFilter(c)}
+                    className={cn(
+                      "shrink-0 rounded-full border px-3 py-1.5 text-[11px] transition-colors",
+                      on
+                        ? "border-primary bg-primary/15 text-foreground"
+                        : "border-border bg-secondary/40 text-muted-foreground",
+                    )}
+                  >
+                    {c}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        )}
 
-        {!loading && !failed && wall.length === 0 && (
-          <div className="bg-card border-border rounded-2xl border p-6 text-center">
-            <p className="font-display text-xl">Nothing here yet.</p>
-            <p className="text-muted-foreground mt-2 text-sm">
-              Be the first to say what you&apos;ve been holding back.
+          {loading && <FeedSkeleton count={3} />}
+
+          {!loading && failed && (
+            <div className="bg-card border-border rounded-3xl border p-5 text-center">
+              <p className="font-display text-lg">The Wall didn&apos;t load.</p>
+              <p className="text-muted-foreground mt-2 text-sm">
+                Happens sometimes. Try once more?
+              </p>
+              <button
+                type="button"
+                onClick={load}
+                className="bg-brand-gradient text-primary-foreground mt-4 rounded-2xl px-5 py-2.5 text-sm font-semibold"
+              >
+                Try again
+              </button>
+            </div>
+          )}
+
+          {!loading && !failed && wall.length === 0 && (
+            <div className="bg-card border-border rounded-3xl border p-5 text-center">
+              <p className="font-display text-lg">Nothing here yet.</p>
+              <p className="text-muted-foreground mt-2 text-sm">
+                {filters.length > 0
+                  ? "No Unsaids in these moods yet. Try another one."
+                  : "Be the first to say what you've been holding back."}
+              </p>
+            </div>
+          )}
+
+          {!loading &&
+            !failed &&
+            shown.map((u) => (
+              <UnsaidCard
+                key={u.id}
+                unsaid={u}
+                mine={myReactions[u.id] ?? []}
+                echoed={myEchoes.includes(u.id)}
+                reported={myReports.includes(u.id)}
+                myHandle={handle}
+                onReact={onReact}
+                onEcho={onEcho}
+                onReport={onReport}
+                onShare={setShareTarget}
+              />
+            ))}
+
+          {!loading && !failed && !atEnd && <div ref={sentinel} className="h-10" />}
+
+          {!loading && !failed && atEnd && wall.length > 0 && (
+            <p className="text-muted-foreground py-6 text-center text-sm">
+              You&apos;ve read them all. Come back at the next reveal.
             </p>
-          </div>
-        )}
-
-        {!loading &&
-          !failed &&
-          shown.map((u) => (
-            <UnsaidCard
-              key={u.id}
-              unsaid={u}
-              mine={myReactions[u.id] ?? []}
-              echoed={myEchoes.includes(u.id)}
-              reported={myReports.includes(u.id)}
-              myHandle={handle}
-              onReact={onReact}
-              onEcho={onEcho}
-              onReport={onReport}
-              onShare={setShareTarget}
-            />
-          ))}
-
-        {!loading && !failed && !atEnd && <div ref={sentinel} className="h-10" />}
-
-        {!loading && !failed && atEnd && wall.length > 0 && (
-          <p className="text-muted-foreground py-6 text-center text-sm">
-            You&apos;ve read them all. Come back at the next reveal.
-          </p>
-        )}
+          )}
+        </div>
       </div>
 
       <QuoteCardDialog unsaid={shareTarget} onClose={() => setShareTarget(null)} />

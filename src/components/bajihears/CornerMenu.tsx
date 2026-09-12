@@ -1,10 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Settings2, Share2, X } from "lucide-react";
 import { CornerAvatar } from "./CornerAvatar";
 
 export function CornerMenu({ seed }: { seed: string }) {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   const share = async () => {
     const url = typeof window !== "undefined" ? window.location.origin : "";
@@ -32,19 +40,26 @@ export function CornerMenu({ seed }: { seed: string }) {
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 backdrop-blur-md"
           onClick={() => setOpen(false)}
         >
           <div
-            className="bg-card border-border w-full max-w-sm rounded-2xl border p-4"
+            className="pop-in bg-card/95 border-border shadow-glow w-full max-w-xs rounded-3xl border p-5"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <CornerAvatar seed={seed} size={44} />
-                <p className="font-display text-lg">Your Public Corner</p>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <CornerAvatar seed={seed} size={40} />
+                <p className="font-display truncate text-base">Your Public Corner</p>
               </div>
-              <button type="button" onClick={() => setOpen(false)} aria-label="Close">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Close"
+                className="shrink-0"
+              >
                 <X className="text-muted-foreground size-5" />
               </button>
             </div>
@@ -52,7 +67,7 @@ export function CornerMenu({ seed }: { seed: string }) {
             <button
               type="button"
               onClick={share}
-              className="border-border bg-secondary/40 mt-4 flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold"
+              className="border-border bg-secondary/40 mt-5 flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold"
             >
               <Share2 className="text-primary size-4" aria-hidden />
               Share BajiHears
@@ -61,7 +76,7 @@ export function CornerMenu({ seed }: { seed: string }) {
             <Link
               to="/corner"
               onClick={() => setOpen(false)}
-              className="border-border bg-secondary/40 mt-2 flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold"
+              className="border-border bg-secondary/40 mt-2 flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold"
             >
               <Settings2 className="text-primary size-4" aria-hidden />
               Adjust your Corner
