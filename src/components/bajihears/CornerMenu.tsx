@@ -85,8 +85,9 @@ export function CornerMenu({ seed }: { seed: string }) {
               Adjust your Corner
             </Link>
           </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </>
   );
 }
