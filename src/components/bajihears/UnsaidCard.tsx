@@ -183,32 +183,22 @@ export function UnsaidCard({
           );
         })}
 
-        <button
-          type="button"
-          onClick={copy}
-          aria-label="Copy text"
-          className={cn(
-            "text-muted-foreground hover:text-foreground p-1.5 transition-colors",
-            !hero && "ml-auto",
-          )}
-        >
-          <Copy className="size-4" aria-hidden />
-        </button>
-        <button
-          type="button"
-          onClick={() => onShare(unsaid)}
-          aria-label="Share to Instagram Story"
-          className="text-muted-foreground hover:text-primary p-1.5 transition-colors"
-        >
-          <Instagram className="size-4" aria-hidden />
-        </button>
       </div>
 
-      {copied && <p className="text-primary mt-2 text-[11px]">Copied.</p>}
+      {copied && <p className="text-primary mt-2 text-center text-[11px]">Copied.</p>}
 
-      <div className="mt-3 flex items-center gap-4 text-xs">
+      <div
+        className={cn(
+          "mt-3 flex items-center gap-3 text-[11px]",
+          hero && "justify-center gap-4",
+        )}
+      >
         {unsaid.echoes.length > 0 && (
-          <button type="button" onClick={() => setOpenEchoes((v) => !v)} className="text-primary">
+          <button
+            type="button"
+            onClick={() => setOpenEchoes((v) => !v)}
+            className="text-primary shrink-0"
+          >
             {openEchoes
               ? "Hide Echoes"
               : `${unsaid.echoes.length} ${unsaid.echoes.length === 1 ? "Echo" : "Echoes"}`}
@@ -219,25 +209,44 @@ export function UnsaidCard({
           onClick={() => setEchoOpen((v) => !v)}
           disabled={echoed}
           className={cn(
-            "flex items-center gap-1",
+            "flex shrink-0 items-center gap-1",
             echoed ? "text-muted-foreground/60" : "text-muted-foreground hover:text-foreground",
           )}
         >
           <MessageCircle className="size-3.5" aria-hidden />
-          {echoed ? "You echoed this" : "Echo"}
+          {echoed ? "Echoed" : "Echo"}
         </button>
-        <button
-          type="button"
-          onClick={() => onReport(unsaid.id)}
-          disabled={reported}
-          className={cn(
-            "ml-auto flex items-center gap-1",
-            reported ? "text-muted-foreground/60" : "text-muted-foreground hover:text-destructive",
-          )}
-        >
-          <Flag className="size-3.5" aria-hidden />
-          {reported ? "Reported" : "Report"}
-        </button>
+
+        <div className={cn("flex items-center gap-1", !hero && "ml-auto")}>
+          <button
+            type="button"
+            onClick={copy}
+            aria-label="Copy text"
+            className="text-muted-foreground hover:text-foreground p-1 transition-colors"
+          >
+            <Copy className="size-3.5" aria-hidden />
+          </button>
+          <button
+            type="button"
+            onClick={() => onShare(unsaid)}
+            aria-label="Share to Instagram Story"
+            className="text-muted-foreground hover:text-primary p-1 transition-colors"
+          >
+            <Instagram className="size-3.5" aria-hidden />
+          </button>
+          <button
+            type="button"
+            onClick={() => onReport(unsaid.id)}
+            disabled={reported}
+            aria-label={reported ? "Reported" : "Report"}
+            className={cn(
+              "p-1 transition-colors",
+              reported ? "text-muted-foreground/60" : "text-muted-foreground hover:text-destructive",
+            )}
+          >
+            <Flag className="size-3.5" aria-hidden />
+          </button>
+        </div>
       </div>
 
       {openEchoes && unsaid.echoes.length > 0 && (
