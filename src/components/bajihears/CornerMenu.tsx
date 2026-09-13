@@ -44,47 +44,47 @@ export function CornerMenu({ seed }: { seed: string }) {
         createPortal(
           <div
             role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 backdrop-blur-md"
-          onClick={() => setOpen(false)}
-        >
-          <div
-            className="pop-in bg-card/95 border-border shadow-glow w-full max-w-xs rounded-3xl border p-5"
-            onClick={(e) => e.stopPropagation()}
+            aria-modal="true"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 backdrop-blur-md"
+            onClick={() => setOpen(false)}
           >
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <CornerAvatar seed={seed} size={40} />
-                <p className="font-display truncate text-base">Your Public Corner</p>
+            <div
+              className="pop-in bg-card/95 border-border shadow-glow w-full max-w-xs rounded-3xl border p-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <CornerAvatar seed={seed} size={40} />
+                  <p className="font-display truncate text-base">Your Public Corner</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  aria-label="Close"
+                  className="shrink-0"
+                >
+                  <X className="text-muted-foreground size-5" />
+                </button>
               </div>
+
               <button
                 type="button"
-                onClick={() => setOpen(false)}
-                aria-label="Close"
-                className="shrink-0"
+                onClick={share}
+                className="border-border bg-secondary/40 mt-5 flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold"
               >
-                <X className="text-muted-foreground size-5" />
+                <Share2 className="text-primary size-4" aria-hidden />
+                Share BajiHears
               </button>
+
+              <Link
+                to="/corner"
+                onClick={() => setOpen(false)}
+                className="border-border bg-secondary/40 mt-2 flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold"
+              >
+                <Settings2 className="text-primary size-4" aria-hidden />
+                Adjust your Corner
+              </Link>
             </div>
-
-            <button
-              type="button"
-              onClick={share}
-              className="border-border bg-secondary/40 mt-5 flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold"
-            >
-              <Share2 className="text-primary size-4" aria-hidden />
-              Share BajiHears
-            </button>
-
-            <Link
-              to="/corner"
-              onClick={() => setOpen(false)}
-              className="border-border bg-secondary/40 mt-2 flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold"
-            >
-              <Settings2 className="text-primary size-4" aria-hidden />
-              Adjust your Corner
-            </Link>
-          </div>
           </div>,
           document.body,
         )}
