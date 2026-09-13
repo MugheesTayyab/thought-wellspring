@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
 import { Settings2, Share2, X } from "lucide-react";
 import { CornerAvatar } from "./CornerAvatar";
@@ -38,9 +39,11 @@ export function CornerMenu({ seed }: { seed: string }) {
         <CornerAvatar seed={seed} />
       </button>
 
-      {open && (
-        <div
-          role="dialog"
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            role="dialog"
           aria-modal="true"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 backdrop-blur-md"
           onClick={() => setOpen(false)}
