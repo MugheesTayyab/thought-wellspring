@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PRESETS, presetByKey, type Unsaid } from "@/lib/bajihears";
+import { PRESETS, presetByKey, stripHandle, type Unsaid } from "@/lib/bajihears";
 
 const W = 1080;
 const H = 1350;
@@ -56,8 +56,8 @@ export function QuoteCardDialog({
     ctx.fillStyle = "rgba(0,0,0,0.14)";
     ctx.fillRect(0, 0, W, H);
 
-    const size = unsaid.text.length > 160 ? 60 : unsaid.text.length > 90 ? 72 : 88;
-    ctx.font = `700 ${size}px "Archivo Black", system-ui, sans-serif`;
+    const size = unsaid.text.length > 160 ? 56 : unsaid.text.length > 90 ? 68 : 84;
+    ctx.font = `800 ${size}px "Outfit", "Plus Jakarta Sans", system-ui, sans-serif`;
     ctx.textAlign = "center";
     ctx.fillStyle = preset.ink;
     const lines = wrap(ctx, unsaid.text, W - 200);
@@ -65,11 +65,11 @@ export function QuoteCardDialog({
     const start = H / 2 - ((lines.length - 1) * lh) / 2;
     lines.forEach((l, i) => ctx.fillText(l, W / 2, start + i * lh));
 
-    ctx.globalAlpha = 0.82;
-    ctx.font = '500 38px "Hind", system-ui, sans-serif';
-    ctx.fillText(unsaid.handle ?? "anonymous", W / 2, H - 190);
-    ctx.globalAlpha = 0.65;
-    ctx.font = '600 34px "Hind", system-ui, sans-serif';
+    ctx.globalAlpha = 0.85;
+    ctx.font = '600 38px "Plus Jakarta Sans", system-ui, sans-serif';
+    ctx.fillText(`@${stripHandle(unsaid.handle ?? "anonymous")}`, W / 2, H - 190);
+    ctx.globalAlpha = 0.7;
+    ctx.font = '800 34px "Outfit", system-ui, sans-serif';
     ctx.fillText("BajiHears", W / 2, H - 110);
     ctx.globalAlpha = 1;
 
