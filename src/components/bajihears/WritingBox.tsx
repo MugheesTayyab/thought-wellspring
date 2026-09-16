@@ -29,7 +29,7 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
   const [focused, setFocused] = useState(false);
   const [anonymous, setAnonymous] = useState(true);
   const [igHandle, setIgHandle] = useState(myHandle ? stripHandle(myHandle) : "");
-  const [category, setCategory] = useState<Category>("Confession");
+  const [category, setCategory] = useState<Category>("Spill The Tea");
   const [preset, setPreset] = useState(PRESETS[0]!.key);
   const [sending, setSending] = useState(false);
   const [now, setNow] = useState(() => Date.now());
@@ -52,12 +52,12 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
   if (locked) {
     return (
       <section className="bg-hero-gradient border-primary/30 rounded-3xl border p-5 text-center">
-        <p className="text-primary text-[11px] tracking-widest uppercase">Your Unsaid is live</p>
+        <p className="text-primary text-[11px] tracking-widest uppercase font-bold">Your tea is live ☕</p>
         <p className="font-display mt-2 text-xl">
-          Next one unlocks in {formatCountdown(unlockAt! - now)}
+          Next drop unlocks in {formatCountdown(unlockAt! - now)}
         </p>
         <p className="text-muted-foreground mt-2 text-xs">
-          One per cycle. Keep scrolling The Wall while you wait.
+          One drop per cycle. Keep reading The Wall while you wait.
         </p>
         <button
           type="button"
@@ -75,9 +75,14 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
   const valid = text.trim().length >= MIN_LEN && (anonymous || cleanIg.length >= 2);
 
   return (
-    <section className="bg-card border-border rounded-3xl border p-4 shadow-soft">
-      <div className="flex gap-3">
-        <div className="flex flex-col gap-2 pt-1">
+    <section
+      className={cn(
+        "bg-gradient-to-b from-white/[0.04] to-transparent bg-card border-white/12 shadow-soft hover:border-white/20 rounded-3xl border p-5 transition-all",
+        focused && "pb-24",
+      )}
+    >
+      <div>
+        <div className="mb-2 flex flex-row gap-2">
           {PRESETS.map((p) => (
             <button
               key={p.key}
@@ -87,44 +92,42 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
               onClick={() => setPreset(p.key)}
               style={{ backgroundImage: `linear-gradient(135deg, ${p.from}, ${p.to})` }}
               className={cn(
-                "size-4 rounded-full border transition-transform",
-                preset === p.key ? "border-primary scale-110" : "border-border/60",
+                "size-4 rounded-full border transition-all",
+                preset === p.key ? "border-primary scale-110 ring-2 ring-primary/40" : "border-white/20 opacity-70 hover:opacity-100",
               )}
             />
           ))}
         </div>
+        <p className="text-muted-foreground/70 mb-2 text-[10px] tracking-wide font-medium">
+          {PRESETS.find((p) => p.key === preset)!.name}
+        </p>
 
-        <div className="min-w-0 flex-1">
-          <textarea
-            value={text}
-            onFocus={() => setFocused(true)}
-            onChange={(e) => setText(e.target.value.slice(0, MAX_LEN))}
-            rows={2}
-            placeholder="Your words matter"
-            className="bg-secondary/40 border-border placeholder:text-muted-foreground/70 focus:ring-ring w-full resize-none rounded-2xl border p-3 text-[15px] leading-snug outline-none focus:ring-2"
-          />
-          <div className={cn("mt-1 flex items-center justify-between text-[11px]", counterTone)}>
-            <span className="text-muted-foreground truncate">
-              {PRESETS.find((p) => p.key === preset)!.name}
-            </span>
-            <span className="shrink-0 tabular-nums">
-              {text.length}/{MAX_LEN}
-            </span>
-          </div>
+        <textarea
+          value={text}
+          onFocus={() => setFocused(true)}
+          onChange={(e) => setText(e.target.value.slice(0, MAX_LEN))}
+          rows={2}
+          placeholder="Spill your tea or quiet thoughts..."
+          className="bg-white/[0.03] border-white/10 placeholder:text-muted-foreground/60 focus:border-primary/60 focus:ring-primary/20 w-full resize-none rounded-2xl border p-3.5 text-[15px] leading-relaxed outline-none focus:ring-2 transition-all font-vibe"
+        />
+        <div className={cn("mt-1.5 flex justify-end text-[11px] font-medium", counterTone)}>
+          <span className="shrink-0 tabular-nums">
+            {text.length}/{MAX_LEN}
+          </span>
         </div>
       </div>
 
       {open && (
         <div className="pop-in mt-3 space-y-3">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 font-vibe">
             <button
               type="button"
               onClick={() => setAnonymous(true)}
               className={cn(
-                "rounded-2xl border px-3 py-2.5 text-[13px] font-semibold transition-colors",
+                "rounded-2xl border px-3 py-2.5 text-[13px] font-semibold transition-all active:scale-95",
                 anonymous
-                  ? "border-primary bg-primary/15 text-foreground"
-                  : "border-border bg-secondary/40 text-muted-foreground",
+                  ? "border-primary/60 bg-primary/20 text-primary shadow-[0_0_10px_rgba(249,115,22,0.15)]"
+                  : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.07] hover:text-foreground",
               )}
             >
               Anonymous
@@ -133,10 +136,10 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
               type="button"
               onClick={() => setAnonymous(false)}
               className={cn(
-                "flex items-center justify-center gap-1.5 rounded-2xl border px-3 py-2.5 text-[13px] font-semibold transition-colors",
+                "flex items-center justify-center gap-1.5 rounded-2xl border px-3 py-2.5 text-[13px] font-semibold transition-all active:scale-95",
                 !anonymous
-                  ? "border-primary bg-primary/15 text-foreground"
-                  : "border-border bg-secondary/40 text-muted-foreground",
+                  ? "border-primary/60 bg-primary/20 text-primary shadow-[0_0_10px_rgba(249,115,22,0.15)]"
+                  : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.07] hover:text-foreground",
               )}
             >
               <Instagram className="size-4 shrink-0" aria-hidden />
@@ -145,8 +148,8 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
           </div>
 
           {!anonymous && (
-            <div className="border-border bg-secondary/40 flex items-center gap-1 rounded-2xl border px-3 py-2">
-              <span className="text-muted-foreground text-sm">@</span>
+            <div className="border-white/10 bg-white/[0.03] flex items-center gap-1.5 rounded-2xl border px-3.5 py-2.5 focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/20 transition-all font-vibe">
+              <span className="text-primary/90 text-sm font-semibold">@</span>
               <input
                 value={igHandle}
                 onChange={(e) => setIgHandle(stripHandle(e.target.value).slice(0, 30))}
@@ -154,22 +157,22 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
                 autoCapitalize="none"
                 autoCorrect="off"
                 aria-label="Your Instagram handle"
-                className="placeholder:text-muted-foreground/70 min-w-0 flex-1 bg-transparent text-sm outline-none"
+                className="placeholder:text-muted-foreground/60 min-w-0 flex-1 bg-transparent text-sm outline-none"
               />
             </div>
           )}
 
-          <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1">
+          <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 font-vibe">
             {CATEGORIES.map((c) => (
               <button
                 key={c}
                 type="button"
                 onClick={() => setCategory(c)}
                 className={cn(
-                  "shrink-0 rounded-full border px-3 py-1.5 text-[11px]",
+                  "shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all active:scale-95",
                   category === c
-                    ? "border-primary bg-primary/15 text-foreground"
-                    : "border-border bg-secondary/40 text-muted-foreground",
+                    ? "border-primary/60 bg-primary/20 text-primary shadow-[0_0_10px_rgba(249,115,22,0.15)]"
+                    : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.07] hover:text-foreground",
                 )}
               >
                 {c}
@@ -179,33 +182,41 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
         </div>
       )}
 
-      <button
-        type="button"
-        disabled={!valid || sending}
-        onClick={() => {
-          setSending(true);
-          window.setTimeout(() => {
-            onSubmit({
-              text: text.trim(),
-              handle: anonymous ? null : `@${cleanIg}`,
-              category,
-              preset,
-            });
-            setSending(false);
-            setText("");
-            setFocused(false);
-            setAnonymous(true);
-          }, 400);
-        }}
+      <div
         className={cn(
-          "mt-3 w-full rounded-2xl py-3 text-[15px] font-semibold transition-opacity",
-          valid && !sending
-            ? "bg-brand-gradient text-primary-foreground"
-            : "bg-secondary text-muted-foreground",
+          focused
+            ? "bg-background/90 border-border/40 fixed right-0 bottom-0 left-0 z-40 border-t px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+12px)] shadow-[0_-10px_30px_-10px_rgba(0,0,0,0.5)] backdrop-blur-md"
+            : "mt-3",
         )}
       >
-        {sending ? "letting it out…" : "Say it."}
-      </button>
+        <button
+          type="button"
+          disabled={!valid || sending}
+          onClick={() => {
+            setSending(true);
+            window.setTimeout(() => {
+              onSubmit({
+                text: text.trim(),
+                handle: anonymous ? null : `@${cleanIg}`,
+                category,
+                preset,
+              });
+              setSending(false);
+              setText("");
+              setFocused(false);
+              setAnonymous(true);
+            }, 400);
+          }}
+          className={cn(
+            "w-full rounded-2xl py-3 text-[15px] font-bold tracking-wide transition-opacity font-vibe",
+            valid && !sending
+              ? "bg-brand-gradient text-primary-foreground shadow-md"
+              : "bg-secondary text-muted-foreground",
+          )}
+        >
+          {sending ? "spill in progress…" : "Spill it ☕"}
+        </button>
+      </div>
     </section>
   );
 }
