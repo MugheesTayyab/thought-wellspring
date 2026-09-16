@@ -112,8 +112,8 @@ export function UnsaidCard({
       className={cn(
         "slide-in-card tilt-card relative overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1 select-none",
         hero
-          ? "bg-hero-gradient border-primary/50 shadow-glow p-6 sm:p-7 hover:shadow-[0_20px_60px_-15px_rgba(249,115,22,0.35)]"
-          : "bg-gradient-to-br from-card via-card/95 to-card/90 border border-white/12 hover:border-primary/40 shadow-soft hover:shadow-[0_16px_40px_-12px_rgba(249,115,22,0.22)] p-5 sm:p-6",
+          ? "bg-hero-gradient border-primary/50 shadow-glow p-4 sm:p-7 hover:shadow-[0_20px_60px_-15px_rgba(249,115,22,0.35)]"
+          : "bg-gradient-to-br from-card via-card/95 to-card/90 border border-white/12 hover:border-primary/40 shadow-soft hover:shadow-[0_16px_40px_-12px_rgba(249,115,22,0.22)] p-4 sm:p-6",
       )}
     >
       {/* Ambient background glow for Shade theme */}

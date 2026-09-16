@@ -218,7 +218,7 @@
 }
 
 
-/* Infinite 3D space backdrop that loops seamlessly without ever running out or cutting off. */
+/* Infinite hardware-accelerated backdrop. Fixed GPU layer for 60fps mobile scrolling. */
 @utility wall-backdrop {
   position: fixed;
   inset: 0;
@@ -231,8 +231,7 @@
     radial-gradient(800px 550px at 50% 1050px, color-mix(in oklab, var(--ember) 20%, transparent), transparent 75%);
   background-repeat: repeat-y;
   background-size: 100% 1200px;
-  background-position-y: calc(var(--wall-shift, 0px) * -0.18);
-  will-change: background-position;
+  transform: translate3d(0, 0, 0);
 }
 
 @utility wall-3d {
@@ -255,6 +254,23 @@
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* Mobile & Touch performance overrides — eliminates scroll jank & perspective glitches */
+@media (max-width: 768px), (hover: none) {
+  html, body {
+    overflow-x: hidden;
+    touch-action: manipulation;
+  }
+
+  .wall-3d {
+    perspective: none !important;
+  }
+
+  .tilt-card {
+    transform: none !important;
+    animation: none !important;
   }
 }
 

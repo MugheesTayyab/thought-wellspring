@@ -98,23 +98,6 @@ function Home() {
     load();
   }, [load]);
 
-  // Slow-moving backdrop behind fast-scrolling cards.
-  useEffect(() => {
-    let raf = 0;
-    const onScroll = () => {
-      if (raf) return;
-      raf = window.requestAnimationFrame(() => {
-        raf = 0;
-        backdrop.current?.style.setProperty("--wall-shift", `${window.scrollY}px`);
-      });
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      if (raf) window.cancelAnimationFrame(raf);
-    };
-  }, []);
-
   const wall = useMemo(
     () =>
       unsaids.filter(
@@ -217,7 +200,7 @@ function Home() {
     <div className="relative min-h-screen">
       <div ref={backdrop} className="wall-backdrop" aria-hidden />
 
-      <div className="mx-auto w-full max-w-md px-5 pb-32">
+      <div className="mx-auto w-full max-w-md px-4 sm:px-5 pb-[calc(8.5rem+env(safe-area-inset-bottom,0px))]">
         <header className="bg-background/80 border-b border-white/5 sticky top-0 z-30 -mx-5 flex items-center justify-between px-5 py-3.5 backdrop-blur-xl shadow-sm">
           <div className="flex items-center gap-2.5 shrink-0">
             <Logo size={32} />
@@ -372,7 +355,7 @@ function Home() {
       <QuoteCardDialog unsaid={shareTarget} onClose={() => setShareTarget(null)} />
 
       {/* Frosted Glassmorphic Bottom Navigation Bar */}
-      <nav aria-label="Main Navigation" className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-sm rounded-full border border-white/10 bg-[#120d0d]/80 px-6 py-2 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.7)] flex items-center justify-between">
+      <nav aria-label="Main Navigation" className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-sm rounded-full border border-white/10 bg-[#120d0d]/85 px-6 py-2.5 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] flex items-center justify-between">
         {/* Wall Tab */}
         <Link
           to="/"

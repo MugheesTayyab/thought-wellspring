@@ -108,7 +108,7 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
           onChange={(e) => setText(e.target.value.slice(0, MAX_LEN))}
           rows={2}
           placeholder="Spill your tea or quiet thoughts..."
-          className="bg-white/[0.03] border-white/10 placeholder:text-muted-foreground/60 focus:border-primary/60 focus:ring-primary/20 w-full resize-none rounded-2xl border p-3.5 text-[15px] leading-relaxed outline-none focus:ring-2 transition-all font-vibe"
+          className="bg-white/[0.03] border-white/10 placeholder:text-muted-foreground/60 focus:border-primary/60 focus:ring-primary/20 w-full resize-none rounded-2xl border p-3.5 text-base leading-relaxed outline-none focus:ring-2 transition-all font-vibe"
         />
         <div className={cn("mt-1.5 flex justify-end text-[11px] font-medium", counterTone)}>
           <span className="shrink-0 tabular-nums">
@@ -124,7 +124,7 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
               type="button"
               onClick={() => setAnonymous(true)}
               className={cn(
-                "rounded-2xl border px-3 py-2.5 text-[13px] font-semibold transition-all active:scale-95",
+                "rounded-2xl border px-3 py-2.5 text-[13px] font-semibold transition-all active:scale-95 min-h-[44px]",
                 anonymous
                   ? "border-primary/60 bg-primary/20 text-primary shadow-[0_0_10px_rgba(249,115,22,0.15)]"
                   : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.07] hover:text-foreground",
@@ -136,7 +136,7 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
               type="button"
               onClick={() => setAnonymous(false)}
               className={cn(
-                "flex items-center justify-center gap-1.5 rounded-2xl border px-3 py-2.5 text-[13px] font-semibold transition-all active:scale-95",
+                "flex items-center justify-center gap-1.5 rounded-2xl border px-3 py-2.5 text-[13px] font-semibold transition-all active:scale-95 min-h-[44px]",
                 !anonymous
                   ? "border-primary/60 bg-primary/20 text-primary shadow-[0_0_10px_rgba(249,115,22,0.15)]"
                   : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.07] hover:text-foreground",
@@ -148,7 +148,7 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
           </div>
 
           {!anonymous && (
-            <div className="border-white/10 bg-white/[0.03] flex items-center gap-1.5 rounded-2xl border px-3.5 py-2.5 focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/20 transition-all font-vibe">
+            <div className="border-white/10 bg-white/[0.03] flex items-center gap-1.5 rounded-2xl border px-3.5 py-2.5 focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/20 transition-all font-vibe min-h-[44px]">
               <span className="text-primary/90 text-sm font-semibold">@</span>
               <input
                 value={igHandle}
@@ -157,19 +157,19 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
                 autoCapitalize="none"
                 autoCorrect="off"
                 aria-label="Your Instagram handle"
-                className="placeholder:text-muted-foreground/60 min-w-0 flex-1 bg-transparent text-sm outline-none"
+                className="placeholder:text-muted-foreground/60 min-w-0 flex-1 bg-transparent text-base outline-none"
               />
             </div>
           )}
 
-          <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 font-vibe">
+          <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 font-vibe touch-pan-x">
             {CATEGORIES.map((c) => (
               <button
                 key={c}
                 type="button"
                 onClick={() => setCategory(c)}
                 className={cn(
-                  "shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all active:scale-95",
+                  "shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all active:scale-95 min-h-[36px]",
                   category === c
                     ? "border-primary/60 bg-primary/20 text-primary shadow-[0_0_10px_rgba(249,115,22,0.15)]"
                     : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.07] hover:text-foreground",
@@ -182,13 +182,7 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
         </div>
       )}
 
-      <div
-        className={cn(
-          focused
-            ? "bg-background/90 border-border/40 fixed right-0 bottom-0 left-0 z-40 border-t px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+12px)] shadow-[0_-10px_30px_-10px_rgba(0,0,0,0.5)] backdrop-blur-md"
-            : "mt-3",
-        )}
-      >
+      <div className="mt-3">
         <button
           type="button"
           disabled={!valid || sending}
@@ -208,7 +202,7 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
             }, 400);
           }}
           className={cn(
-            "w-full rounded-2xl py-3 text-[15px] font-bold tracking-wide transition-opacity font-vibe",
+            "w-full rounded-2xl py-3 text-[15px] font-bold tracking-wide transition-opacity font-vibe min-h-[44px]",
             valid && !sending
               ? "bg-brand-gradient text-primary-foreground shadow-md"
               : "bg-secondary text-muted-foreground",
