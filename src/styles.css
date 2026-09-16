@@ -33,6 +33,7 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ember: var(--ember);
@@ -40,29 +41,32 @@
   --color-warn: var(--warn);
   --font-display: "Archivo Black", system-ui, sans-serif;
   --font-sans: "Hind", system-ui, sans-serif;
+  --font-vibe: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-quote: "Playfair Display", Georgia, serif;
 }
 
 :root {
-  --radius: 1rem;
-  --background: oklch(0.145 0.008 32);
+  --radius: 1.25rem;
+  --background: oklch(0.085 0.008 30);
   --foreground: oklch(0.98 0.005 60);
-  --card: oklch(0.198 0.011 34);
+  --card: oklch(0.145 0.010 32);
   --card-foreground: oklch(0.98 0.005 60);
-  --popover: oklch(0.198 0.011 34);
+  --popover: oklch(0.18 0.012 34);
   --popover-foreground: oklch(0.98 0.005 60);
-  --primary: oklch(0.7 0.205 38);
-  --primary-foreground: oklch(0.145 0.008 32);
-  --secondary: oklch(0.25 0.014 34);
+  --primary: oklch(0.72 0.21 38);
+  --primary-foreground: oklch(0.14 0.008 32);
+  --secondary: oklch(0.20 0.012 34);
   --secondary-foreground: oklch(0.98 0.005 60);
-  --muted: oklch(0.24 0.012 34);
-  --muted-foreground: oklch(0.66 0.016 46);
-  --accent: oklch(0.28 0.038 35);
+  --muted: oklch(0.22 0.012 34);
+  --muted-foreground: oklch(0.68 0.015 46);
+  --accent: oklch(0.26 0.035 35);
   --accent-foreground: oklch(0.98 0.005 60);
-  --destructive: oklch(0.6 0.235 25);
+  --destructive: oklch(0.62 0.24 25);
   --destructive-foreground: oklch(0.98 0.005 60);
-  --border: oklch(0.26 0.013 36);
-  --input: oklch(0.27 0.014 36);
-  --ring: oklch(0.7 0.205 38);
+  --border: oklch(0.26 0.018 36);
+  --border-subtle: oklch(0.24 0.018 36);
+  --input: oklch(0.24 0.018 36);
+  --ring: oklch(0.72 0.21 38);
   --ember: oklch(0.76 0.17 62);
   --flame: oklch(0.58 0.235 25);
   --warn: oklch(0.8 0.16 80);
@@ -70,17 +74,18 @@
   --gradient-brand: linear-gradient(135deg, var(--ember), var(--flame));
   --gradient-hero: linear-gradient(
     160deg,
-    color-mix(in oklab, var(--ember) 13%, var(--card)),
-    var(--card) 65%
+    color-mix(in oklab, var(--ember) 18%, var(--card)),
+    var(--card) 70%
   );
   --shadow-glow:
-    0 0 0 1px color-mix(in oklab, var(--ember) 26%, transparent),
-    0 10px 40px -14px color-mix(in oklab, var(--flame) 34%, transparent),
-    0 30px 80px -40px color-mix(in oklab, var(--ember) 40%, transparent);
+    0 0 0 1px color-mix(in oklab, var(--ember) 35%, transparent),
+    0 12px 40px -10px color-mix(in oklab, var(--flame) 40%, transparent),
+    0 30px 90px -30px color-mix(in oklab, var(--ember) 45%, transparent);
   --shadow-card:
-    0 1px 0 0 color-mix(in oklab, var(--foreground) 5%, transparent) inset,
-    0 10px 28px -18px oklch(0 0 0 / 85%),
-    0 2px 6px -4px oklch(0 0 0 / 60%);
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.5),
+    0 16px 36px -16px rgba(0, 0, 0, 0.95),
+    0 2px 8px -2px rgba(0, 0, 0, 0.7);
 }
 
 
@@ -210,18 +215,21 @@
 }
 
 
-/* Static, slow-drifting backdrop behind a fast 3D-feeling scroll. */
+/* Infinite 3D space backdrop that loops seamlessly without ever running out or cutting off. */
 @utility wall-backdrop {
   position: fixed;
-  inset: -20% -10%;
+  inset: 0;
   z-index: -1;
   pointer-events: none;
-  background:
-    radial-gradient(60% 40% at 20% 12%, color-mix(in oklab, var(--ember) 22%, transparent), transparent 70%),
-    radial-gradient(55% 45% at 85% 30%, color-mix(in oklab, var(--flame) 20%, transparent), transparent 70%),
-    radial-gradient(70% 50% at 50% 95%, color-mix(in oklab, var(--ember) 14%, transparent), transparent 75%);
-  transform: translate3d(0, calc(var(--wall-shift, 0px) * 0.12), 0) scale(1.04);
-  will-change: transform;
+  background-color: var(--background);
+  background-image:
+    radial-gradient(700px 500px at 20% 200px, color-mix(in oklab, var(--ember) 26%, transparent), transparent 75%),
+    radial-gradient(650px 650px at 85% 650px, color-mix(in oklab, var(--flame) 24%, transparent), transparent 75%),
+    radial-gradient(800px 550px at 50% 1050px, color-mix(in oklab, var(--ember) 20%, transparent), transparent 75%);
+  background-repeat: repeat-y;
+  background-size: 100% 1200px;
+  background-position-y: calc(var(--wall-shift, 0px) * -0.18);
+  will-change: background-position;
 }
 
 @utility wall-3d {
@@ -255,3 +263,67 @@
     transform: none;
   }
 }
+
+@utility safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@utility float-up-particle {
+  animation: float-up-particle 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes float-up-particle {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.4) rotate(-10deg);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-20px) scale(1.35) rotate(5deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-80px) scale(0.9) rotate(15deg);
+  }
+}
+
+@utility font-vibe {
+  font-family: var(--font-vibe);
+}
+
+@utility font-quote {
+  font-family: var(--font-quote);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+
