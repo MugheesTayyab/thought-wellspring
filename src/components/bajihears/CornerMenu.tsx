@@ -35,7 +35,7 @@ export function CornerMenu({ seed }: { seed: string }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Your Public Corner"
-        className="rounded-full ring-2 ring-primary/40 hover:ring-primary transition-all p-0.5"
+        className="rounded-full ring-2 ring-primary/40 hover:ring-primary shadow-[0_0_12px_rgba(250,84,28,0.25)] hover:shadow-[0_0_20px_rgba(250,84,28,0.45)] transition-all duration-300 p-0.5 active:scale-95"
       >
         <CornerAvatar seed={seed} size={32} />
       </button>

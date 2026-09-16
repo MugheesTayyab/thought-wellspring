@@ -24,12 +24,12 @@ export const WarmthOrb: React.FC<WarmthOrbProps> = ({
       <button
         onClick={onClick}
         type="button"
-        className={`group relative flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 backdrop-blur-md transition-all duration-300 hover:border-primary/40 hover:bg-black/60 ${className}`}
+        className={`group relative flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-primary/10 via-[#181010]/80 to-[#120c0c]/90 px-3 py-1.5 backdrop-blur-xl transition-all duration-300 shadow-[0_2px_12px_rgba(250,84,28,0.2)] hover:border-primary/60 hover:shadow-[0_4px_20px_rgba(250,84,28,0.35)] active:scale-95 ${className}`}
         aria-label="View Warmth Points"
       >
         <div className="relative flex items-center justify-center">
           <div
-            className={`h-4 w-4 rounded-full transition-transform duration-300 group-hover:scale-110 ${
+            className={`h-3.5 w-3.5 rounded-full transition-transform duration-300 group-hover:scale-125 ${
               isFlashing ? "animate-ping" : "animate-pulse"
             }`}
             style={{
@@ -38,9 +38,11 @@ export const WarmthOrb: React.FC<WarmthOrbProps> = ({
             }}
           />
         </div>
-        <div className="flex items-baseline gap-1 font-mono text-xs font-semibold tracking-tight text-white/90">
-          <span>{totalWarmth.toLocaleString()}</span>
-          <span className="text-[10px] font-normal uppercase text-primary/80">Warmth</span>
+        <div className="flex items-center gap-1.5 font-display text-xs font-bold tracking-tight text-white">
+          <span className="text-sm font-extrabold text-brand-gradient">{totalWarmth.toLocaleString()}</span>
+          <span className="text-[11px] font-semibold text-amber-400 font-sans tracking-wide">
+            {currentTier.name}
+          </span>
         </div>
       </button>
     );
