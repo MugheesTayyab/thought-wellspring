@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Duel, DuelOption } from "../../lib/bajihears";
+import { Instagram } from "lucide-react";
+import { Duel, DuelOption, stripHandle, getInstagramUrl } from "../../lib/bajihears";
 
 interface DuelCardProps {
   duel: Duel;
@@ -67,7 +68,17 @@ export const DuelCard: React.FC<DuelCardProps> = ({
               </span>
             )}
             {opt.handle && (
-              <span className="font-mono text-primary/90 font-semibold">{opt.handle}</span>
+              <a
+                href={getInstagramUrl(opt.handle)!}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1 font-mono text-xs font-semibold text-primary hover:underline"
+                title={`Visit Instagram @${stripHandle(opt.handle)}`}
+              >
+                <Instagram className="size-3 text-primary shrink-0" aria-hidden />
+                <span>@{stripHandle(opt.handle)}</span>
+              </a>
             )}
           </div>
 

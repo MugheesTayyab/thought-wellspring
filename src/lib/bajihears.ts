@@ -280,6 +280,13 @@ export function stripHandle(value: string): string {
   return value.replace(/^@+/, "").replace(/\s+/g, "");
 }
 
+export function getInstagramUrl(handle: string | null): string | null {
+  if (!handle) return null;
+  const clean = stripHandle(handle);
+  if (!clean || clean.toLowerCase() === "anonymous") return null;
+  return `https://instagram.com/${clean}`;
+}
+
 /* ---------- Warmth & Duel Extensions ---------- */
 
 export type ActionType = "react" | "echo" | "post" | "share" | "duel" | "visit";

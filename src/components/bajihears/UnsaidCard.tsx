@@ -25,6 +25,8 @@ import {
   compactCount,
   presetByKey,
   relativeTime,
+  stripHandle,
+  getInstagramUrl,
   type ReactionKey,
   type Unsaid,
 } from "@/lib/bajihears";
@@ -180,9 +182,23 @@ export function UnsaidCard({
           hero && "justify-center",
         )}
       >
-        <span className="bg-white/5 border-white/10 font-semibold text-foreground/85 rounded-full border px-2.5 py-0.5 text-[11px] shadow-xs">
-          @{unsaid.handle ?? "anonymous"}
-        </span>
+        {unsaid.handle ? (
+          <a
+            href={getInstagramUrl(unsaid.handle)!}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary hover:bg-primary/20 hover:border-primary/70 transition-all shadow-xs"
+            title={`Visit Instagram @${stripHandle(unsaid.handle)}`}
+          >
+            <Instagram className="size-3 text-primary shrink-0" aria-hidden />
+            <span>@{stripHandle(unsaid.handle)}</span>
+          </a>
+        ) : (
+          <span className="bg-white/5 border-white/10 font-semibold text-foreground/85 rounded-full border px-2.5 py-0.5 text-[11px] shadow-xs">
+            @anonymous
+          </span>
+        )}
         <span aria-hidden className="opacity-30">
           ·
         </span>
@@ -343,9 +359,23 @@ export function UnsaidCard({
               className="text-foreground/90 font-vibe text-xs sm:text-sm leading-snug"
             >
               {echo.text}
-              <span className="text-muted-foreground ml-2 text-[11px] font-semibold">
-                @{echo.handle ?? "anonymous"}
-              </span>
+              {echo.handle ? (
+                <a
+                  href={getInstagramUrl(echo.handle)!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="ml-2 inline-flex items-center gap-1 font-semibold text-primary hover:underline text-[11px]"
+                  title={`Visit Instagram @${stripHandle(echo.handle)}`}
+                >
+                  <Instagram className="size-2.5 text-primary shrink-0" aria-hidden />
+                  <span>@{stripHandle(echo.handle)}</span>
+                </a>
+              ) : (
+                <span className="text-muted-foreground ml-2 text-[11px] font-semibold">
+                  @anonymous
+                </span>
+              )}
             </li>
           ))}
         </ul>
