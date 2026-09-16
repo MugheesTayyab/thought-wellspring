@@ -13,13 +13,8 @@ export function RevealCountdown({ className }: { className?: string }) {
   }, []);
 
   return (
-    <span
-      className={cn(
-        "text-muted-foreground border-border/80 bg-background/50 shrink-0 rounded-full border px-2.5 py-1 text-[10px] tracking-wider whitespace-nowrap uppercase",
-        className,
-      )}
-    >
-      {now === null ? "Next reveal soon" : `Next in ${formatShortCountdown(nextRevealAt(now) - now)}`}
+    <span className={className}>
+      {now === null ? "Will be posting on Instagram soon" : `Will be posting on Instagram in ${formatShortCountdown(nextRevealAt(now) - now)}`}
     </span>
   );
 }

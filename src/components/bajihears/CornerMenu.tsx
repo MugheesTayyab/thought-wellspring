@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
 import { Settings2, Share2, X } from "lucide-react";
 import { CornerAvatar } from "./CornerAvatar";
+import { Logo } from "./Logo";
 
 export function CornerMenu({ seed }: { seed: string }) {
   const [open, setOpen] = useState(false);
@@ -34,9 +35,9 @@ export function CornerMenu({ seed }: { seed: string }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Your Public Corner"
-        className="rounded-full"
+        className="rounded-full ring-2 ring-primary/40 hover:ring-primary transition-all p-0.5"
       >
-        <CornerAvatar seed={seed} />
+        <CornerAvatar seed={seed} size={32} />
       </button>
 
       {open &&

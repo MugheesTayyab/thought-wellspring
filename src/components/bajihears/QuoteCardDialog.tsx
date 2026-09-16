@@ -100,20 +100,20 @@ export function QuoteCardDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 sm:items-center">
-      <div className="bg-card border-border w-full max-w-sm rounded-2xl border p-4">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 backdrop-blur-md sm:items-center">
+      <div className="bg-gradient-to-b from-white/[0.05] to-transparent bg-card border-white/12 shadow-glow w-full max-w-sm rounded-3xl border p-5">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold">Share to your story</p>
-          <button type="button" onClick={onClose} aria-label="Close">
-            <X className="text-muted-foreground size-5" />
+          <p className="font-display text-sm font-semibold tracking-wide">Share to your story</p>
+          <button type="button" onClick={onClose} aria-label="Close" className="tap-44 grid place-items-center">
+            <X className="text-muted-foreground hover:text-foreground size-5 transition-colors" />
           </button>
         </div>
 
         <canvas ref={canvasRef} className="hidden" />
         {dataUrl ? (
-          <img src={dataUrl} alt="Shareable quote card preview" className="mt-3 w-full rounded-xl" />
+          <img src={dataUrl} alt="Shareable quote card preview" className="mt-3.5 w-full rounded-2xl border border-white/10 shadow-lg" />
         ) : (
-          <div className="bg-muted mt-3 aspect-[4/5] w-full animate-pulse rounded-xl" />
+          <div className="bg-white/5 mt-3.5 aspect-[4/5] w-full animate-pulse rounded-2xl" />
         )}
 
         <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto">
@@ -123,10 +123,10 @@ export function QuoteCardDialog({
               type="button"
               onClick={() => setPresetKey(p.key)}
               className={cn(
-                "shrink-0 rounded-full border px-3 py-1.5 text-xs",
+                "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-all active:scale-95",
                 presetKey === p.key
-                  ? "border-primary bg-primary/15 text-foreground"
-                  : "border-border bg-secondary/40 text-muted-foreground",
+                  ? "border-primary/60 bg-primary/20 text-primary shadow-[0_0_10px_rgba(249,115,22,0.15)]"
+                  : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.07] hover:text-foreground",
               )}
             >
               {p.name}
@@ -137,11 +137,11 @@ export function QuoteCardDialog({
         <button
           type="button"
           onClick={share}
-          className="bg-brand-gradient text-primary-foreground mt-3 w-full rounded-xl py-3 text-sm font-semibold"
+          className="bg-brand-gradient text-primary-foreground mt-4 w-full rounded-2xl py-3 text-sm font-semibold shadow-md active:scale-98 transition-transform"
         >
           Share to Instagram Story
         </button>
-        <p className="text-muted-foreground mt-2 text-center text-[11px]">
+        <p className="text-muted-foreground/70 mt-2.5 text-center text-[11px]">
           If sharing isn&apos;t available, the image saves to your photos instead.
         </p>
       </div>
