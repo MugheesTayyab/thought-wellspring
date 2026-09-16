@@ -12,11 +12,11 @@ export const REACTIONS: { key: ReactionKey; emoji: string; label: string }[] = [
 ];
 
 export const CATEGORIES = [
-  "Confession",
-  "Random Thought",
-  "Made-Up Story",
-  "A Quote",
-  "Advice Needed",
+  "Spill The Tea",
+  "Silent Thoughts",
+  "Plot Twist",
+  "Hard Truth",
+  "Vibe Check",
 ] as const;
 
 export type Category = (typeof CATEGORIES)[number];
@@ -77,7 +77,7 @@ export const WINNER: { unsaid: Unsaid; hook: string } = {
     text: "I still check if you've watched my story. Three years later.",
     handle: null,
     createdAt: now - 13 * HOUR,
-    category: "Confession",
+    category: "Spill The Tea",
     preset: "3am",
     reactions: r(4820, 1310, 2210, 990),
     echoes: [
@@ -99,7 +99,7 @@ export const MOCK_UNSAIDS: Unsaid[] = [
     text: "Mom, I got into the program. I just didn't know how to tell you I'm scared.",
     handle: "@aashir.writes",
     createdAt: now - 2 * HOUR,
-    category: "Confession",
+    category: "Spill The Tea",
     preset: "golden-hour",
     reactions: r(511, 402, 208, 377),
     echoes: [
@@ -111,7 +111,7 @@ export const MOCK_UNSAIDS: Unsaid[] = [
     text: "We were best friends for nine years and now I know you only through screenshots other people send me.",
     handle: null,
     createdAt: now - 4 * HOUR,
-    category: "Confession",
+    category: "Spill The Tea",
     preset: "quiet-storm",
     reactions: r(398, 350, 190, 221),
     echoes: [],
@@ -121,7 +121,7 @@ export const MOCK_UNSAIDS: Unsaid[] = [
     text: "Nobody warns you that healing is mostly boring.",
     handle: null,
     createdAt: now - 6 * HOUR,
-    category: "Random Thought",
+    category: "Silent Thoughts",
     preset: "midnight-static",
     reactions: r(430, 90, 300, 140),
     echoes: [],
@@ -131,7 +131,7 @@ export const MOCK_UNSAIDS: Unsaid[] = [
     text: "\"You can be a whole person and still be someone's unfinished sentence.\"",
     handle: "@lateshiftpoet",
     createdAt: now - 8 * HOUR,
-    category: "A Quote",
+    category: "Hard Truth",
     preset: "neon-ache",
     reactions: r(280, 160, 210, 96),
     echoes: [],
@@ -141,7 +141,7 @@ export const MOCK_UNSAIDS: Unsaid[] = [
     text: "My cousin is getting married to someone she met twice. Do I say something or is that not my place?",
     handle: null,
     createdAt: now - 10 * HOUR,
-    category: "Advice Needed",
+    category: "Vibe Check",
     preset: "3am",
     reactions: r(120, 44, 60, 88),
     echoes: [
@@ -153,7 +153,7 @@ export const MOCK_UNSAIDS: Unsaid[] = [
     text: "There is a girl in Lahore who writes letters to a boy who moved to a city that no longer exists on her map.",
     handle: null,
     createdAt: now - 14 * HOUR,
-    category: "Made-Up Story",
+    category: "Plot Twist",
     preset: "midnight-static",
     reactions: r(300, 240, 130, 150),
     echoes: [],
@@ -163,7 +163,7 @@ export const MOCK_UNSAIDS: Unsaid[] = [
     text: "Every night I rehearse conversations I'll never have. I'm getting really good at them.",
     handle: null,
     createdAt: now - 18 * HOUR,
-    category: "Confession",
+    category: "Spill The Tea",
     preset: "quiet-storm",
     reactions: r(255, 120, 240, 88),
     echoes: [],
@@ -173,7 +173,7 @@ export const MOCK_UNSAIDS: Unsaid[] = [
     text: "I forgave you out loud and I'm still working on the quiet part.",
     handle: null,
     createdAt: now - 26 * HOUR,
-    category: "Confession",
+    category: "Spill The Tea",
     preset: "golden-hour",
     reactions: r(210, 130, 150, 175),
     echoes: [],
@@ -279,3 +279,168 @@ export function compactCount(n: number): string {
 export function stripHandle(value: string): string {
   return value.replace(/^@+/, "").replace(/\s+/g, "");
 }
+
+/* ---------- Warmth & Duel Extensions ---------- */
+
+export type ActionType = "react" | "echo" | "post" | "share" | "duel" | "visit";
+
+export interface WarmthLogEntry {
+  id: string;
+  action: ActionType;
+  amount: number;
+  label: string;
+  timestamp: number;
+}
+
+export type DuelFormat = "self-relate" | "head-to-head";
+
+export type DuelOption = {
+  id: string;
+  text: string;
+  category?: Category;
+  handle?: string | null;
+};
+
+export type Duel = {
+  id: string;
+  format: DuelFormat;
+  prompt?: string;
+  optionA: DuelOption;
+  optionB: DuelOption;
+};
+
+export const MOCK_DUELS: Duel[] = [
+  {
+    id: "d1",
+    format: "self-relate",
+    prompt: "Which one is more you at 2 AM?",
+    optionA: {
+      id: "d1a",
+      text: "I re-read old texts just to feel that spark again, even though I know how it ends.",
+      category: "Spill The Tea",
+    },
+    optionB: {
+      id: "d1b",
+      text: "I act completely unbothered while calculating their exact active status online.",
+      category: "Silent Thoughts",
+    },
+  },
+  {
+    id: "d2",
+    format: "head-to-head",
+    prompt: "Which confession hits harder?",
+    optionA: {
+      id: "d2a",
+      text: "We were best friends for nine years and now I know you only through screenshots other people send me.",
+      handle: "@lateshiftpoet",
+      category: "Spill The Tea",
+    },
+    optionB: {
+      id: "d2b",
+      text: "I forgave you out loud and I'm still working on the quiet part.",
+      category: "Hard Truth",
+    },
+  },
+  {
+    id: "d3",
+    format: "self-relate",
+    prompt: "How do you handle unsaid feelings?",
+    optionA: {
+      id: "d3a",
+      text: "Write paragraphs in notes app, select all, and delete forever.",
+      category: "Plot Twist",
+    },
+    optionB: {
+      id: "d3b",
+      text: "Post a very specific song on story and hope only one person understands.",
+      category: "Vibe Check",
+    },
+  },
+  {
+    id: "d4",
+    format: "head-to-head",
+    prompt: "Which thought makes you feel less alone?",
+    optionA: {
+      id: "d4a",
+      text: "Nobody warns you that healing is mostly boring.",
+      category: "Silent Thoughts",
+    },
+    optionB: {
+      id: "d4b",
+      text: "You can be a whole person and still be someone's unfinished sentence.",
+      handle: "@aashir.writes",
+      category: "Hard Truth",
+    },
+  },
+  {
+    id: "d5",
+    format: "self-relate",
+    prompt: "Which type of ghosting hurts worse?",
+    optionA: {
+      id: "d5a",
+      text: "The sudden cut-off out of nowhere after talking every day.",
+      category: "Spill The Tea",
+    },
+    optionB: {
+      id: "d5b",
+      text: "The slow fade where reply times go from 5 mins to 3 days.",
+      category: "Vibe Check",
+    },
+  },
+  {
+    id: "d6",
+    format: "head-to-head",
+    prompt: "Which truth needs to be said louder?",
+    optionA: {
+      id: "d6a",
+      text: "Every night I rehearse conversations I'll never have. I'm getting really good at them.",
+      category: "Spill The Tea",
+    },
+    optionB: {
+      id: "d6b",
+      text: "There is a girl in Lahore who writes letters to a boy who moved to a city that no longer exists on her map.",
+      category: "Plot Twist",
+    },
+  },
+];
+
+/* ---------- Warmth & Duel Local Storage Keys ---------- */
+
+const WARMTH_KEY = "bh:warmth";
+const WARMTH_LOG_KEY = "bh:warmthLog";
+const DAILY_CAP_KEY = "bh:dailyCap";
+const STREAK_KEY = "bh:streak";
+const MILESTONES_KEY = "bh:milestonesClaimed";
+const CALLSIGN_KEY = "bh:callSign";
+const DUELS_ANSWERED_KEY = "bh:duelAnswered";
+
+export const readWarmth = () => read<number>(WARMTH_KEY, 0);
+export const writeWarmth = (v: number) => write(WARMTH_KEY, v);
+
+export const readWarmthLog = () => read<WarmthLogEntry[]>(WARMTH_LOG_KEY, []);
+export const writeWarmthLog = (v: WarmthLogEntry[]) => write(WARMTH_LOG_KEY, v);
+
+export interface DailyCapState {
+  dateKey: string;
+  amountEarned: number;
+}
+export const readDailyCap = () => read<DailyCapState>(DAILY_CAP_KEY, { dateKey: "", amountEarned: 0 });
+export const writeDailyCap = (v: DailyCapState) => write(DAILY_CAP_KEY, v);
+
+export interface StreakState {
+  count: number;
+  lastVisitDate: string;
+}
+export const readStreak = () => read<StreakState>(STREAK_KEY, { count: 0, lastVisitDate: "" });
+export const writeStreak = (v: StreakState) => write(STREAK_KEY, v);
+
+export const readMilestonesClaimed = () => read<number[]>(MILESTONES_KEY, []);
+export const writeMilestonesClaimed = (v: number[]) => write(MILESTONES_KEY, v);
+
+export const readCallSign = () => read<string | null>(CALLSIGN_KEY, null);
+export const writeCallSign = (v: string | null) => write(CALLSIGN_KEY, v);
+
+export type AnsweredDuelRecord = Record<string, { choiceIndex: 0 | 1; pctA: number; pctB: number; answeredAt: number }>;
+export const readAnsweredDuels = () => read<AnsweredDuelRecord>(DUELS_ANSWERED_KEY, {});
+export const writeAnsweredDuels = (v: AnsweredDuelRecord) => write(DUELS_ANSWERED_KEY, v);
+
