@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { MOCK_DUELS, readAnsweredDuels, writeAnsweredDuels } from "@/lib/bajihears";
 import { generateSplit } from "@/lib/warmth";
 import { DuelCard } from "@/components/bajihears/DuelCard";
 import { WarmthOrb } from "@/components/bajihears/WarmthOrb";
-import { useWarmth } from "./__root";
+import { BottomNav } from "@/components/bajihears/BottomNav";
+import { useWarmth } from "@/lib/warmth-context";
 
 export const Route = createFileRoute("/duel")({
   head: () => ({
@@ -13,7 +14,8 @@ export const Route = createFileRoute("/duel")({
       { title: "The Duel — Which One Is You? | BajiHears" },
       {
         name: "description",
-        content: "Snackable confession duels. Choose which confession speaks to your soul and earn Warmth Points.",
+        content:
+          "Snackable confession duels. Choose which confession speaks to your soul and earn Warmth Points.",
       },
       { property: "og:title", content: "The Duel — BajiHears" },
       {
@@ -27,12 +29,19 @@ export const Route = createFileRoute("/duel")({
 });
 
 function DuelPage() {
-  const { totalWarmth, awardWarmth, openWarmthSheet } = useWarmth();
+  const { totalWarmth, awardWarmth, openWarmthSheet, isFlashingOrb } = useWarmth();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answeredRecord, setAnsweredRecord] = useState(() => readAnsweredDuels());
+  const [answeredRecord, setAnsweredRecord] = useState<Record<string, unknown>>({});
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setAnsweredRecord(readAnsweredDuels());
+    setMounted(true);
+  }, []);
 
   const currentDuel = MOCK_DUELS[currentIndex % MOCK_DUELS.length] ?? MOCK_DUELS[0]!;
-  const existingAnswer = answeredRecord[currentDuel.id] ?? null;
+  const existingAnswer =
+    (answeredRecord as ReturnType<typeof readAnsweredDuels>)[currentDuel.id] ?? null;
 
   const handleAnswer = (choiceIndex: 0 | 1) => {
     if (existingAnswer) return;
@@ -61,34 +70,30 @@ function DuelPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-[#0F0A0A] text-white flex flex-col items-center justify-between p-4 md:p-8">
+    <div className="relative min-h-screen w-full bg-[#0F0A0A] text-white flex flex-col items-center p-4 pb-32 sm:pb-36 md:p-8 md:pb-36">
       {/* Background Glow */}
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent opacity-60" />
 
       {/* Top Header */}
-      <header className="relative z-10 w-full max-w-4xl flex items-center justify-between py-4 border-b border-white/10">
+      <header className="relative z-10 w-full max-w-2xl flex items-center justify-between py-3 border-b border-white/10">
         <Link
           to="/"
-          className="flex items-center gap-2 text-xs font-semibold text-white/70 hover:text-white transition-colors"
+          className="flex items-center gap-1.5 text-xs font-semibold text-white/70 hover:text-white transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Back to Wall</span>
         </Link>
 
-        <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+        <h1 className="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
           <span>The Duel</span>
           <span className="text-xs text-primary font-mono">⚔️</span>
         </h1>
 
-        <WarmthOrb
-          totalWarmth={totalWarmth}
-          mini
-          onClick={openWarmthSheet}
-        />
+        <WarmthOrb totalWarmth={totalWarmth} mini onClick={openWarmthSheet} />
       </header>
 
       {/* Main Duel Content */}
-      <main className="relative z-10 my-auto py-8 w-full flex flex-col items-center justify-center">
+      <main className="relative z-10 my-auto py-5 sm:py-8 w-full flex flex-col items-center justify-center">
         <DuelCard
           duel={currentDuel}
           answeredState={existingAnswer}
@@ -98,19 +103,29 @@ function DuelPage() {
       </main>
 
       {/* Bottom Footer Stats */}
-      <footer className="relative z-10 w-full max-w-4xl pt-4 border-t border-white/10 flex items-center justify-between text-xs text-white/50">
-        <span>
-          Duels Answered: <strong className="text-white">{Object.keys(answeredRecord).length}</strong>
+      <footer className="relative z-10 w-full max-w-2xl mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-white/50">
+        <span suppressHydrationWarning>
+          Duels Answered:{" "}
+          <strong suppressHydrationWarning className="text-white font-mono">
+            {mounted ? Object.keys(answeredRecord).length : 0}
+          </strong>
         </span>
         <button
           type="button"
           onClick={openWarmthSheet}
-          className="hover:text-primary transition-colors flex items-center gap-1"
+          className="hover:text-primary transition-colors flex items-center gap-1 cursor-pointer font-mono"
         >
-          <span>Earned {totalWarmth} Warmth</span>
+          <span suppressHydrationWarning>Earned {totalWarmth} Warmth</span>
           <span>🔥</span>
         </button>
       </footer>
+
+      {/* Shared Bottom Navigation */}
+      <BottomNav
+        totalWarmth={totalWarmth}
+        isFlashingOrb={isFlashingOrb}
+        onOpenWarmthSheet={openWarmthSheet}
+      />
     </div>
   );
 }
