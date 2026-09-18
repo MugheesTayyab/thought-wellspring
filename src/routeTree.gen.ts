@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CornerRouteImport } from './routes/corner'
 import { Route as DuelRouteImport } from './routes/duel'
+import { Route as ReadRouteImport } from './routes/read'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const DuelRoute = DuelRouteImport.update({
   path: '/duel',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReadRoute = ReadRouteImport.update({
+  id: '/read',
+  path: '/read',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/corner': typeof CornerRoute
   '/duel': typeof DuelRoute
+  '/read': typeof ReadRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/corner': typeof CornerRoute
   '/duel': typeof DuelRoute
+  '/read': typeof ReadRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/corner': typeof CornerRoute
   '/duel': typeof DuelRoute
+  '/read': typeof ReadRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/corner' | '/duel'
+  fullPaths: '/' | '/corner' | '/duel' | '/read'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/corner' | '/duel'
-  id: '__root__' | '/' | '/corner' | '/duel'
+  to: '/' | '/corner' | '/duel' | '/read'
+  id: '__root__' | '/' | '/corner' | '/duel' | '/read'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CornerRoute: typeof CornerRoute
   DuelRoute: typeof DuelRoute
+  ReadRoute: typeof ReadRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DuelRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/read': {
+      id: '/read'
+      path: '/read'
+      fullPath: '/read'
+      preLoaderRoute: typeof ReadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CornerRoute: CornerRoute,
   DuelRoute: DuelRoute,
+  ReadRoute: ReadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
