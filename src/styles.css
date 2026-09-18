@@ -49,13 +49,13 @@
   --radius: 1.25rem;
   --background: oklch(0.085 0.008 30);
   --foreground: oklch(0.98 0.005 60);
-  --card: oklch(0.145 0.010 32);
+  --card: oklch(0.145 0.01 32);
   --card-foreground: oklch(0.98 0.005 60);
   --popover: oklch(0.18 0.012 34);
   --popover-foreground: oklch(0.98 0.005 60);
   --primary: oklch(0.72 0.21 38);
   --primary-foreground: oklch(0.14 0.008 32);
-  --secondary: oklch(0.20 0.012 34);
+  --secondary: oklch(0.2 0.012 34);
   --secondary-foreground: oklch(0.98 0.005 60);
   --muted: oklch(0.22 0.012 34);
   --muted-foreground: oklch(0.68 0.015 46);
@@ -82,12 +82,9 @@
     0 12px 40px -10px color-mix(in oklab, var(--flame) 40%, transparent),
     0 30px 90px -30px color-mix(in oklab, var(--ember) 45%, transparent);
   --shadow-card:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
-    inset 0 -1px 0 0 rgba(0, 0, 0, 0.5),
-    0 16px 36px -16px rgba(0, 0, 0, 0.95),
-    0 2px 8px -2px rgba(0, 0, 0, 0.7);
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 0 rgba(0, 0, 0, 0.5),
+    0 16px 36px -16px rgba(0, 0, 0, 0.95), 0 2px 8px -2px rgba(0, 0, 0, 0.7);
 }
-
 
 @layer base {
   * {
@@ -217,7 +214,6 @@
   }
 }
 
-
 /* Infinite hardware-accelerated backdrop. Fixed GPU layer for 60fps mobile scrolling. */
 @utility wall-backdrop {
   position: fixed;
@@ -226,9 +222,21 @@
   pointer-events: none;
   background-color: var(--background);
   background-image:
-    radial-gradient(700px 500px at 20% 200px, color-mix(in oklab, var(--ember) 26%, transparent), transparent 75%),
-    radial-gradient(650px 650px at 85% 650px, color-mix(in oklab, var(--flame) 24%, transparent), transparent 75%),
-    radial-gradient(800px 550px at 50% 1050px, color-mix(in oklab, var(--ember) 20%, transparent), transparent 75%);
+    radial-gradient(
+      700px 500px at 20% 200px,
+      color-mix(in oklab, var(--ember) 26%, transparent),
+      transparent 75%
+    ),
+    radial-gradient(
+      650px 650px at 85% 650px,
+      color-mix(in oklab, var(--flame) 24%, transparent),
+      transparent 75%
+    ),
+    radial-gradient(
+      800px 550px at 50% 1050px,
+      color-mix(in oklab, var(--ember) 20%, transparent),
+      transparent 75%
+    );
   background-repeat: repeat-y;
   background-size: 100% 1200px;
   transform: translate3d(0, 0, 0);
@@ -259,7 +267,8 @@
 
 /* Mobile & Touch performance overrides — eliminates scroll jank & perspective glitches */
 @media (max-width: 768px), (hover: none) {
-  html, body {
+  html,
+  body {
     overflow-x: hidden;
     touch-action: manipulation;
   }
@@ -360,4 +369,47 @@
   }
 }
 
+@utility archetype-reveal {
+  animation: archetype-reveal 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+}
 
+@keyframes archetype-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.6) rotate(-8deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@utility read-pulse {
+  animation: read-pulse 3.5s ease-in-out infinite;
+}
+
+@keyframes read-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+
+@utility nav-dot-pulse {
+  animation: nav-dot-pulse 2s ease-in-out infinite;
+}
+
+@keyframes nav-dot-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+  }
+}
