@@ -14,7 +14,9 @@ export function RevealCountdown({ className }: { className?: string }) {
 
   return (
     <span className={className}>
-      {now === null ? "Will be posting on Instagram soon" : `Will be posting on Instagram in ${formatShortCountdown(nextRevealAt(now) - now)}`}
+      {now === null
+        ? "Will be posting on Instagram soon"
+        : `Will be posting on Instagram in ${formatShortCountdown(nextRevealAt(now) - now)}`}
     </span>
   );
 }

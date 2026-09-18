@@ -112,15 +112,15 @@ export function UnsaidCard({
     <article
       onPointerUp={onCardPointerUp}
       className={cn(
-        "slide-in-card tilt-card relative overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1 select-none",
+        "slide-in-card tilt-card relative overflow-hidden rounded-2xl sm:rounded-3xl transition-all duration-200 select-none",
         hero
-          ? "bg-hero-gradient border-primary/50 shadow-glow p-4 sm:p-7 hover:shadow-[0_20px_60px_-15px_rgba(249,115,22,0.35)]"
-          : "bg-gradient-to-br from-card via-card/95 to-card/90 border border-white/12 hover:border-primary/40 shadow-soft hover:shadow-[0_16px_40px_-12px_rgba(249,115,22,0.22)] p-4 sm:p-6",
+          ? "bg-hero-gradient border-primary/40 shadow-glow p-4 sm:p-6 hover:shadow-[0_20px_50px_-15px_rgba(249,115,22,0.3)]"
+          : "bg-gradient-to-br from-card via-card/95 to-card/90 border border-white/10 hover:border-primary/30 shadow-soft p-4 sm:p-5",
       )}
     >
       {/* Ambient background glow for Shade theme */}
       <div
-        className="pointer-events-none absolute -top-12 -right-12 size-40 rounded-full opacity-40 blur-2xl"
+        className="pointer-events-none absolute -top-12 -right-12 size-40 rounded-full opacity-35 blur-2xl"
         style={{
           background: `radial-gradient(circle, ${preset.from} 0%, ${preset.to} 100%)`,
         }}
@@ -129,7 +129,7 @@ export function UnsaidCard({
 
       {/* Decorative Quote Mark Watermark */}
       <span
-        className="font-quote text-primary/10 pointer-events-none absolute -top-3 left-2 text-7xl select-none"
+        className="font-quote text-primary/8 pointer-events-none absolute -top-3 left-2 text-6xl sm:text-7xl select-none"
         aria-hidden
       >
         “
@@ -154,12 +154,12 @@ export function UnsaidCard({
 
       {/* Hero Badge */}
       {hero && (
-        <div className="relative z-10 mb-4 text-center">
-          <span className="bg-brand-gradient text-primary-foreground inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[11px] font-extrabold tracking-widest uppercase shadow-md">
-            <Sparkles className="size-3.5 fill-current" aria-hidden />
-            Most Echoed Tea 👑
+        <div className="relative z-10 mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+          <span className="bg-brand-gradient text-primary-foreground inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold tracking-wider uppercase shadow-xs">
+            <Sparkles className="size-3 fill-current" aria-hidden />
+            Top Echoed Tea 👑
           </span>
-          <RevealCountdown className="text-primary/95 mt-3 block text-center text-sm font-semibold tracking-wide" />
+          <RevealCountdown className="text-primary/90 text-xs font-semibold tracking-wide" />
         </div>
       )}
 
@@ -168,8 +168,8 @@ export function UnsaidCard({
         className={cn(
           "text-foreground text-balance relative z-10 font-vibe tracking-normal leading-relaxed text-foreground/95",
           hero
-            ? "font-display text-center text-xl sm:text-2xl font-extrabold tracking-wide"
-            : "text-[16px] sm:text-[17px] font-medium",
+            ? "font-display text-center text-lg sm:text-2xl font-bold tracking-tight"
+            : "text-[15px] sm:text-[16px] font-normal",
         )}
       >
         {unsaid.text}
@@ -178,7 +178,7 @@ export function UnsaidCard({
       {/* Post Metadata & Vibe Badges */}
       <div
         className={cn(
-          "relative z-10 mt-3.5 flex flex-wrap items-center gap-2 text-[12px] font-vibe",
+          "relative z-10 mt-3 flex flex-wrap items-center gap-2 text-[11px] sm:text-xs font-vibe",
           hero && "justify-center",
         )}
       >
@@ -188,14 +188,14 @@ export function UnsaidCard({
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary hover:bg-primary/20 hover:border-primary/70 transition-all shadow-xs"
+            className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary hover:bg-primary/20 hover:border-primary/70 transition-all shadow-xs"
             title={`Visit Instagram @${stripHandle(unsaid.handle)}`}
           >
             <Instagram className="size-3 text-primary shrink-0" aria-hidden />
             <span>@{stripHandle(unsaid.handle)}</span>
           </a>
         ) : (
-          <span className="bg-white/5 border-white/10 font-semibold text-foreground/85 rounded-full border px-2.5 py-0.5 text-[11px] shadow-xs">
+          <span className="bg-white/5 border-white/10 font-medium text-foreground/80 rounded-full border px-2 py-0.5 text-[11px] shadow-xs">
             @anonymous
           </span>
         )}
@@ -208,7 +208,7 @@ export function UnsaidCard({
         <span aria-hidden className="opacity-30">
           ·
         </span>
-        <span className="border-ember/30 bg-gradient-to-r from-ember/15 to-flame/15 text-ember rounded-full border px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase">
+        <span className="border-ember/30 bg-gradient-to-r from-ember/15 to-flame/15 text-ember rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase">
           #{unsaid.category.toLowerCase().replace(/\s+/g, "")}
         </span>
         <span
@@ -221,12 +221,7 @@ export function UnsaidCard({
       </div>
 
       {/* Row 1 — Tactile Reaction Chips */}
-      <div
-        className={cn(
-          "border-white/10 relative z-10 mt-4 grid grid-cols-4 gap-2 border-t pt-3.5",
-          hero && "gap-2",
-        )}
-      >
+      <div className="border-white/8 relative z-10 mt-3.5 grid grid-cols-4 gap-1.5 sm:gap-2 border-t pt-3">
         {REACTIONS.map((rx) => {
           const active = mine.includes(rx.key);
           const Icon = REACTION_ICON[rx.key];
@@ -238,10 +233,10 @@ export function UnsaidCard({
               aria-pressed={active}
               onClick={() => react(rx.key)}
               className={cn(
-                "flex min-h-[44px] min-w-0 items-center justify-center gap-1.5 rounded-2xl border text-xs font-bold tabular-nums transition-all duration-200 active:scale-95 hover:scale-[1.03]",
+                "flex h-8 sm:h-9 min-w-0 items-center justify-center gap-1 sm:gap-1.5 rounded-full border text-[11px] sm:text-xs font-semibold tabular-nums transition-all duration-150 active:scale-95",
                 active
-                  ? "border-primary/70 bg-gradient-to-r from-ember/20 to-flame/20 text-primary shadow-[0_0_15px_rgba(249,115,22,0.25)]"
-                  : "border-white/10 bg-white/[0.04] text-muted-foreground hover:bg-white/[0.08] hover:border-white/20 hover:text-foreground",
+                  ? "border-primary/60 bg-primary/15 text-primary shadow-[0_0_12px_rgba(250,84,28,0.2)]"
+                  : "border-white/8 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.06] hover:border-white/15 hover:text-foreground",
               )}
             >
               <span
@@ -252,14 +247,11 @@ export function UnsaidCard({
                 )}
               >
                 <Icon
-                  className={cn(
-                    "size-4",
-                    active && "text-primary fill-current drop-shadow-sm",
-                  )}
+                  className={cn("size-3.5", active && "text-primary fill-current")}
                   aria-hidden
                 />
               </span>
-              <span>{compactCount(unsaid.reactions[rx.key])}</span>
+              <span className="truncate">{compactCount(unsaid.reactions[rx.key])}</span>
             </button>
           );
         })}
@@ -288,10 +280,7 @@ export function UnsaidCard({
               echoed && "text-primary font-bold",
             )}
           >
-            <MessageCircle
-              className="size-4 shrink-0 text-primary/90"
-              aria-hidden
-            />
+            <MessageCircle className="size-4 shrink-0 text-primary/90" aria-hidden />
             <span>
               {unsaid.echoes.length > 0
                 ? `${unsaid.echoes.length} ${unsaid.echoes.length === 1 ? "Echo" : "Echoes"}`
@@ -343,9 +332,7 @@ export function UnsaidCard({
             )}
           >
             <Flag className="size-3.5" aria-hidden />
-            <span className="hidden sm:inline">
-              {reported ? "Reported" : "Report"}
-            </span>
+            <span className="hidden sm:inline">{reported ? "Reported" : "Report"}</span>
           </button>
         </div>
       </div>

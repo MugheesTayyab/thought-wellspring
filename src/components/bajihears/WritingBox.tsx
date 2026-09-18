@@ -52,7 +52,9 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
   if (locked) {
     return (
       <section className="bg-hero-gradient border-primary/30 rounded-3xl border p-5 text-center">
-        <p className="text-primary text-[11px] tracking-widest uppercase font-bold">Your tea is live ☕</p>
+        <p className="text-primary text-[11px] tracking-widest uppercase font-bold">
+          Your tea is live ☕
+        </p>
         <p className="font-display mt-2 text-xl">
           Next drop unlocks in {formatCountdown(unlockAt! - now)}
         </p>
@@ -75,12 +77,7 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
   const valid = text.trim().length >= MIN_LEN && (anonymous || cleanIg.length >= 2);
 
   return (
-    <section
-      className={cn(
-        "bg-gradient-to-b from-white/[0.04] to-transparent bg-card border-white/12 shadow-soft hover:border-white/20 rounded-3xl border p-5 transition-all",
-        focused && "pb-24",
-      )}
-    >
+    <section className="bg-gradient-to-b from-white/[0.04] to-transparent bg-card border-white/10 shadow-soft hover:border-white/20 rounded-2xl sm:rounded-3xl border p-4 sm:p-5 transition-all">
       <div>
         <div className="mb-2 flex flex-row gap-2">
           {PRESETS.map((p) => (
@@ -93,7 +90,9 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
               style={{ backgroundImage: `linear-gradient(135deg, ${p.from}, ${p.to})` }}
               className={cn(
                 "size-4 rounded-full border transition-all",
-                preset === p.key ? "border-primary scale-110 ring-2 ring-primary/40" : "border-white/20 opacity-70 hover:opacity-100",
+                preset === p.key
+                  ? "border-primary scale-110 ring-2 ring-primary/40"
+                  : "border-white/20 opacity-70 hover:opacity-100",
               )}
             />
           ))}

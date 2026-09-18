@@ -104,14 +104,23 @@ export function QuoteCardDialog({
       <div className="bg-gradient-to-b from-white/[0.05] to-transparent bg-card border-white/12 shadow-glow w-full max-w-sm rounded-3xl border p-5">
         <div className="flex items-center justify-between">
           <p className="font-display text-sm font-semibold tracking-wide">Share to your story</p>
-          <button type="button" onClick={onClose} aria-label="Close" className="tap-44 grid place-items-center">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="tap-44 grid place-items-center"
+          >
             <X className="text-muted-foreground hover:text-foreground size-5 transition-colors" />
           </button>
         </div>
 
         <canvas ref={canvasRef} className="hidden" />
         {dataUrl ? (
-          <img src={dataUrl} alt="Shareable quote card preview" className="mt-3.5 w-full rounded-2xl border border-white/10 shadow-lg" />
+          <img
+            src={dataUrl}
+            alt="Shareable quote card preview"
+            className="mt-3.5 w-full rounded-2xl border border-white/10 shadow-lg"
+          />
         ) : (
           <div className="bg-white/5 mt-3.5 aspect-[4/5] w-full animate-pulse rounded-2xl" />
         )}

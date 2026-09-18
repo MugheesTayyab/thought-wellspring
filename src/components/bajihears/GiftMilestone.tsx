@@ -39,7 +39,9 @@ export const GiftMilestoneModal: React.FC<GiftMilestoneModalProps> = ({
 
         {/* Reward Box */}
         <div className="my-5 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left space-y-2">
-          <div className="text-[11px] font-semibold text-white/50 uppercase tracking-wider">Reward</div>
+          <div className="text-[11px] font-semibold text-white/50 uppercase tracking-wider">
+            Reward
+          </div>
           <div className="text-sm font-bold text-white leading-snug">{milestone.reward}</div>
 
           <div className="mt-3 pt-3 border-t border-white/10 space-y-1">
@@ -70,6 +72,6 @@ export const GiftMilestoneModal: React.FC<GiftMilestoneModalProps> = ({
         </button>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };

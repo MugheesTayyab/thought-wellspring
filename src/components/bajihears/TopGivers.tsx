@@ -38,8 +38,9 @@ export const TopGivers: React.FC<TopGiversProps> = ({
   const [inputVal, setInputVal] = useState(userCallSign ?? "");
 
   // Build combined list with user inserted at correct position
-  const userNickname = userCallSign && userCallSign.trim() !== "" ? userCallSign.trim() : "You (Anonymous)";
-  
+  const userNickname =
+    userCallSign && userCallSign.trim() !== "" ? userCallSign.trim() : "You (Anonymous)";
+
   const userEntry: Omit<Giver, "rank"> = {
     callSign: userNickname,
     warmth: userWarmth,
@@ -68,7 +69,9 @@ export const TopGivers: React.FC<TopGiversProps> = ({
       <div className="rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/15 via-black/40 to-black/80 p-4">
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-mono uppercase tracking-wider text-primary">Your Leaderboard Status</span>
+            <span className="text-[10px] font-mono uppercase tracking-wider text-primary">
+              Your Leaderboard Status
+            </span>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="text-xl font-extrabold text-white">{userNickname}</span>
               <button
@@ -134,13 +137,19 @@ export const TopGivers: React.FC<TopGiversProps> = ({
                       giver.rank === 1
                         ? "text-amber-400 text-sm"
                         : giver.rank === 2
-                        ? "text-slate-300"
-                        : giver.rank === 3
-                        ? "text-amber-600"
-                        : "text-white/40"
+                          ? "text-slate-300"
+                          : giver.rank === 3
+                            ? "text-amber-600"
+                            : "text-white/40"
                     }`}
                   >
-                    {giver.rank === 1 ? "🥇" : giver.rank === 2 ? "🥈" : giver.rank === 3 ? "🥉" : `#${giver.rank}`}
+                    {giver.rank === 1
+                      ? "🥇"
+                      : giver.rank === 2
+                        ? "🥈"
+                        : giver.rank === 3
+                          ? "🥉"
+                          : `#${giver.rank}`}
                   </span>
                   <div>
                     <div className="flex items-center gap-1.5 font-medium text-xs text-white">
