@@ -9,7 +9,7 @@ export interface TierInfo {
   minWarmth: number;
   maxWarmth: number | null;
   colorCss: string; // Tailwind / CSS color identifier
-  glowCss: string;  // Box-shadow or drop-shadow styling
+  glowCss: string; // Box-shadow or drop-shadow styling
   orbSizePx: number;
   description: string;
 }
@@ -77,14 +77,18 @@ export function getTier(totalWarmth: number): TierInfo {
   return TIERS[0]!;
 }
 
-export function getNextTier(totalWarmth: number): { nextTier: TierInfo | null; remaining: number; progressPct: number } {
+export function getNextTier(totalWarmth: number): {
+  nextTier: TierInfo | null;
+  remaining: number;
+  progressPct: number;
+} {
   const currentTier = getTier(totalWarmth);
   const currentIndex = TIERS.findIndex((t) => t.key === currentTier.key);
-  
+
   if (currentIndex < 0 || currentIndex >= TIERS.length - 1) {
     return { nextTier: null, remaining: 0, progressPct: 100 };
   }
-  
+
   const nextTier = TIERS[currentIndex + 1];
   if (!nextTier) {
     return { nextTier: null, remaining: 0, progressPct: 100 };
@@ -94,11 +98,11 @@ export function getNextTier(totalWarmth: number): { nextTier: TierInfo | null; r
   const currentProgress = totalWarmth - currentTier.minWarmth;
   const progressPct = Math.min(100, Math.max(0, (currentProgress / range) * 100));
   const remaining = nextTier.minWarmth - totalWarmth;
-  
+
   return { nextTier, remaining, progressPct };
 }
 
-export type ActionType = "react" | "echo" | "post" | "share" | "duel" | "visit";
+export type ActionType = "react" | "echo" | "post" | "share" | "duel" | "visit" | "spend";
 
 export const AWARD_VALUES: Record<ActionType, number> = {
   react: 1,
@@ -107,6 +111,7 @@ export const AWARD_VALUES: Record<ActionType, number> = {
   share: 5,
   duel: 2,
   visit: 2,
+  spend: 0,
 };
 
 // Daily passive action cap (applies to react and duel)
@@ -140,7 +145,8 @@ export const GIFT_MILESTONES: GiftMilestone[] = [
     title: "Flame Keeper",
     reward: "Early Access to Private Rooms & Physical Sticker Pack",
     badgeEmoji: "🔥",
-    claimInstruction: "DM @bajihears with your code for free shipping of BajiHears holographic stickers!",
+    claimInstruction:
+      "DM @bajihears with your code for free shipping of BajiHears holographic stickers!",
   },
   {
     threshold: 5000,
