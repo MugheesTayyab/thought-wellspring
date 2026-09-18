@@ -40,8 +40,12 @@ export const WarmthToast: React.FC<WarmthToastProps> = ({ toast, onDone }) => {
 
         {/* Text Details */}
         <div className="flex items-baseline gap-2 font-display">
-          <span className="text-sm font-extrabold tracking-tight text-brand-gradient">
-            +{toast.amount} WARMTH
+          <span
+            className={`text-sm font-extrabold tracking-tight ${
+              toast.amount < 0 ? "text-destructive text-red-400" : "text-brand-gradient"
+            }`}
+          >
+            {toast.amount > 0 ? `+${toast.amount}` : toast.amount} WARMTH
           </span>
           <span className="text-xs font-medium text-white/70 tracking-wide font-sans">
             · {toast.label}
@@ -49,6 +53,6 @@ export const WarmthToast: React.FC<WarmthToastProps> = ({ toast, onDone }) => {
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };

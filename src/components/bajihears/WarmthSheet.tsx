@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
-import { getTier, getNextTier, GIFT_MILESTONES, generateClaimCode, DAILY_PASSIVE_CAP } from "../../lib/warmth";
+import {
+  getTier,
+  getNextTier,
+  GIFT_MILESTONES,
+  generateClaimCode,
+  DAILY_PASSIVE_CAP,
+} from "../../lib/warmth";
 import { WarmthLogEntry, DailyCapState, StreakState } from "../../lib/bajihears";
 import { TopGivers } from "./TopGivers";
 
@@ -75,7 +81,9 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
             type="button"
             onClick={() => setActiveTab("stats")}
             className={`flex-1 pb-2.5 text-center text-xs font-semibold tracking-wide transition-colors ${
-              activeTab === "stats" ? "text-primary border-b-2 border-primary" : "text-white/50 hover:text-white"
+              activeTab === "stats"
+                ? "text-primary border-b-2 border-primary"
+                : "text-white/50 hover:text-white"
             }`}
           >
             My Warmth
@@ -84,7 +92,9 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
             type="button"
             onClick={() => setActiveTab("rewards")}
             className={`flex-1 pb-2.5 text-center text-xs font-semibold tracking-wide transition-colors ${
-              activeTab === "rewards" ? "text-primary border-b-2 border-primary" : "text-white/50 hover:text-white"
+              activeTab === "rewards"
+                ? "text-primary border-b-2 border-primary"
+                : "text-white/50 hover:text-white"
             }`}
           >
             Rewards & Gifts
@@ -93,7 +103,9 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
             type="button"
             onClick={() => setActiveTab("leaderboard")}
             className={`flex-1 pb-2.5 text-center text-xs font-semibold tracking-wide transition-colors ${
-              activeTab === "leaderboard" ? "text-primary border-b-2 border-primary" : "text-white/50 hover:text-white"
+              activeTab === "leaderboard"
+                ? "text-primary border-b-2 border-primary"
+                : "text-white/50 hover:text-white"
             }`}
           >
             Top Givers 👑
@@ -108,7 +120,9 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
               <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-black/40 to-black/80 p-5">
                 <div className="flex items-baseline justify-between">
                   <div>
-                    <span className="text-xs uppercase tracking-wider text-white/60">Total Earned</span>
+                    <span className="text-xs uppercase tracking-wider text-white/60">
+                      Total Earned
+                    </span>
                     <div className="text-3xl font-extrabold font-mono text-primary flex items-center gap-2">
                       {totalWarmth.toLocaleString()}
                       <span className="text-lg font-normal">🔥</span>
@@ -117,7 +131,9 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
 
                   {/* Visit Streak */}
                   <div className="text-right">
-                    <span className="text-xs uppercase tracking-wider text-white/60">Daily Streak</span>
+                    <span className="text-xs uppercase tracking-wider text-white/60">
+                      Daily Streak
+                    </span>
                     <div className="text-xl font-bold font-mono text-amber-400 flex items-center justify-end gap-1">
                       <span>⚡</span>
                       <span>{streak.count} Days</span>
@@ -129,8 +145,13 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
                 {nextTier ? (
                   <div className="mt-4 space-y-1.5">
                     <div className="flex justify-between text-xs text-white/70">
-                      <span>Tier: <strong className="text-white">{currentTier.name}</strong></span>
-                      <span>Next: <strong className="text-white">{nextTier.name}</strong> ({remaining} left)</span>
+                      <span>
+                        Tier: <strong className="text-white">{currentTier.name}</strong>
+                      </span>
+                      <span>
+                        Next: <strong className="text-white">{nextTier.name}</strong> ({remaining}{" "}
+                        left)
+                      </span>
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
                       <div
@@ -172,7 +193,9 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
 
               {/* Activity Log */}
               <div className="space-y-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-white/60">Recent Warmth Log</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-white/60">
+                  Recent Warmth Log
+                </h3>
                 {warmthLog.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-xs text-white/40">
                     No Warmth earned yet. React to a post or answer a duel to get started!
@@ -189,7 +212,10 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
                           <span className="text-white/80">{entry.label}</span>
                         </div>
                         <span className="text-[10px] text-white/40 font-mono">
-                          {new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(entry.timestamp).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </span>
                       </div>
                     ))}
@@ -202,7 +228,8 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
           {activeTab === "rewards" && (
             <div className="space-y-4">
               <p className="text-xs text-white/70">
-                Earn Warmth to unlock exclusive digital badges, wallpaper packs, and physical sticker gifts!
+                Earn Warmth to unlock exclusive digital badges, wallpaper packs, and physical
+                sticker gifts!
               </p>
 
               <div className="space-y-3">
@@ -226,7 +253,9 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
                           <div>
                             <h4 className="font-bold text-sm text-white flex items-center gap-2">
                               {m.title}
-                              <span className="text-xs font-mono text-primary">({m.threshold} Warmth)</span>
+                              <span className="text-xs font-mono text-primary">
+                                ({m.threshold} Warmth)
+                              </span>
                             </h4>
                             <p className="text-xs text-white/70 mt-0.5">{m.reward}</p>
                           </div>
@@ -269,6 +298,6 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };

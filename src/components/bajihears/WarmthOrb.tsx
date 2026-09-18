@@ -39,8 +39,13 @@ export const WarmthOrb: React.FC<WarmthOrbProps> = ({
           />
         </div>
         <div className="flex items-center gap-1.5 font-display text-xs font-bold tracking-tight text-white">
-          <span className="text-sm font-extrabold text-brand-gradient">{totalWarmth.toLocaleString()}</span>
-          <span className="text-[11px] font-semibold text-amber-400 font-sans tracking-wide">
+          <span suppressHydrationWarning className="text-sm font-extrabold text-brand-gradient">
+            {totalWarmth.toLocaleString()}
+          </span>
+          <span
+            suppressHydrationWarning
+            className="text-[11px] font-semibold text-amber-400 font-sans tracking-wide"
+          >
             {currentTier.name}
           </span>
         </div>
@@ -76,7 +81,10 @@ export const WarmthOrb: React.FC<WarmthOrbProps> = ({
       />
 
       {/* SVG Progress Ring & Inner Sphere */}
-      <div className="relative flex items-center justify-center" style={{ width: sizePx, height: sizePx }}>
+      <div
+        className="relative flex items-center justify-center"
+        style={{ width: sizePx, height: sizePx }}
+      >
         <svg className="-rotate-90" width={sizePx} height={sizePx}>
           {/* Track */}
           <circle
@@ -117,7 +125,10 @@ export const WarmthOrb: React.FC<WarmthOrbProps> = ({
       </div>
 
       {/* Tier Label */}
-      <span className="mt-1 font-mono text-[11px] font-bold tracking-wider text-white/90 group-hover:text-primary">
+      <span
+        suppressHydrationWarning
+        className="mt-1 font-mono text-[11px] font-bold tracking-wider text-white/90 group-hover:text-primary"
+      >
         {totalWarmth} 🔥
       </span>
     </div>
