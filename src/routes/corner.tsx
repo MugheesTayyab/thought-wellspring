@@ -59,7 +59,7 @@ function CornerPage() {
   };
 
   return (
-    <main className="mx-auto w-full max-w-md px-4 pb-16 pt-6">
+    <main className="mx-auto w-full max-w-md px-4 pb-28 pt-6">
       <Link
         to="/"
         className="text-muted-foreground inline-flex items-center gap-2 text-sm font-semibold"

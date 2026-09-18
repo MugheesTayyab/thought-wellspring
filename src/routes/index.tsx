@@ -7,13 +7,15 @@ import { QuoteCardDialog } from "@/components/bajihears/QuoteCardDialog";
 import { CornerMenu } from "@/components/bajihears/CornerMenu";
 import { Logo } from "@/components/bajihears/Logo";
 import { WarmthOrb } from "@/components/bajihears/WarmthOrb";
-import { useWarmth } from "./__root";
+import { BottomNav } from "@/components/bajihears/BottomNav";
+import { useWarmth } from "@/lib/warmth-context";
 import { cn } from "@/lib/utils";
 import {
   CATEGORIES,
   MOCK_UNSAIDS,
   REPORT_THRESHOLD,
   WINNER,
+  appendMyPostCategory,
   clearLastSubmit,
   randomSeed,
   readAvatarSeed,
@@ -45,7 +47,8 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "BajiHears — say the unsaid" },
       {
         property: "og:description",
-        content: "Anonymous Unsaids, one per cycle. Read, react, echo, and share the ones that hit.",
+        content:
+          "Anonymous Unsaids, one per cycle. Read, react, echo, and share the ones that hit.",
       },
     ],
   }),
@@ -101,8 +104,7 @@ function Home() {
   const wall = useMemo(
     () =>
       unsaids.filter(
-        (u) =>
-          !hiddenIds.includes(u.id) && (filters.length === 0 || filters.includes(u.category)),
+        (u) => !hiddenIds.includes(u.id) && (filters.length === 0 || filters.includes(u.category)),
       ),
     [unsaids, hiddenIds, filters],
   );
@@ -200,22 +202,29 @@ function Home() {
     <div className="relative min-h-screen">
       <div ref={backdrop} className="wall-backdrop" aria-hidden />
 
-      <div className="mx-auto w-full max-w-md px-4 sm:px-5 pb-[calc(8.5rem+env(safe-area-inset-bottom,0px))]">
-        <header className="bg-background/80 border-b border-white/5 sticky top-0 z-30 -mx-5 flex items-center justify-between px-5 py-3.5 backdrop-blur-xl shadow-sm">
-          <div className="flex items-center gap-2.5 shrink-0">
-            <Logo size={32} />
-            <span className="font-display text-brand-gradient text-lg tracking-tight font-bold">BajiHears</span>
+      <div className="mx-auto w-full max-w-md px-4 sm:px-5 pb-[calc(7.5rem+env(safe-area-inset-bottom,0px))]">
+        <header className="bg-background/85 border-b border-white/8 sticky top-0 z-30 -mx-4 sm:-mx-5 flex items-center justify-between px-4 sm:px-5 py-3 backdrop-blur-xl shadow-xs">
+          <div className="flex items-center gap-2 shrink-0">
+            <Logo size={28} />
+            <span className="font-display text-brand-gradient text-lg tracking-tight font-bold">
+              BajiHears
+            </span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <WarmthOrb totalWarmth={totalWarmth} isFlashing={isFlashingOrb} mini onClick={openWarmthSheet} />
+          <div className="flex items-center gap-2.5">
+            <WarmthOrb
+              totalWarmth={totalWarmth}
+              isFlashing={isFlashingOrb}
+              mini
+              onClick={openWarmthSheet}
+            />
             <CornerMenu seed={seed} />
           </div>
         </header>
 
         <h1 className="sr-only">BajiHears — The Wall of Unsaids</h1>
 
-        <div className="wall-3d mt-4 space-y-7">
+        <div className="wall-3d mt-3 sm:mt-4 space-y-4 sm:space-y-6">
           <UnsaidCard
             unsaid={WINNER.unsaid}
             hero
@@ -255,25 +264,26 @@ function Home() {
 
               // Award +10 Warmth for spilling tea
               awardWarmth("post", "Spilled tea on wall");
+              appendMyPostCategory(category);
             }}
           />
 
-          <div className="border-white/10 bg-gradient-to-b from-white/[0.03] to-transparent bg-card shadow-soft rounded-3xl border p-4 transition-all">
-            <div className="flex items-center justify-between gap-3 px-1 mb-2.5 font-vibe">
-              <p className="text-muted-foreground/80 text-[11px] font-bold tracking-widest uppercase">
-                Filter by vibe ✨
-              </p>
+          <div className="pt-1">
+            <div className="flex items-center justify-between gap-3 px-1 mb-2 font-vibe">
+              <span className="text-muted-foreground/70 text-[11px] font-bold tracking-wider uppercase">
+                Filter by vibe
+              </span>
               {filters.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setFilters([])}
-                  className="text-primary hover:underline shrink-0 text-xs font-semibold"
+                  className="text-primary hover:underline shrink-0 text-xs font-medium"
                 >
-                  Clear all
+                  Clear all ({filters.length})
                 </button>
               )}
             </div>
-            <div className="no-scrollbar flex gap-2 overflow-x-auto px-1 pb-1 font-vibe">
+            <div className="no-scrollbar -mx-4 sm:-mx-5 flex gap-2 overflow-x-auto px-4 sm:px-5 pb-1 font-vibe">
               {CATEGORIES.map((c) => {
                 const on = filters.includes(c);
                 return (
@@ -283,10 +293,10 @@ function Home() {
                     aria-pressed={on}
                     onClick={() => toggleFilter(c)}
                     className={cn(
-                      "shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all active:scale-95",
+                      "shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-all active:scale-95",
                       on
-                        ? "border-primary/60 bg-primary/20 text-primary shadow-[0_0_10px_rgba(249,115,22,0.15)]"
-                        : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.07] hover:border-white/20 hover:text-foreground",
+                        ? "border-primary/60 bg-primary/20 text-primary shadow-[0_0_10px_rgba(249,115,22,0.2)]"
+                        : "border-white/8 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.07] hover:border-white/15 hover:text-foreground",
                     )}
                   >
                     {c}
@@ -354,32 +364,12 @@ function Home() {
 
       <QuoteCardDialog unsaid={shareTarget} onClose={() => setShareTarget(null)} />
 
-      {/* Frosted Glassmorphic Bottom Navigation Bar */}
-      <nav aria-label="Main Navigation" className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-sm rounded-full border border-white/10 bg-[#120d0d]/85 px-6 py-2.5 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] flex items-center justify-between">
-        {/* Wall Tab */}
-        <Link
-          to="/"
-          className="flex flex-col items-center gap-0.5 text-xs font-semibold text-primary transition-colors"
-        >
-          <span className="text-base">📜</span>
-          <span className="font-mono text-[11px]">Wall</span>
-          <span className="h-0.5 w-4 rounded-full bg-primary/80" />
-        </Link>
-
-        {/* Warmth Orb Center Tab */}
-        <WarmthOrb totalWarmth={totalWarmth} isFlashing={isFlashingOrb} onClick={openWarmthSheet} />
-
-        {/* Duel Tab */}
-        <Link
-          to="/duel"
-          className="flex flex-col items-center gap-0.5 text-xs font-semibold text-white/60 hover:text-primary transition-colors"
-        >
-          <span className="text-base">⚔️</span>
-          <span className="font-mono text-[11px]">The Duel</span>
-          <span className="h-0.5 w-4 rounded-full bg-transparent" />
-        </Link>
-      </nav>
+      {/* Shared Frosted Glassmorphic Bottom Navigation Bar */}
+      <BottomNav
+        totalWarmth={totalWarmth}
+        isFlashingOrb={isFlashingOrb}
+        onOpenWarmthSheet={openWarmthSheet}
+      />
     </div>
   );
 }
-
