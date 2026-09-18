@@ -30,9 +30,21 @@ export type Preset = {
 };
 
 export const PRESETS: Preset[] = [
-  { key: "midnight-static", name: "Midnight Static", from: "#1b1f3b", to: "#3d2b56", ink: "#f4f0ff" },
+  {
+    key: "midnight-static",
+    name: "Midnight Static",
+    from: "#1b1f3b",
+    to: "#3d2b56",
+    ink: "#f4f0ff",
+  },
   { key: "3am", name: "3AM Thoughts", from: "#101820", to: "#25424f", ink: "#eaf6ff" },
-  { key: "golden-hour", name: "Golden Hour Confession", from: "#ff9a2b", to: "#e0192b", ink: "#fff8f2" },
+  {
+    key: "golden-hour",
+    name: "Golden Hour Confession",
+    from: "#ff9a2b",
+    to: "#e0192b",
+    ink: "#fff8f2",
+  },
   { key: "quiet-storm", name: "Quiet Storm", from: "#243b4a", to: "#6b7f8c", ink: "#f5fbff" },
   { key: "neon-ache", name: "Neon Ache", from: "#ff2e88", to: "#5b16d6", ink: "#fff0f8" },
 ];
@@ -128,7 +140,7 @@ export const MOCK_UNSAIDS: Unsaid[] = [
   },
   {
     id: "u4",
-    text: "\"You can be a whole person and still be someone's unfinished sentence.\"",
+    text: '"You can be a whole person and still be someone\'s unfinished sentence."',
     handle: "@lateshiftpoet",
     createdAt: now - 8 * HOUR,
     category: "Hard Truth",
@@ -145,7 +157,12 @@ export const MOCK_UNSAIDS: Unsaid[] = [
     preset: "3am",
     reactions: r(120, 44, 60, 88),
     echoes: [
-      { id: "e2", text: "say it once, kindly, then let it go.", handle: null, createdAt: now - 9 * HOUR },
+      {
+        id: "e2",
+        text: "say it once, kindly, then let it go.",
+        handle: null,
+        createdAt: now - 9 * HOUR,
+      },
     ],
   },
   {
@@ -289,7 +306,7 @@ export function getInstagramUrl(handle: string | null): string | null {
 
 /* ---------- Warmth & Duel Extensions ---------- */
 
-export type ActionType = "react" | "echo" | "post" | "share" | "duel" | "visit";
+export type ActionType = "react" | "echo" | "post" | "share" | "duel" | "visit" | "spend";
 
 export interface WarmthLogEntry {
   id: string;
@@ -431,7 +448,8 @@ export interface DailyCapState {
   dateKey: string;
   amountEarned: number;
 }
-export const readDailyCap = () => read<DailyCapState>(DAILY_CAP_KEY, { dateKey: "", amountEarned: 0 });
+export const readDailyCap = () =>
+  read<DailyCapState>(DAILY_CAP_KEY, { dateKey: "", amountEarned: 0 });
 export const writeDailyCap = (v: DailyCapState) => write(DAILY_CAP_KEY, v);
 
 export interface StreakState {
@@ -447,7 +465,16 @@ export const writeMilestonesClaimed = (v: number[]) => write(MILESTONES_KEY, v);
 export const readCallSign = () => read<string | null>(CALLSIGN_KEY, null);
 export const writeCallSign = (v: string | null) => write(CALLSIGN_KEY, v);
 
-export type AnsweredDuelRecord = Record<string, { choiceIndex: 0 | 1; pctA: number; pctB: number; answeredAt: number }>;
+export type AnsweredDuelRecord = Record<
+  string,
+  { choiceIndex: 0 | 1; pctA: number; pctB: number; answeredAt: number }
+>;
 export const readAnsweredDuels = () => read<AnsweredDuelRecord>(DUELS_ANSWERED_KEY, {});
 export const writeAnsweredDuels = (v: AnsweredDuelRecord) => write(DUELS_ANSWERED_KEY, v);
 
+const MY_POST_CATEGORIES_KEY = "bh:myPostCategories";
+export const readMyPostCategories = (): Category[] => read<Category[]>(MY_POST_CATEGORIES_KEY, []);
+export const appendMyPostCategory = (cat: Category): void => {
+  const existing = readMyPostCategories();
+  write(MY_POST_CATEGORIES_KEY, [...existing, cat]);
+};
