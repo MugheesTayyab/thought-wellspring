@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Instagram } from "lucide-react";
 import { Duel, DuelOption, stripHandle, getInstagramUrl } from "../../lib/bajihears";
+import { triggerHaptic } from "@/lib/haptics";
 
 interface DuelCardProps {
   duel: Duel;
@@ -24,6 +25,7 @@ export const DuelCard: React.FC<DuelCardProps> = ({
 
   const handleSelect = (idx: 0 | 1) => {
     if (isAnswered) return;
+    triggerHaptic("impactMedium");
     onAnswer(idx);
   };
 
@@ -147,8 +149,11 @@ export const DuelCard: React.FC<DuelCardProps> = ({
           </div>
           <button
             type="button"
-            onClick={onNext}
-            className="group flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-primary via-flame to-ember px-7 font-bold text-sm text-white shadow-[0_0_25px_rgba(250,84,28,0.4)] transition-all hover:scale-105 active:scale-95"
+            onClick={() => {
+              triggerHaptic("selection");
+              onNext();
+            }}
+            className="spring-press group flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-primary via-flame to-ember px-7 font-bold text-sm text-white shadow-[0_0_25px_rgba(250,84,28,0.4)] transition-all hover:scale-105"
           >
             <span>Next Duel</span>
             <span className="transition-transform group-hover:translate-x-1">→</span>

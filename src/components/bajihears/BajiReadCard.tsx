@@ -1,5 +1,6 @@
 import { ArchetypeDefinition, BAJI_READ_COST } from "@/lib/bajiRead";
 import { Share2, Check, Copy } from "lucide-react";
+import { triggerHaptic } from "@/lib/haptics";
 
 export interface BajiReadCardProps {
   archetype: ArchetypeDefinition;
@@ -27,7 +28,7 @@ export function BajiReadCard({
     <article
       role="article"
       aria-label={`Your Baji Read result: ${archetype.name}`}
-      className="relative w-full max-w-md rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.05] via-[#161010]/80 to-transparent p-6 sm:p-8 backdrop-blur-xl shadow-soft animate-[slideUp_0.35s_ease-out] border-l-4 overflow-hidden"
+      className="shimmer-card relative w-full max-w-md rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.05] via-[#161010]/80 to-transparent p-6 sm:p-8 backdrop-blur-xl shadow-soft animate-[slideUp_0.35s_ease-out] border-l-4 overflow-hidden"
       style={{ borderLeftColor: archetype.color }}
     >
       {/* Top subtle glow with archetype color */}
@@ -109,9 +110,12 @@ export function BajiReadCard({
             </p>
             <button
               type="button"
-              onClick={onSpendWarmth}
+              onClick={() => {
+                triggerHaptic("celebration");
+                onSpendWarmth();
+              }}
               aria-describedby="bonus-desc"
-              className="w-full py-2.5 rounded-xl bg-brand-gradient text-white font-semibold text-xs shadow-md hover:opacity-95 active:scale-[0.98] transition-all cursor-pointer"
+              className="spring-press w-full py-2.5 rounded-xl bg-brand-gradient text-white font-semibold text-xs shadow-md hover:opacity-95 transition-all cursor-pointer"
             >
               Spend 30 Warmth
             </button>
@@ -148,8 +152,11 @@ export function BajiReadCard({
       <div className="flex items-center gap-2.5">
         <button
           type="button"
-          onClick={onCopy}
-          className="flex-1 flex items-center justify-center gap-1.5 rounded-2xl border border-white/15 bg-white/[0.05] hover:bg-white/[0.1] px-4 py-3 text-xs font-semibold text-white transition-all active:scale-[0.98] cursor-pointer"
+          onClick={() => {
+            triggerHaptic("selection");
+            onCopy();
+          }}
+          className="spring-press flex-1 flex items-center justify-center gap-1.5 rounded-2xl border border-white/15 bg-white/[0.05] hover:bg-white/[0.1] px-4 py-3 text-xs font-semibold text-white transition-all cursor-pointer"
         >
           {copied ? (
             <>
@@ -166,8 +173,11 @@ export function BajiReadCard({
 
         <button
           type="button"
-          onClick={onShare}
-          className="flex-1 flex items-center justify-center gap-1.5 rounded-2xl bg-brand-gradient hover:opacity-95 px-4 py-3 text-xs font-semibold text-white shadow-md transition-all active:scale-[0.98] cursor-pointer"
+          onClick={() => {
+            triggerHaptic("selection");
+            onShare();
+          }}
+          className="spring-press flex-1 flex items-center justify-center gap-1.5 rounded-2xl bg-brand-gradient hover:opacity-95 px-4 py-3 text-xs font-semibold text-white shadow-md transition-all cursor-pointer"
         >
           <Share2 className="h-4 w-4" />
           <span>Share to Story</span>

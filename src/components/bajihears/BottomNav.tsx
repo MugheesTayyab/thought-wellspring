@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Sparkles, Compass, Swords } from "lucide-react";
 import { WarmthOrb } from "@/components/bajihears/WarmthOrb";
 import { readBajiReadCache, getArchetype } from "@/lib/bajiRead";
+import { triggerHaptic } from "@/lib/haptics";
 
 export interface BottomNavProps {
   totalWarmth: number;
@@ -67,7 +68,9 @@ export function BottomNav({
         {/* Wall Tab */}
         <Link
           to="/"
-          className={`flex flex-col items-center gap-1 text-[11px] font-medium transition-all ${
+          aria-current={isWallActive ? "page" : undefined}
+          onClick={() => triggerHaptic("selection")}
+          className={`spring-press flex flex-col items-center gap-1 text-[11px] font-medium transition-all ${
             isWallActive ? "text-primary scale-105" : "text-white/50 hover:text-white/80"
           }`}
         >
@@ -78,7 +81,7 @@ export function BottomNav({
           </div>
           <span className="font-mono text-[10px] tracking-tight">Wall</span>
           <span
-            className={`h-0.5 w-3 rounded-full transition-all ${
+            className={`h-0.5 w-3 rounded-full transition-all duration-300 ${
               isWallActive ? "bg-primary shadow-[0_0_8px_rgba(250,84,28,0.8)]" : "bg-transparent"
             }`}
           />
@@ -87,7 +90,9 @@ export function BottomNav({
         {/* Read Tab */}
         <Link
           to="/read"
-          className={`relative flex flex-col items-center gap-1 text-[11px] font-medium transition-all ${
+          aria-current={isReadActive ? "page" : undefined}
+          onClick={() => triggerHaptic("selection")}
+          className={`spring-press relative flex flex-col items-center gap-1 text-[11px] font-medium transition-all ${
             isReadActive ? "text-primary scale-105" : "text-white/50 hover:text-white/80"
           }`}
         >
@@ -105,7 +110,7 @@ export function BottomNav({
           </div>
           <span className="font-mono text-[10px] tracking-tight">Read</span>
           <span
-            className={`h-0.5 w-3 rounded-full transition-all ${
+            className={`h-0.5 w-3 rounded-full transition-all duration-300 ${
               isReadActive ? "bg-primary shadow-[0_0_8px_rgba(250,84,28,0.8)]" : "bg-transparent"
             }`}
           />
@@ -116,7 +121,10 @@ export function BottomNav({
           <WarmthOrb
             totalWarmth={totalWarmth}
             isFlashing={isFlashingOrb}
-            onClick={onOpenWarmthSheet}
+            onClick={() => {
+              triggerHaptic("impactLight");
+              onOpenWarmthSheet();
+            }}
             mini
           />
         </div>
@@ -124,7 +132,9 @@ export function BottomNav({
         {/* Duel Tab */}
         <Link
           to="/duel"
-          className={`flex flex-col items-center gap-1 text-[11px] font-medium transition-all ${
+          aria-current={isDuelActive ? "page" : undefined}
+          onClick={() => triggerHaptic("selection")}
+          className={`spring-press flex flex-col items-center gap-1 text-[11px] font-medium transition-all ${
             isDuelActive ? "text-primary scale-105" : "text-white/50 hover:text-white/80"
           }`}
         >
@@ -135,7 +145,7 @@ export function BottomNav({
           </div>
           <span className="font-mono text-[10px] tracking-tight">Duel</span>
           <span
-            className={`h-0.5 w-3 rounded-full transition-all ${
+            className={`h-0.5 w-3 rounded-full transition-all duration-300 ${
               isDuelActive ? "bg-primary shadow-[0_0_8px_rgba(250,84,28,0.8)]" : "bg-transparent"
             }`}
           />

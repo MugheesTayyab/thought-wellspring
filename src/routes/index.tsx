@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowUp } from "lucide-react";
 import { UnsaidCard } from "@/components/bajihears/UnsaidCard";
 import { FeedSkeleton } from "@/components/bajihears/FeedSkeleton";
 import { WritingBox } from "@/components/bajihears/WritingBox";
@@ -9,6 +10,7 @@ import { Logo } from "@/components/bajihears/Logo";
 import { WarmthOrb } from "@/components/bajihears/WarmthOrb";
 import { BottomNav } from "@/components/bajihears/BottomNav";
 import { useWarmth } from "@/lib/warmth-context";
+import { triggerHaptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import {
   CATEGORIES,
@@ -125,8 +127,25 @@ function Home() {
     return () => io.disconnect();
   }, [atEnd, shown.length]);
 
-  const toggleFilter = (c: Category) =>
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    triggerHaptic("selection");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const toggleFilter = (c: Category) => {
+    triggerHaptic("selection");
     setFilters((prev) => (prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]));
+  };
 
   const onReact = (id: string, key: ReactionKey) => {
     // Optimistic: update instantly, never wait on a round trip.
@@ -363,6 +382,18 @@ function Home() {
       </div>
 
       <QuoteCardDialog unsaid={shareTarget} onClose={() => setShareTarget(null)} />
+
+      {/* Floating Back to Top Button */}
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={scrollToTop}
+          aria-label="Scroll back to top"
+          className="spring-press fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] right-4 z-30 flex size-10 items-center justify-center rounded-full border border-white/15 bg-[#151010]/90 text-white/80 shadow-lg backdrop-blur-md transition-all hover:text-primary hover:border-primary/50 cursor-pointer"
+        >
+          <ArrowUp className="size-4" />
+        </button>
+      )}
 
       {/* Shared Frosted Glassmorphic Bottom Navigation Bar */}
       <BottomNav

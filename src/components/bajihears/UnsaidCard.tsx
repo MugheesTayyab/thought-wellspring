@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import {
   Copy,
+  Check,
   Flag,
   Flame,
   Heart,
@@ -11,6 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { RevealCountdown } from "./RevealCountdown";
+import { triggerHaptic } from "@/lib/haptics";
 
 const REACTION_ICON = {
   heart: Heart,
@@ -31,7 +33,7 @@ import {
   type Unsaid,
 } from "@/lib/bajihears";
 
-const BURST_EMOJIS = ["✨", "💖", "🔥", "💅", "🥺", "🌸"];
+const BURST_EMOJIS = ["❤️", "✨", "🔥", "🫂", "💖", "💅"];
 
 const QUICK_VIBES = [
   "Real spill 💅",
@@ -50,7 +52,7 @@ type Props = {
   hero?: boolean;
   hook?: string;
   onReact: (id: string, key: ReactionKey) => void;
-  onEcho: (id: string, text: string, handle: string | null) => void;
+  onEcho: (id: string, text: string, anon: boolean) => void;
   onReport: (id: string) => void;
   onShare: (unsaid: Unsaid) => void;
 };
@@ -61,7 +63,7 @@ export function UnsaidCard({
   echoed,
   reported,
   myHandle,
-  hero,
+  hero = false,
   onReact,
   onEcho,
   onReport,
@@ -78,6 +80,7 @@ export function UnsaidCard({
   const preset = presetByKey(unsaid.preset);
 
   const react = (key: ReactionKey) => {
+    triggerHaptic("impactLight");
     setBounced(key);
     window.setTimeout(() => setBounced(null), 220);
     onReact(unsaid.id, key);
@@ -88,6 +91,7 @@ export function UnsaidCard({
     const t = Date.now();
     if (t - lastTap.current < 320) {
       lastTap.current = 0;
+      triggerHaptic("celebration");
       if (!mine.includes("heart")) onReact(unsaid.id, "heart");
       setBurst(true);
       window.setTimeout(() => setBurst(false), 900);
@@ -101,6 +105,7 @@ export function UnsaidCard({
       await navigator.clipboard.writeText(
         `"${unsaid.text}"\n— ${unsaid.handle ?? "anonymous"}, BajiHears`,
       );
+      triggerHaptic("selection");
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1400);
     } catch {
@@ -305,11 +310,15 @@ export function UnsaidCard({
           <button
             type="button"
             onClick={copy}
-            aria-label="Copy text"
-            title="Copy text"
-            className="tap-44 hover:text-foreground grid min-h-[44px] min-w-9 place-items-center transition-colors"
+            aria-label={copied ? "Copied!" : "Copy text"}
+            title={copied ? "Copied!" : "Copy text"}
+            className="tap-44 spring-press hover:text-foreground grid min-h-[44px] min-w-9 place-items-center transition-colors"
           >
-            <Copy className="size-4" aria-hidden />
+            {copied ? (
+              <Check className="size-4 text-emerald-400 animate-fade-in" aria-hidden />
+            ) : (
+              <Copy className="size-4" aria-hidden />
+            )}
           </button>
           <button
             type="button"

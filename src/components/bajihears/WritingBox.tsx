@@ -11,6 +11,7 @@ import {
   stripHandle,
   type Category,
 } from "@/lib/bajihears";
+import { triggerHaptic } from "@/lib/haptics";
 
 type Props = {
   lastSubmitAt: number | null;
@@ -76,6 +77,17 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
   const cleanIg = stripHandle(igHandle);
   const valid = text.trim().length >= MIN_LEN && (anonymous || cleanIg.length >= 2);
 
+  // SVG circular progress calculation
+  const ringCircumference = 44; // 2 * PI * 7 ≈ 43.98
+  const progressRatio = Math.min(1, text.length / MAX_LEN);
+  const ringOffset = ringCircumference - progressRatio * ringCircumference;
+  const ringColor =
+    text.length >= 275
+      ? "var(--color-destructive)"
+      : text.length >= 250
+        ? "var(--color-warn)"
+        : "var(--color-primary)";
+
   return (
     <section className="bg-gradient-to-b from-white/[0.04] to-transparent bg-card border-white/10 shadow-soft hover:border-white/20 rounded-2xl sm:rounded-3xl border p-4 sm:p-5 transition-all">
       <div>
@@ -86,7 +98,10 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
               type="button"
               aria-label={p.name}
               title={p.name}
-              onClick={() => setPreset(p.key)}
+              onClick={() => {
+                triggerHaptic("selection");
+                setPreset(p.key);
+              }}
               style={{ backgroundImage: `linear-gradient(135deg, ${p.from}, ${p.to})` }}
               className={cn(
                 "size-4 rounded-full border transition-all",
@@ -109,8 +124,36 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
           placeholder="Spill your tea or quiet thoughts..."
           className="bg-white/[0.03] border-white/10 placeholder:text-muted-foreground/60 focus:border-primary/60 focus:ring-primary/20 w-full resize-none rounded-2xl border p-3.5 text-base leading-relaxed outline-none focus:ring-2 transition-all font-vibe"
         />
-        <div className={cn("mt-1.5 flex justify-end text-[11px] font-medium", counterTone)}>
-          <span className="shrink-0 tabular-nums">
+        <div
+          className={cn(
+            "mt-2 flex items-center justify-end gap-2 text-[11px] font-medium",
+            counterTone,
+          )}
+        >
+          {/* Circular SVG progress ring */}
+          <svg className="size-4 -rotate-90" viewBox="0 0 20 20" aria-hidden="true">
+            <circle
+              cx="10"
+              cy="10"
+              r="7"
+              fill="none"
+              stroke="rgba(255, 255, 255, 0.15)"
+              strokeWidth="2"
+            />
+            <circle
+              cx="10"
+              cy="10"
+              r="7"
+              fill="none"
+              stroke={ringColor}
+              strokeWidth="2"
+              strokeDasharray={ringCircumference}
+              strokeDashoffset={ringOffset}
+              strokeLinecap="round"
+              className="transition-all duration-200"
+            />
+          </svg>
+          <span className="shrink-0 tabular-nums font-mono">
             {text.length}/{MAX_LEN}
           </span>
         </div>
@@ -121,7 +164,10 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
           <div className="grid grid-cols-2 gap-2 font-vibe">
             <button
               type="button"
-              onClick={() => setAnonymous(true)}
+              onClick={() => {
+                triggerHaptic("selection");
+                setAnonymous(true);
+              }}
               className={cn(
                 "rounded-2xl border px-3 py-2.5 text-[13px] font-semibold transition-all active:scale-95 min-h-[44px]",
                 anonymous
@@ -133,7 +179,10 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
             </button>
             <button
               type="button"
-              onClick={() => setAnonymous(false)}
+              onClick={() => {
+                triggerHaptic("selection");
+                setAnonymous(false);
+              }}
               className={cn(
                 "flex items-center justify-center gap-1.5 rounded-2xl border px-3 py-2.5 text-[13px] font-semibold transition-all active:scale-95 min-h-[44px]",
                 !anonymous
@@ -141,37 +190,38 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
                   : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.07] hover:text-foreground",
               )}
             >
-              <Instagram className="size-4 shrink-0" aria-hidden />
-              Instagram
+              <Instagram className="size-3.5" aria-hidden />
+              <span>Drop Handle</span>
             </button>
           </div>
 
           {!anonymous && (
-            <div className="border-white/10 bg-white/[0.03] flex items-center gap-1.5 rounded-2xl border px-3.5 py-2.5 focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/20 transition-all font-vibe min-h-[44px]">
-              <span className="text-primary/90 text-sm font-semibold">@</span>
+            <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2">
+              <span className="text-muted-foreground text-sm font-semibold">@</span>
               <input
+                type="text"
                 value={igHandle}
-                onChange={(e) => setIgHandle(stripHandle(e.target.value).slice(0, 30))}
-                placeholder="yourhandle"
-                autoCapitalize="none"
-                autoCorrect="off"
-                aria-label="Your Instagram handle"
-                className="placeholder:text-muted-foreground/60 min-w-0 flex-1 bg-transparent text-base outline-none"
+                onChange={(e) => setIgHandle(e.target.value)}
+                placeholder="instagram_handle"
+                className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/60 font-mono"
               />
             </div>
           )}
 
-          <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 font-vibe touch-pan-x">
+          <div className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 py-1 font-vibe">
             {CATEGORIES.map((c) => (
               <button
                 key={c}
                 type="button"
-                onClick={() => setCategory(c)}
+                onClick={() => {
+                  triggerHaptic("selection");
+                  setCategory(c);
+                }}
                 className={cn(
-                  "shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all active:scale-95 min-h-[36px]",
+                  "shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition-all",
                   category === c
-                    ? "border-primary/60 bg-primary/20 text-primary shadow-[0_0_10px_rgba(249,115,22,0.15)]"
-                    : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.07] hover:text-foreground",
+                    ? "border-primary/60 bg-primary/20 text-primary"
+                    : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground",
                 )}
               >
                 {c}
@@ -186,6 +236,7 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
           type="button"
           disabled={!valid || sending}
           onClick={() => {
+            triggerHaptic("impactMedium");
             setSending(true);
             window.setTimeout(() => {
               onSubmit({
@@ -201,7 +252,7 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
             }, 400);
           }}
           className={cn(
-            "w-full rounded-2xl py-3 text-[15px] font-bold tracking-wide transition-opacity font-vibe min-h-[44px]",
+            "spring-press w-full rounded-2xl py-3 text-[15px] font-bold tracking-wide transition-opacity font-vibe min-h-[44px]",
             valid && !sending
               ? "bg-brand-gradient text-primary-foreground shadow-md"
               : "bg-secondary text-muted-foreground",
