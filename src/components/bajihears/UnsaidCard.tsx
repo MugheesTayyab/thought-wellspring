@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   Copy,
   Check,
@@ -10,9 +10,16 @@ import {
   MessageCircle,
   CloudRain,
   Sparkles,
+  Gift,
+  MoreHorizontal,
+  Clock,
+  ShieldAlert,
 } from "lucide-react";
 import { RevealCountdown } from "./RevealCountdown";
 import { triggerHaptic } from "@/lib/haptics";
+import { useWarmth } from "@/lib/warmth-context";
+import { getOrCreateIdentity } from "@/lib/identity";
+import { getTier } from "@/lib/warmth";
 
 const REACTION_ICON = {
   heart: Heart,
@@ -29,6 +36,7 @@ import {
   relativeTime,
   stripHandle,
   getInstagramUrl,
+  vetoPost,
   type ReactionKey,
   type Unsaid,
 } from "@/lib/bajihears";
@@ -50,9 +58,10 @@ type Props = {
   reported: boolean;
   myHandle: string | null;
   hero?: boolean;
+  isWinner?: boolean;
   hook?: string;
   onReact: (id: string, key: ReactionKey) => void;
-  onEcho: (id: string, text: string, anon: boolean) => void;
+  onEcho: (id: string, text: string, echoHandle: string | null) => void;
   onReport: (id: string) => void;
   onShare: (unsaid: Unsaid) => void;
 };
@@ -64,11 +73,14 @@ export function UnsaidCard({
   reported,
   myHandle,
   hero = false,
+  isWinner = false,
+  hook,
   onReact,
   onEcho,
   onReport,
   onShare,
 }: Props) {
+  const { totalWarmth, spendWarmth } = useWarmth();
   const [bounced, setBounced] = useState<ReactionKey | null>(null);
   const [burst, setBurst] = useState(false);
   const [openEchoes, setOpenEchoes] = useState(false);
@@ -76,8 +88,60 @@ export function UnsaidCard({
   const [echoText, setEchoText] = useState("");
   const [echoAnon, setEchoAnon] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [giftConfirmOpen, setGiftConfirmOpen] = useState(false);
+  const [isGifted, setIsGifted] = useState(false);
+  const [isVetoed, setIsVetoed] = useState(false);
+  const [vetoFeedback, setVetoFeedback] = useState<string | null>(null);
+
   const lastTap = useRef(0);
   const preset = presetByKey(unsaid.preset);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("bh:giftedPosts");
+        if (raw) {
+          const ids = JSON.parse(raw) as string[];
+          if (ids.includes(unsaid.id)) setIsGifted(true);
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, [unsaid.id]);
+
+  const handleSendGift = () => {
+    if (totalWarmth < 10 || isGifted) return;
+    triggerHaptic("celebration");
+    spendWarmth(10, "Gifted 10 Warmth to post");
+    setIsGifted(true);
+    setGiftConfirmOpen(false);
+
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("bh:giftedPosts");
+        const ids = raw ? (JSON.parse(raw) as string[]) : [];
+        localStorage.setItem("bh:giftedPosts", JSON.stringify([...ids, unsaid.id]));
+      } catch {
+        // ignore
+      }
+    }
+  };
+
+  const handleVeto = () => {
+    triggerHaptic("warning");
+    setMenuOpen(false);
+    const identity = getOrCreateIdentity();
+    const res = vetoPost(unsaid.id, identity.deviceToken);
+    if (res.success) {
+      setIsVetoed(true);
+      setVetoFeedback(res.underReview ? "Flagged for review" : "Thanks for keeping the wall safe");
+    } else {
+      setVetoFeedback(res.reason ?? "Unable to flag");
+    }
+    window.setTimeout(() => setVetoFeedback(null), 3000);
+  };
 
   const react = (key: ReactionKey) => {
     triggerHaptic("impactLight");
@@ -113,14 +177,35 @@ export function UnsaidCard({
     }
   };
 
+  const isOwnPost = Boolean(
+    unsaid.handle && myHandle && stripHandle(unsaid.handle) === stripHandle(myHandle),
+  );
+  const tier = getTier(totalWarmth);
+  let auraStyle: React.CSSProperties | undefined = undefined;
+  let crownIcon = false;
+  if (isOwnPost) {
+    if (tier.key === "Flicker") {
+      auraStyle = { textShadow: "0 0 8px rgba(255,133,51,0.7)" };
+    } else if (tier.key === "Glow") {
+      auraStyle = { textShadow: "0 0 14px rgba(168,85,247,0.85)" };
+    } else if (tier.key === "Blaze") {
+      auraStyle = { textShadow: "0 0 16px rgba(255,59,48,0.95)" };
+    } else if (tier.key === "Bonfire") {
+      auraStyle = { textShadow: "0 0 22px rgba(251,191,36,1)" };
+      crownIcon = true;
+    }
+  }
+
   return (
     <article
       onPointerUp={onCardPointerUp}
       className={cn(
         "slide-in-card tilt-card relative overflow-hidden rounded-2xl sm:rounded-3xl transition-all duration-200 select-none",
-        hero
-          ? "bg-hero-gradient border-primary/40 shadow-glow p-4 sm:p-6 hover:shadow-[0_20px_50px_-15px_rgba(249,115,22,0.3)]"
-          : "bg-gradient-to-br from-card via-card/95 to-card/90 border border-white/10 hover:border-primary/30 shadow-soft p-4 sm:p-5",
+        isWinner
+          ? "border-t-2 border-amber-400 bg-gradient-to-br from-amber-500/15 via-card/95 to-card/90 border-x border-b border-amber-400/40 shadow-[0_10px_35px_-10px_rgba(251,191,36,0.3)] p-4 sm:p-6"
+          : hero
+            ? "bg-hero-gradient border-primary/40 shadow-glow p-4 sm:p-6 hover:shadow-[0_20px_50px_-15px_rgba(249,115,22,0.3)]"
+            : "bg-gradient-to-br from-card via-card/95 to-card/90 border border-white/10 hover:border-primary/30 shadow-soft p-4 sm:p-5",
       )}
     >
       {/* Ambient background glow for Shade theme */}
@@ -157,8 +242,26 @@ export function UnsaidCard({
         </div>
       )}
 
+      {/* Winner Pin Badge */}
+      {isWinner && (
+        <div className="relative z-10 mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-amber-400/20 pb-2.5">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 px-3 py-1 text-[10px] font-extrabold tracking-wider uppercase text-black shadow-[0_0_15px_rgba(251,191,36,0.4)]">
+            <Sparkles className="size-3 fill-current" aria-hidden />⭐ Baji Heard This
+          </span>
+          <RevealCountdown className="text-amber-300 text-xs font-semibold tracking-wide" />
+        </div>
+      )}
+
+      {/* Pending Post Warming-Up Badge */}
+      {unsaid.status === "pending" && (
+        <div className="relative z-10 mb-3 flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-300">
+          <Clock className="size-3.5 animate-spin shrink-0" />
+          <span>Your post is warming up — visible to others shortly</span>
+        </div>
+      )}
+
       {/* Hero Badge */}
-      {hero && (
+      {hero && !isWinner && (
         <div className="relative z-10 mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2.5">
           <span className="bg-brand-gradient text-primary-foreground inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold tracking-wider uppercase shadow-xs">
             <Sparkles className="size-3 fill-current" aria-hidden />
@@ -168,11 +271,11 @@ export function UnsaidCard({
         </div>
       )}
 
-      {/* Main Quote Content with Gen Z Aesthetics */}
+      {/* Main Quote Content */}
       <p
         className={cn(
           "text-foreground text-balance relative z-10 font-vibe tracking-normal leading-relaxed text-foreground/95",
-          hero
+          hero || isWinner
             ? "font-display text-center text-lg sm:text-2xl font-bold tracking-tight"
             : "text-[15px] sm:text-[16px] font-normal",
         )}
@@ -184,7 +287,7 @@ export function UnsaidCard({
       <div
         className={cn(
           "relative z-10 mt-3 flex flex-wrap items-center gap-2 text-[11px] sm:text-xs font-vibe",
-          hero && "justify-center",
+          (hero || isWinner) && "justify-center",
         )}
       >
         {unsaid.handle ? (
@@ -193,9 +296,14 @@ export function UnsaidCard({
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary hover:bg-primary/20 hover:border-primary/70 transition-all shadow-xs"
+            style={auraStyle}
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary hover:bg-primary/20 hover:border-primary/70 transition-all shadow-xs",
+              isOwnPost && tier.key !== "Ember" && "ring-1 ring-primary/40",
+            )}
             title={`Visit Instagram @${stripHandle(unsaid.handle)}`}
           >
+            {crownIcon && <span className="text-[10px]">👑</span>}
             <Instagram className="size-3 text-primary shrink-0" aria-hidden />
             <span>@{stripHandle(unsaid.handle)}</span>
           </a>
@@ -268,9 +376,16 @@ export function UnsaidCard({
         </p>
       )}
 
-      {/* Row 2 — Secondary Actions & Share */}
+      {vetoFeedback && (
+        <p className="text-amber-400 relative z-10 mt-2 text-center text-xs font-semibold animate-fade-in flex items-center justify-center gap-1">
+          <ShieldAlert className="size-3.5" />
+          <span>{vetoFeedback}</span>
+        </p>
+      )}
+
+      {/* Row 2 — Secondary Actions, Gift, & Overflow Menu */}
       <div className="border-white/10 text-muted-foreground/80 relative z-10 mt-3.5 flex items-center justify-between border-t pt-3 text-xs font-vibe">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             type="button"
             onClick={() => {
@@ -301,12 +416,61 @@ export function UnsaidCard({
               onClick={() => setEchoOpen((v) => !v)}
               className="text-ember hover:text-primary min-h-[44px] text-[11px] font-semibold underline underline-offset-2 px-1"
             >
-              + Echo back
+              + Echo
             </button>
           )}
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-1 sm:gap-2">
+          {/* Gift 10 Warmth Button */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                if (isGifted) return;
+                setGiftConfirmOpen((v) => !v);
+              }}
+              disabled={isGifted}
+              aria-label={isGifted ? "Gifted" : "Send 10 Warmth"}
+              title={isGifted ? "Gifted" : "Send 10 Warmth"}
+              className={cn(
+                "tap-44 grid min-h-[44px] min-w-9 place-items-center rounded-full transition-all",
+                isGifted ? "text-emerald-400 font-bold" : "hover:text-amber-400 hover:scale-105",
+              )}
+            >
+              {isGifted ? (
+                <Check className="size-4 text-emerald-400" />
+              ) : (
+                <Gift className="size-4 text-amber-400/90" />
+              )}
+            </button>
+
+            {/* Gift Confirmation Popover */}
+            {giftConfirmOpen && (
+              <div className="absolute bottom-full right-0 mb-2 z-30 w-48 rounded-2xl border border-primary/30 bg-[#191010] p-3 shadow-xl backdrop-blur-xl animate-[slideUp_0.2s_ease-out]">
+                <p className="text-xs font-semibold text-white">Send 10 Warmth to this post?</p>
+                <p className="text-[10px] text-white/60 mt-0.5">Spread quiet appreciation</p>
+                <div className="mt-2.5 flex justify-end gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setGiftConfirmOpen(false)}
+                    className="rounded-lg px-2 py-1 text-[10px] text-white/60 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSendGift}
+                    disabled={totalWarmth < 10}
+                    className="rounded-lg bg-primary px-2.5 py-1 text-[10px] font-bold text-white shadow-xs disabled:opacity-50"
+                  >
+                    Send (10🔥)
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           <button
             type="button"
             onClick={copy}
@@ -320,6 +484,7 @@ export function UnsaidCard({
               <Copy className="size-4" aria-hidden />
             )}
           </button>
+
           <button
             type="button"
             onClick={() => onShare(unsaid)}
@@ -329,20 +494,53 @@ export function UnsaidCard({
           >
             <Instagram className="size-4 text-ember/90" aria-hidden />
           </button>
-          <button
-            type="button"
-            onClick={() => onReport(unsaid.id)}
-            disabled={reported}
-            aria-label={reported ? "Reported" : "Report this Unsaid"}
-            title={reported ? "Reported" : "Report"}
-            className={cn(
-              "tap-44 flex min-h-[44px] items-center gap-1 transition-colors px-1",
-              reported ? "opacity-50" : "hover:text-destructive",
+
+          {/* Three-Dot Overflow Menu */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label="More options"
+              className="tap-44 hover:text-foreground grid min-h-[44px] min-w-8 place-items-center transition-colors"
+            >
+              <MoreHorizontal className="size-4" />
+            </button>
+
+            {menuOpen && (
+              <div className="absolute bottom-full right-0 mb-2 z-30 w-44 overflow-hidden rounded-2xl border border-white/15 bg-[#170e0e]/95 py-1 shadow-2xl backdrop-blur-2xl animate-[slideUp_0.15s_ease-out]">
+                <button
+                  type="button"
+                  onClick={handleVeto}
+                  className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-xs text-white/80 hover:bg-white/10 hover:text-amber-400 transition-colors"
+                >
+                  <ShieldAlert className="size-3.5 text-amber-400" />
+                  <span>Something feels off</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    copy();
+                  }}
+                  className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-xs text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+                >
+                  <Copy className="size-3.5" />
+                  <span>Copy text</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onShare(unsaid);
+                  }}
+                  className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-xs text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+                >
+                  <Instagram className="size-3.5 text-ember" />
+                  <span>Share story card</span>
+                </button>
+              </div>
             )}
-          >
-            <Flag className="size-3.5" aria-hidden />
-            <span className="hidden sm:inline">{reported ? "Reported" : "Report"}</span>
-          </button>
+          </div>
         </div>
       </div>
 

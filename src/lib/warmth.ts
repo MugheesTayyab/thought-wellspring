@@ -102,7 +102,10 @@ export function getNextTier(totalWarmth: number): {
   return { nextTier, remaining, progressPct };
 }
 
-export type ActionType = "react" | "echo" | "post" | "share" | "duel" | "visit" | "spend";
+import { getOrCreateIdentity } from "./identity";
+
+export type ActionType =
+  "react" | "echo" | "post" | "share" | "duel" | "visit" | "spend" | "daily_bonus";
 
 export const AWARD_VALUES: Record<ActionType, number> = {
   react: 1,
@@ -112,6 +115,7 @@ export const AWARD_VALUES: Record<ActionType, number> = {
   duel: 2,
   visit: 2,
   spend: 0,
+  daily_bonus: 5,
 };
 
 // Daily passive action cap (applies to react and duel)
@@ -186,4 +190,24 @@ export function generateSplit(chosenOptionIndex: 0 | 1): { pctA: number; pctB: n
 export function getTodayKey(ts = Date.now()): string {
   const d = new Date(ts);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+export function claimDailyBonus(): { claimed: boolean; amount: number } {
+  if (typeof window === "undefined") return { claimed: false, amount: 0 };
+  const today = getTodayKey();
+  const lastClaim = localStorage.getItem("bh:lastDailyBonus");
+  if (lastClaim === today) return { claimed: false, amount: 0 };
+
+  const streak = getOrCreateIdentity().visitStreak;
+  let amount = 5;
+  if (streak >= 7) amount = 15;
+  if (streak >= 14) amount = 25;
+  if (streak >= 30) amount = 50;
+
+  try {
+    localStorage.setItem("bh:lastDailyBonus", today);
+  } catch {
+    // quota
+  }
+  return { claimed: true, amount };
 }

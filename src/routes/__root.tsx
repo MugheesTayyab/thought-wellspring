@@ -119,14 +119,47 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+import { useState } from "react";
+import { getOrCreateIdentity, updateVisitStreak } from "../lib/identity";
+import { claimDailyBonus } from "../lib/warmth";
+import { initializeWall } from "../lib/bajihears";
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const [dailyBonus, setDailyBonus] = useState<{ amount: number; streak: number } | null>(null);
+
+  useEffect(() => {
+    getOrCreateIdentity();
+    const streakResult = updateVisitStreak();
+    const bonusResult = claimDailyBonus();
+    initializeWall();
+
+    if (bonusResult.claimed) {
+      setDailyBonus({ amount: bonusResult.amount, streak: streakResult.streak });
+      const timer = window.setTimeout(() => setDailyBonus(null), 5000);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
       <WarmthProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
+
+        {/* Daily Return Bonus Toast */}
+        {dailyBonus && (
+          <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4 pointer-events-none animate-[slideDown_0.3s_cubic-bezier(0.34,1.56,0.64,1)]">
+            <div className="pointer-events-auto flex items-center gap-2.5 rounded-full border border-primary/40 bg-[#170e0e]/95 px-4 py-2 text-sm font-semibold text-white shadow-[0_0_25px_rgba(250,84,28,0.4)] backdrop-blur-md">
+              <span className="text-base animate-bounce">🔥</span>
+              <span>+{dailyBonus.amount} Warmth — welcome back!</span>
+              <span className="rounded-full bg-primary/20 px-2 py-0.5 font-mono text-[11px] text-primary">
+                {dailyBonus.streak}d streak
+              </span>
+            </div>
+          </div>
+        )}
       </WarmthProvider>
     </QueryClientProvider>
   );

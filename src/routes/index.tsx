@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUp } from "lucide-react";
 import { UnsaidCard } from "@/components/bajihears/UnsaidCard";
 import { FeedSkeleton } from "@/components/bajihears/FeedSkeleton";
@@ -9,6 +9,10 @@ import { CornerMenu } from "@/components/bajihears/CornerMenu";
 import { Logo } from "@/components/bajihears/Logo";
 import { WarmthOrb } from "@/components/bajihears/WarmthOrb";
 import { BottomNav } from "@/components/bajihears/BottomNav";
+import { CommunityRegulars } from "@/components/bajihears/CommunityRegulars";
+import { FeedWritingPrompt } from "@/components/bajihears/FeedWritingPrompt";
+import { BajiMascot } from "@/components/bajihears/BajiMascot";
+import { BajiIntroSplash } from "@/components/bajihears/BajiIntroSplash";
 import { useWarmth } from "@/lib/warmth-context";
 import { triggerHaptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
@@ -247,6 +251,7 @@ function Home() {
           <UnsaidCard
             unsaid={WINNER.unsaid}
             hero
+            isWinner
             hook={WINNER.hook}
             mine={myReactions[WINNER.unsaid.id] ?? []}
             echoed={myEchoes.includes(WINNER.unsaid.id)}
@@ -325,6 +330,8 @@ function Home() {
             </div>
           </div>
 
+          <CommunityRegulars />
+
           {loading && <FeedSkeleton count={3} />}
 
           {!loading && failed && (
@@ -356,19 +363,21 @@ function Home() {
 
           {!loading &&
             !failed &&
-            shown.map((u) => (
-              <UnsaidCard
-                key={u.id}
-                unsaid={u}
-                mine={myReactions[u.id] ?? []}
-                echoed={myEchoes.includes(u.id)}
-                reported={myReports.includes(u.id)}
-                myHandle={handle}
-                onReact={onReact}
-                onEcho={onEcho}
-                onReport={onReport}
-                onShare={handleShareTarget}
-              />
+            shown.map((u, index) => (
+              <Fragment key={u.id}>
+                <UnsaidCard
+                  unsaid={u}
+                  mine={myReactions[u.id] ?? []}
+                  echoed={myEchoes.includes(u.id)}
+                  reported={myReports.includes(u.id)}
+                  myHandle={handle}
+                  onReact={onReact}
+                  onEcho={onEcho}
+                  onReport={onReport}
+                  onShare={handleShareTarget}
+                />
+                {index === 2 && <FeedWritingPrompt />}
+              </Fragment>
             ))}
 
           {!loading && !failed && !atEnd && <div ref={sentinel} className="h-10" />}
@@ -394,6 +403,12 @@ function Home() {
           <ArrowUp className="size-4" />
         </button>
       )}
+
+      {/* Interactive Baji Mascot Guide */}
+      <BajiMascot />
+
+      {/* 3-Second Smooth Intro Splash on First Load */}
+      <BajiIntroSplash />
 
       {/* Shared Frosted Glassmorphic Bottom Navigation Bar */}
       <BottomNav

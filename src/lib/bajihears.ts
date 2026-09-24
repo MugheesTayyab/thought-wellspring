@@ -2,6 +2,8 @@
 // 12h cycle/lockout lives in memory + localStorage. Swap each for backend calls
 // later — the UI already treats returned permission state as authoritative.
 
+import { SEED_DATA } from "./seedData";
+
 export type ReactionKey = "heart" | "sad" | "fire" | "hug";
 
 export const REACTIONS: { key: ReactionKey; emoji: string; label: string }[] = [
@@ -49,8 +51,39 @@ export const PRESETS: Preset[] = [
   { key: "neon-ache", name: "Neon Ache", from: "#ff2e88", to: "#5b16d6", ink: "#fff0f8" },
 ];
 
+export const EXCLUSIVE_PRESETS: (Preset & {
+  isExclusive: true;
+  totalSupply: number;
+  remaining: number;
+})[] = [
+  {
+    key: "aurora-borealis",
+    name: "Aurora",
+    from: "#0f2027",
+    to: "#203a43",
+    ink: "#a8edea",
+    isExclusive: true,
+    totalSupply: 100,
+    remaining: 100, // // LATER: backend — track globally
+  },
+  {
+    key: "rose-dust",
+    name: "Rose Dust",
+    from: "#4b1248",
+    to: "#f10711",
+    ink: "#ffe8e8",
+    isExclusive: true,
+    totalSupply: 50,
+    remaining: 50,
+  },
+];
+
 export function presetByKey(key: string): Preset {
-  return PRESETS.find((p) => p.key === key) ?? PRESETS[0]!;
+  return (
+    PRESETS.find((p) => p.key === key) ??
+    EXCLUSIVE_PRESETS.find((p) => p.key === key) ??
+    PRESETS[0]!
+  );
 }
 
 export type Echo = {
@@ -69,6 +102,18 @@ export type Unsaid = {
   preset: string;
   reactions: Record<ReactionKey, number>;
   echoes: Echo[];
+  status?: "published" | "pending" | "review" | "rejected";
+  pendingUntil?: number;
+  deviceToken?: string;
+  vetoCount?: number;
+  vetoedBy?: string[];
+  type?: "confession" | "which_one";
+  whichOne?: {
+    optionA: string;
+    optionB: string;
+    votesA: number;
+    votesB: number;
+  };
 };
 
 const HOUR = 3600_000;
@@ -87,7 +132,7 @@ export const WINNER: { unsaid: Unsaid; hook: string } = {
   unsaid: {
     id: "w1",
     text: "I still check if you've watched my story. Three years later.",
-    handle: null,
+    handle: "@alfaaz_e_dil",
     createdAt: now - 13 * HOUR,
     category: "Spill The Tea",
     preset: "3am",
@@ -262,6 +307,143 @@ export function randomSeed() {
   return Math.random().toString(36).slice(2, 10);
 }
 
+/* ---------- Unsaids storage & Hero Feed Algorithm ---------- */
+
+const UNSAIDS_KEY = "bh:unsaids";
+
+export const readUnsaids = (): Unsaid[] => read<Unsaid[]>(UNSAIDS_KEY, MOCK_UNSAIDS);
+export const writeUnsaids = (v: Unsaid[]) => write(UNSAIDS_KEY, v);
+
+export function initializeWall(): void {
+  if (typeof window === "undefined") return;
+  const key = "bh:wallInitialized_v1";
+  if (localStorage.getItem(key)) return;
+  const existing = readUnsaids();
+  if (!existing || existing.length === 0 || existing.length <= MOCK_UNSAIDS.length) {
+    const seeded: Unsaid[] = SEED_DATA.map((post) => ({
+      ...post,
+      status: "published",
+      vetoCount: 0,
+      vetoedBy: [],
+      type: "confession",
+    }));
+    writeUnsaids(seeded);
+  }
+  localStorage.setItem(key, "true");
+}
+
+export function scorePost(post: Unsaid): number {
+  const ageHours = (Date.now() - post.createdAt) / 3_600_000;
+  const reactionScore =
+    post.reactions.heart * 2.5 +
+    post.reactions.fire * 2.0 +
+    post.reactions.hug * 2.0 +
+    post.reactions.sad * 1.5;
+  const echoScore = post.echoes.length * 4;
+  const decay = Math.pow(0.5, ageHours / 8);
+
+  // Posts over 36 hours old go to "From Earlier"
+  if (ageHours > 36) return -1;
+  return (reactionScore + echoScore) * decay;
+}
+
+export function getSortedFeed(posts: Unsaid[]): { heroFeed: Unsaid[]; earlierFeed: Unsaid[] } {
+  const scored = posts
+    .map((p) => ({ post: p, score: scorePost(p) }))
+    .sort((a, b) => b.score - a.score);
+
+  const heroFeed = scored.filter((p) => p.score >= 0).map((p) => p.post);
+  const earlierFeed = scored
+    .filter((p) => p.score < 0)
+    .map((p) => p.post)
+    .sort((a, b) => b.createdAt - a.createdAt);
+
+  return { heroFeed, earlierFeed };
+}
+
+export function getWinner(posts: Unsaid[]): Unsaid | null {
+  if (typeof window !== "undefined") {
+    try {
+      const cachedRaw = localStorage.getItem("bh:currentWinner");
+      if (cachedRaw) {
+        const cached = JSON.parse(cachedRaw) as { winner: Unsaid; cachedAt: number };
+        if (Date.now() - cached.cachedAt < 3_600_000) {
+          return cached.winner;
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const recentPosts = posts.filter(
+    (p) =>
+      Date.now() - p.createdAt <= 24 * 3_600_000 &&
+      p.status !== "review" &&
+      p.status !== "rejected",
+  );
+  if (recentPosts.length === 0) return null;
+
+  const sorted = [...recentPosts].sort((a, b) => scorePost(b) - scorePost(a));
+  const winner = sorted[0] ?? null;
+
+  if (winner && typeof window !== "undefined") {
+    try {
+      localStorage.setItem("bh:currentWinner", JSON.stringify({ winner, cachedAt: Date.now() }));
+    } catch {
+      // ignore
+    }
+  }
+  return winner;
+}
+
+export function generateShareCode(postId: string): string {
+  return postId
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .substring(0, 8)
+    .toUpperCase();
+}
+
+export function buildShareUrl(postId: string): string {
+  return `https://bajihears.com/c/${generateShareCode(postId)}`;
+}
+
+export function vetoPost(
+  postId: string,
+  deviceToken: string,
+): { success: boolean; underReview: boolean; reason?: string } {
+  const unsaids = readUnsaids();
+  const post = unsaids.find((u) => u.id === postId);
+  if (!post) return { success: false, underReview: false, reason: "Post not found" };
+
+  if (post.deviceToken && post.deviceToken === deviceToken) {
+    return { success: false, underReview: false, reason: "Cannot veto your own post" };
+  }
+
+  const vetoedBy = post.vetoedBy ?? [];
+  if (vetoedBy.includes(deviceToken)) {
+    return { success: false, underReview: false, reason: "Already flagged" };
+  }
+
+  const newVetoCount = (post.vetoCount ?? 0) + 1;
+  const newVetoedBy = [...vetoedBy, deviceToken];
+  const underReview = newVetoCount >= 5 && (post.echoes?.length ?? 0) < 3;
+
+  const updated = unsaids.map((u) =>
+    u.id === postId
+      ? {
+          ...u,
+          vetoCount: newVetoCount,
+          vetoedBy: newVetoedBy,
+          status: underReview ? ("review" as const) : (u.status ?? "published"),
+        }
+      : u,
+  );
+
+  writeUnsaids(updated);
+  return { success: true, underReview };
+}
+
 /* ---------- formatting ---------- */
 
 export function relativeTime(ts: number, from = Date.now()): string {
@@ -306,7 +488,8 @@ export function getInstagramUrl(handle: string | null): string | null {
 
 /* ---------- Warmth & Duel Extensions ---------- */
 
-export type ActionType = "react" | "echo" | "post" | "share" | "duel" | "visit" | "spend";
+export type ActionType =
+  "react" | "echo" | "post" | "share" | "duel" | "visit" | "spend" | "daily_bonus";
 
 export interface WarmthLogEntry {
   id: string;

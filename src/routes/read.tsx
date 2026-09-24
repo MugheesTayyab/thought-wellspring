@@ -149,7 +149,9 @@ function ReadPage() {
 
       {/* Main Content Area */}
       <main className="relative z-10 my-auto py-6 sm:py-8 w-full flex flex-col items-center justify-center">
-        {mounted && result.unlocked && currentArchetype ? (
+        {!mounted ? (
+          <BajiReadLockedCard totalActions={0} actionsNeeded={5} />
+        ) : result.unlocked && currentArchetype ? (
           <BajiReadCard
             archetype={currentArchetype}
             totalWarmth={totalWarmth}
@@ -161,8 +163,8 @@ function ReadPage() {
           />
         ) : (
           <BajiReadLockedCard
-            totalActions={mounted ? result.totalActions : 0}
-            actionsNeeded={mounted ? result.actionsNeeded : 5}
+            totalActions={!result.unlocked ? result.totalActions : 0}
+            actionsNeeded={!result.unlocked ? result.actionsNeeded : 5}
           />
         )}
       </main>

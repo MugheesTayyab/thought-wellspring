@@ -121,7 +121,7 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
           onFocus={() => setFocused(true)}
           onChange={(e) => setText(e.target.value.slice(0, MAX_LEN))}
           rows={2}
-          placeholder="Spill your tea or quiet thoughts..."
+          placeholder="your words matter — spill your tea or silent thoughts..."
           className="bg-white/[0.03] border-white/10 placeholder:text-muted-foreground/60 focus:border-primary/60 focus:ring-primary/20 w-full resize-none rounded-2xl border p-3.5 text-base leading-relaxed outline-none focus:ring-2 transition-all font-vibe"
         />
         <div

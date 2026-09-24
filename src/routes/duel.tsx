@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { MOCK_DUELS, readAnsweredDuels, writeAnsweredDuels } from "@/lib/bajihears";
+import {
+  MOCK_DUELS,
+  readAnsweredDuels,
+  writeAnsweredDuels,
+  type AnsweredDuelRecord,
+} from "@/lib/bajihears";
 import { generateSplit } from "@/lib/warmth";
 import { DuelCard } from "@/components/bajihears/DuelCard";
 import { WarmthOrb } from "@/components/bajihears/WarmthOrb";
@@ -31,7 +36,7 @@ export const Route = createFileRoute("/duel")({
 function DuelPage() {
   const { totalWarmth, awardWarmth, openWarmthSheet, isFlashingOrb } = useWarmth();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answeredRecord, setAnsweredRecord] = useState<Record<string, unknown>>({});
+  const [answeredRecord, setAnsweredRecord] = useState<AnsweredDuelRecord>({});
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -40,8 +45,7 @@ function DuelPage() {
   }, []);
 
   const currentDuel = MOCK_DUELS[currentIndex % MOCK_DUELS.length] ?? MOCK_DUELS[0]!;
-  const existingAnswer =
-    (answeredRecord as ReturnType<typeof readAnsweredDuels>)[currentDuel.id] ?? null;
+  const existingAnswer = answeredRecord[currentDuel.id] ?? null;
 
   const handleAnswer = (choiceIndex: 0 | 1) => {
     if (existingAnswer) return;
