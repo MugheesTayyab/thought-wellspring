@@ -1,29 +1,29 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUp } from "lucide-react";
-import { UnsaidCard } from "@/components/bajihears/UnsaidCard";
-import { FeedSkeleton } from "@/components/bajihears/FeedSkeleton";
-import { WritingBox } from "@/components/bajihears/WritingBox";
-import { QuoteCardDialog } from "@/components/bajihears/QuoteCardDialog";
-import { CornerMenu } from "@/components/bajihears/CornerMenu";
-import { Logo } from "@/components/bajihears/Logo";
-import { WarmthOrb } from "@/components/bajihears/WarmthOrb";
-import { BottomNav } from "@/components/bajihears/BottomNav";
-import { CommunityRegulars } from "@/components/bajihears/CommunityRegulars";
-import { FeedWritingPrompt } from "@/components/bajihears/FeedWritingPrompt";
-import { BajiMascot } from "@/components/bajihears/BajiMascot";
-import { BajiIntroSplash } from "@/components/bajihears/BajiIntroSplash";
-import { useWarmth } from "@/lib/warmth-context";
-import { triggerHaptic } from "@/lib/haptics";
-import { cn } from "@/lib/utils";
+import { UnsaidCard } from "@/client/components/bajihears/UnsaidCard";
+import { FeedSkeleton } from "@/client/components/bajihears/FeedSkeleton";
+import { WritingBox } from "@/client/components/bajihears/WritingBox";
+import { QuoteCardDialog } from "@/client/components/bajihears/QuoteCardDialog";
+import { CornerMenu } from "@/client/components/bajihears/CornerMenu";
+import { Logo } from "@/client/components/bajihears/Logo";
+import { WarmthOrb } from "@/client/components/bajihears/WarmthOrb";
+import { BottomNav } from "@/client/components/bajihears/BottomNav";
+import { CommunityRegulars } from "@/client/components/bajihears/CommunityRegulars";
+import { FeedWritingPrompt } from "@/client/components/bajihears/FeedWritingPrompt";
+import { BajiMascot } from "@/client/components/bajihears/BajiMascot";
+import { BajiIntroSplash } from "@/client/components/bajihears/BajiIntroSplash";
+import { useWarmth } from "@/client/stores/warmth-context";
+import { triggerHaptic } from "@/client/lib/haptics";
+import { cn, randomSeed } from "@/shared/utils";
+import { CATEGORIES } from "@/shared/constants/categories";
+import { REPORT_THRESHOLD } from "@/shared/constants/cycle";
+import type { Category, MyReactions, ReactionKey, Unsaid } from "@/shared/types/unsaid";
 import {
-  CATEGORIES,
-  MOCK_UNSAIDS,
-  REPORT_THRESHOLD,
-  WINNER,
+  FALLBACK_MOCK_UNSAIDS as MOCK_UNSAIDS,
+  readUnsaids,
   appendMyPostCategory,
   clearLastSubmit,
-  randomSeed,
   readAvatarSeed,
   readHandle,
   readLastSubmit,
@@ -35,11 +35,7 @@ import {
   writeMyEchoes,
   writeMyReactions,
   writeMyReports,
-  type Category,
-  type MyReactions,
-  type ReactionKey,
-  type Unsaid,
-} from "@/lib/bajihears";
+} from "@/client/lib/local-storage";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -86,7 +82,7 @@ function Home() {
     setLoading(true);
     setFailed(false);
     window.setTimeout(() => {
-      setUnsaids(MOCK_UNSAIDS);
+      setUnsaids(readUnsaids());
       setLoading(false);
     }, 400);
   }, []);

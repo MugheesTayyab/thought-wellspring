@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { useWarmth } from "@/lib/warmth-context";
+import { useWarmth } from "@/client/stores/warmth-context";
 import {
   readMyReactions,
   readMyEchoes,
   readAnsweredDuels,
   readMyPostCategories,
   readHandle,
-} from "@/lib/bajihears";
+} from "@/client/lib/local-storage";
 import {
   computeBajiRead,
   readBajiReadCache,
@@ -17,12 +17,12 @@ import {
   CACHE_TTL_MS,
   BAJI_READ_COST,
   type BajiReadResult,
-} from "@/lib/bajiRead";
-import { BajiReadLockedCard } from "@/components/bajihears/BajiReadLockedCard";
-import { BajiReadCard } from "@/components/bajihears/BajiReadCard";
-import { BajiReadShareDialog } from "@/components/bajihears/BajiReadShareDialog";
-import { BottomNav } from "@/components/bajihears/BottomNav";
-import { WarmthOrb } from "@/components/bajihears/WarmthOrb";
+} from "@/client/lib/bajiRead";
+import { BajiReadLockedCard } from "@/client/components/bajihears/BajiReadLockedCard";
+import { BajiReadCard } from "@/client/components/bajihears/BajiReadCard";
+import { BajiReadShareDialog } from "@/client/components/bajihears/BajiReadShareDialog";
+import { BottomNav } from "@/client/components/bajihears/BottomNav";
+import { WarmthOrb } from "@/client/components/bajihears/WarmthOrb";
 
 export const Route = createFileRoute("/read")({
   head: () => ({

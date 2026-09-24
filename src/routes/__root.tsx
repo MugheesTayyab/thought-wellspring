@@ -9,9 +9,9 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
-import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
-import { useWarmth, WarmthProvider, type WarmthContextType } from "../lib/warmth-context";
+import appCss from "@/client/styles/styles.css?url";
+import { reportLovableError } from "@/client/lib/lovable-error-reporting";
+import { useWarmth, WarmthProvider, type WarmthContextType } from "@/client/stores/warmth-context";
 
 export { useWarmth, WarmthProvider, type WarmthContextType };
 
@@ -120,9 +120,8 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 import { useState } from "react";
-import { getOrCreateIdentity, updateVisitStreak } from "../lib/identity";
-import { claimDailyBonus } from "../lib/warmth";
-import { initializeWall } from "../lib/bajihears";
+import { getOrCreateIdentity, updateVisitStreak } from "@/client/lib/identity";
+import { claimDailyBonus, initializeWall } from "@/client/lib/local-storage";
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();

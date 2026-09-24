@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Dices } from "lucide-react";
-import { CornerAvatar } from "@/components/bajihears/CornerAvatar";
+import { CornerAvatar } from "@/client/components/bajihears/CornerAvatar";
+import { randomSeed, stripHandle } from "@/shared/utils";
 import {
-  randomSeed,
   readAvatarSeed,
   readHandle,
-  stripHandle,
   writeAvatarSeed,
   writeHandle,
-} from "@/lib/bajihears";
+} from "@/client/lib/local-storage";
 
 export const Route = createFileRoute("/corner")({
   head: () => ({

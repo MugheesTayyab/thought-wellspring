@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import {
-  MOCK_DUELS,
-  readAnsweredDuels,
-  writeAnsweredDuels,
-  type AnsweredDuelRecord,
-} from "@/lib/bajihears";
-import { generateSplit } from "@/lib/warmth";
-import { DuelCard } from "@/components/bajihears/DuelCard";
-import { WarmthOrb } from "@/components/bajihears/WarmthOrb";
-import { BottomNav } from "@/components/bajihears/BottomNav";
-import { useWarmth } from "@/lib/warmth-context";
+import { MOCK_DUELS, generateSplit } from "@/shared/constants/duels";
+import type { AnsweredDuelRecord } from "@/shared/types/duel";
+import { readAnsweredDuels, writeAnsweredDuels } from "@/client/lib/local-storage";
+import { DuelCard } from "@/client/components/bajihears/DuelCard";
+import { WarmthOrb } from "@/client/components/bajihears/WarmthOrb";
+import { BottomNav } from "@/client/components/bajihears/BottomNav";
+import { useWarmth } from "@/client/stores/warmth-context";
 
 export const Route = createFileRoute("/duel")({
   head: () => ({
