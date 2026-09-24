@@ -2,6 +2,7 @@ import "./server/lib/error-capture";
 
 import { consumeLastCapturedError } from "./server/lib/error-capture";
 import { renderErrorPage } from "./server/lib/error-page";
+import { setWorkerEnv } from "./server/lib/get-env";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -16,6 +17,16 @@ async function getServerEntry(): Promise<ServerEntry> {
     );
   }
   return serverEntryPromise;
+}
+
+function isOriginAllowed(origin: string): boolean {
+  if (!origin) return false;
+  return (
+    origin === "https://bajihears.com" ||
+    origin.endsWith(".pages.dev") ||
+    origin === "http://localhost:3000" ||
+    origin === "http://localhost:5173"
+  );
 }
 
 // h3 swallows in-handler throws into a normal 500 Response with body
@@ -46,10 +57,36 @@ function isH3SwallowedErrorBody(body: string): boolean {
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    setWorkerEnv(env);
+
+    const origin = request.headers.get("origin") || "";
+    const allowed = isOriginAllowed(origin);
+
+    // Handle CORS preflight OPTIONS request
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": allowed ? origin : "https://bajihears.com",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, X-Device-Token, Authorization",
+          "Access-Control-Max-Age": "86400",
+        },
+      });
+    }
+
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      const normalized = await normalizeCatastrophicSsrResponse(response);
+
+      if (allowed && origin) {
+        normalized.headers.set("Access-Control-Allow-Origin", origin);
+        normalized.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        normalized.headers.set("Access-Control-Allow-Headers", "Content-Type, X-Device-Token, Authorization");
+      }
+
+      return normalized;
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {
