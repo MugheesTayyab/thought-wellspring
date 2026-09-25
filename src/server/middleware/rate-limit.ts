@@ -1,7 +1,5 @@
 import type { DatabaseEnv } from "../db/client";
-import { countDevicePostsInWindow } from "../db/unsaids";
-import { countDeviceReactionsInWindow } from "../db/reactions";
-import { countDeviceEchoesInWindow } from "../db/echoes";
+import { getSupabaseAdminClient } from "../db/client";
 
 export type RateLimitAction = "submit_post" | "react" | "echo" | "report";
 
@@ -72,28 +70,40 @@ export async function checkRateLimit(
     return { allowed: true, limit: 100, remaining: 100, resetTime: Date.now() + 3600000 };
   }
 
-  let count = 0;
-  if (action === "submit_post") {
-    count = await countDevicePostsInWindow(env, deviceToken, config.windowMinutes);
-  } else if (action === "react") {
-    count = await countDeviceReactionsInWindow(env, deviceToken, config.windowMinutes);
-  } else if (action === "echo") {
-    count = await countDeviceEchoesInWindow(env, deviceToken, config.windowMinutes);
-  } else if (action === "report") {
-    count = await countDevicePostsInWindow(env, deviceToken, config.windowMinutes);
+  try {
+    const adminClient = getSupabaseAdminClient(env);
+    const { data, error } = await adminClient.rpc("record_and_check_rate_limit", {
+      p_device_token: deviceToken,
+      p_action_type: action,
+      p_limit: config.limit,
+      p_window_minutes: config.windowMinutes,
+    });
+
+    if (error) {
+      console.error("Rate limit check RPC failed:", error);
+      // Fallback in case of DB error
+      return { allowed: true, limit: config.limit, remaining: 1, resetTime: Date.now() + config.windowMinutes * 60000 };
+    }
+
+    if (!data.allowed) {
+      throw new RateLimitError(
+        config.errorMessage,
+        data.limit,
+        0,
+        Date.now() + (data.retry_after_seconds * 1000)
+      );
+    }
+
+    return {
+      allowed: true,
+      limit: config.limit,
+      remaining: data.remaining,
+      resetTime: Date.now() + config.windowMinutes * 60000,
+    };
+  } catch (err) {
+    if (err instanceof RateLimitError) throw err;
+    console.error("Rate limit evaluation error:", err);
+    return { allowed: true, limit: config.limit, remaining: 1, resetTime: Date.now() + config.windowMinutes * 60000 };
   }
-
-  const remaining = Math.max(0, config.limit - count);
-  const resetTime = Date.now() + config.windowMinutes * 60 * 1000;
-
-  if (count >= config.limit) {
-    throw new RateLimitError(config.errorMessage, config.limit, 0, resetTime);
-  }
-
-  return {
-    allowed: true,
-    limit: config.limit,
-    remaining,
-    resetTime,
-  };
 }
+

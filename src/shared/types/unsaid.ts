@@ -48,6 +48,7 @@ export type Unsaid = {
   isWinner?: boolean | undefined;
   winnerCycle?: number | undefined;
   winnerHook?: string | null | undefined;
+  winnerScore?: number | null | undefined;
   pinnedUntil?: number | null | undefined;
   type?: "confession" | "which_one" | undefined;
   whichOne?: {

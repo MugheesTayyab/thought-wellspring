@@ -548,9 +548,18 @@ export function UnsaidCard({
           {unsaid.echoes.map((echo) => (
             <li
               key={echo.id}
-              className="text-foreground/90 font-vibe text-xs sm:text-sm leading-snug"
+              className={cn(
+                "text-foreground/90 font-vibe text-xs sm:text-sm leading-snug flex items-center flex-wrap gap-1",
+                echo.id.startsWith("pending-") && "opacity-70 animate-pulse"
+              )}
             >
-              {echo.text}
+              <span>{echo.text}</span>
+              {echo.id.startsWith("pending-") && (
+                <span className="inline-flex items-center gap-0.5 text-[10px] text-primary/80">
+                  <Clock className="size-2.5" />
+                  <span>sending…</span>
+                </span>
+              )}
               {echo.handle ? (
                 <a
                   href={getInstagramUrl(echo.handle)!}

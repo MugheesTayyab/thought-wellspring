@@ -1,7 +1,13 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Bell, Sparkles } from "lucide-react";
-import { requestPushPermission, markPushPromptShown } from "@/client/lib/notifications";
+import { Bell, Sparkles, Smartphone, Loader2 } from "lucide-react";
+import {
+  subscribeDeviceToPush,
+  markPushPromptShown,
+  isIosDevice,
+  isStandalonePwa,
+} from "@/client/lib/notifications";
+import { useDeviceToken } from "@/client/hooks/use-device-token";
 import { triggerHaptic } from "@/client/lib/haptics";
 
 interface PushPermissionSheetProps {
@@ -10,21 +16,32 @@ interface PushPermissionSheetProps {
 }
 
 export const PushPermissionSheet: React.FC<PushPermissionSheetProps> = ({ isOpen, onClose }) => {
+  const deviceToken = useDeviceToken();
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const isIosBrowser = isIosDevice() && !isStandalonePwa();
+
   useEffect(() => {
     if (!isOpen) return;
     const timer = window.setTimeout(() => {
       markPushPromptShown();
       onClose();
-    }, 8000);
+    }, 12000);
     return () => window.clearTimeout(timer);
   }, [isOpen, onClose]);
 
   if (!isOpen || typeof document === "undefined") return null;
 
   const handleAccept = async () => {
+    setIsSubscribing(true);
     triggerHaptic("celebration");
-    await requestPushPermission();
-    onClose();
+    try {
+      await subscribeDeviceToPush({ deviceToken });
+    } catch (err) {
+      console.warn("[PushSheet] Subscription attempt failed:", err);
+    } finally {
+      setIsSubscribing(false);
+      onClose();
+    }
   };
 
   const handleDismiss = () => {
@@ -48,33 +65,49 @@ export const PushPermissionSheet: React.FC<PushPermissionSheetProps> = ({ isOpen
             <Bell className="size-5" />
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-1.5 flex-1">
             <div className="flex items-center gap-1.5">
               <h3 className="font-display text-base font-bold text-white tracking-tight">
-                Get notified when someone echoes yours.
+                Never miss the daily crown.
               </h3>
               <Sparkles className="size-3.5 text-primary shrink-0" />
             </div>
             <p className="font-vibe text-xs text-white/70 leading-relaxed">
-              No feeds. No noise. Just that one moment someone felt your confession.
+              Get an instant ping when the 12-hour winner is crowned or when your confession gets echoed.
             </p>
+
+            {isIosBrowser && (
+              <div className="mt-2 flex items-center gap-2 rounded-xl bg-white/5 border border-white/10 px-2.5 py-1.5 text-[11px] text-white/80">
+                <Smartphone className="size-3.5 text-primary shrink-0" />
+                <span>On iPhone: Tap <strong>Share</strong> → <strong>Add to Home Screen</strong> to enable instant alerts.</span>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="mt-4 flex items-center justify-end gap-2 pt-2 border-t border-white/10">
           <button
             type="button"
+            disabled={isSubscribing}
             onClick={handleDismiss}
-            className="rounded-xl px-4 py-2 text-xs font-semibold text-white/60 hover:text-white transition-colors"
+            className="rounded-xl px-4 py-2 text-xs font-semibold text-white/60 hover:text-white transition-colors disabled:opacity-50"
           >
             Maybe later
           </button>
           <button
             type="button"
+            disabled={isSubscribing}
             onClick={handleAccept}
-            className="bg-brand-gradient text-primary-foreground rounded-xl px-4 py-2 text-xs font-bold shadow-[0_0_15px_rgba(250,84,28,0.3)] transition-all active:scale-95"
+            className="inline-flex items-center gap-1.5 bg-brand-gradient text-primary-foreground rounded-xl px-4 py-2 text-xs font-bold shadow-[0_0_15px_rgba(250,84,28,0.3)] transition-all active:scale-95 disabled:opacity-50"
           >
-            Yes, tell me
+            {isSubscribing ? (
+              <>
+                <Loader2 className="size-3.5 animate-spin" />
+                <span>Enabling...</span>
+              </>
+            ) : (
+              <span>Yes, notify me</span>
+            )}
           </button>
         </div>
       </div>

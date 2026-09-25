@@ -15,19 +15,30 @@ type Props = {
     handle: string | null;
     category: Category;
     preset: string;
-  }) => void;
+  }) => void | Promise<any>;
   onUnlock: () => void;
+  isSubmitting?: boolean;
+  submitError?: string | null;
 };
 
-export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props) {
+export function WritingBox({
+  lastSubmitAt,
+  myHandle,
+  onSubmit,
+  onUnlock,
+  isSubmitting = false,
+  submitError = null,
+}: Props) {
   const [text, setText] = useState("");
   const [focused, setFocused] = useState(false);
   const [anonymous, setAnonymous] = useState(true);
   const [igHandle, setIgHandle] = useState(myHandle ? stripHandle(myHandle) : "");
   const [category, setCategory] = useState<Category>("Spill The Tea");
   const [preset, setPreset] = useState(PRESETS[0]!.key);
-  const [sending, setSending] = useState(false);
+  const [localSending, setLocalSending] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+
+  const sending = isSubmitting || localSending;
 
   const unlockAt = lastSubmitAt ? lastSubmitAt + LOCKOUT_MS : null;
   const locked = unlockAt !== null && unlockAt > now;
@@ -225,25 +236,37 @@ export function WritingBox({ lastSubmitAt, myHandle, onSubmit, onUnlock }: Props
         </div>
       )}
 
+      {submitError && (
+        <div className="mt-3 rounded-xl border border-destructive/40 bg-destructive/10 p-2.5 text-center text-xs text-destructive">
+          {submitError}
+        </div>
+      )}
+
       <div className="mt-3">
         <button
           type="button"
           disabled={!valid || sending}
-          onClick={() => {
+          onClick={async () => {
             triggerHaptic("impactMedium");
-            setSending(true);
-            window.setTimeout(() => {
-              onSubmit({
+            setLocalSending(true);
+            try {
+              const res = onSubmit({
                 text: text.trim(),
                 handle: anonymous ? null : `@${cleanIg}`,
                 category,
                 preset,
               });
-              setSending(false);
+              if (res instanceof Promise) {
+                await res;
+              }
               setText("");
               setFocused(false);
               setAnonymous(true);
-            }, 400);
+            } catch {
+              // Error handled by parent or displayed via submitError prop
+            } finally {
+              setLocalSending(false);
+            }
           }}
           className={cn(
             "spring-press w-full rounded-2xl py-3 text-[15px] font-bold tracking-wide transition-opacity font-vibe min-h-[44px]",

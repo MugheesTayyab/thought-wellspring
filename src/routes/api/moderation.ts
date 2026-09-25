@@ -1,33 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getServerEnv } from "@/server/lib/get-env";
-import { wrapServerFn, type ServerFnResult } from "@/server/lib/wrap-server-fn";
-import {
-  reportPost,
-  type ReportPostInput,
-} from "@/server/functions/moderation";
+import type { ReportPostResponseData } from "@/shared/types/api";
 
-export interface ReportPostResponseData {
-  reported: boolean;
-  message: string;
+export type { ReportPostResponseData };
+
+export interface ReportPostClientInput {
+  postId: string;
+  reason: string;
+  deviceToken: string;
+  profileId?: string | null;
 }
 
-/**
- * Handlers (Directly callable and testable)
- */
-export async function handleReportPost(
-  data: ReportPostInput
-): Promise<ServerFnResult<ReportPostResponseData>> {
-  return wrapServerFn(async () => {
-    const env = getServerEnv();
-    return reportPost(env, data);
-  });
-}
-
-/**
- * TanStack Start Server Functions
- */
 export const apiReportPost = createServerFn({ method: "POST" })
-  .validator((data: ReportPostInput) => data)
+  .validator((data: ReportPostClientInput) => data)
   .handler(async ({ data }) => {
+    const { handleReportPost } = await import("@/server/handlers/moderation");
     return handleReportPost(data);
   });

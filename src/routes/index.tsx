@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { ArrowUp } from "lucide-react";
 import { UnsaidCard } from "@/client/components/bajihears/UnsaidCard";
 import { FeedSkeleton } from "@/client/components/bajihears/FeedSkeleton";
@@ -14,27 +14,22 @@ import { FeedWritingPrompt } from "@/client/components/bajihears/FeedWritingProm
 import { BajiMascot } from "@/client/components/bajihears/BajiMascot";
 import { BajiIntroSplash } from "@/client/components/bajihears/BajiIntroSplash";
 import { useWarmth } from "@/client/stores/warmth-context";
+import { useWall } from "@/client/hooks/use-wall";
+import { useWinner } from "@/client/hooks/use-winner";
 import { triggerHaptic } from "@/client/lib/haptics";
 import { cn, randomSeed } from "@/shared/utils";
 import { CATEGORIES } from "@/shared/constants/categories";
 import { REPORT_THRESHOLD } from "@/shared/constants/cycle";
-import type { Category, MyReactions, ReactionKey, Unsaid } from "@/shared/types/unsaid";
+import type { Category, ReactionKey, Unsaid } from "@/shared/types/unsaid";
 import {
-  FALLBACK_MOCK_UNSAIDS as MOCK_UNSAIDS,
-  WINNER,
-  readUnsaids,
   appendMyPostCategory,
   clearLastSubmit,
   readAvatarSeed,
   readHandle,
   readLastSubmit,
-  readMyEchoes,
-  readMyReactions,
   readMyReports,
   writeAvatarSeed,
   writeLastSubmit,
-  writeMyEchoes,
-  writeMyReactions,
   writeMyReports,
 } from "@/client/lib/local-storage";
 
@@ -58,78 +53,59 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-const PAGE = 4;
-
 function Home() {
   const { totalWarmth, awardWarmth, openWarmthSheet, isFlashingOrb } = useWarmth();
-  const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState(false);
-  const [unsaids, setUnsaids] = useState<Unsaid[]>([]);
-  const [winnerUnsaid, setWinnerUnsaid] = useState<{ unsaid: Unsaid; hook: string }>(WINNER);
-  const [visible, setVisible] = useState(PAGE);
-  const [filters, setFilters] = useState<Category[]>([]);
-  const [myReactions, setMyReactions] = useState<MyReactions>({});
-  const [myEchoes, setMyEchoes] = useState<string[]>([]);
+  const {
+    posts,
+    isLoading: isFeedLoading,
+    isFetchingNextPage,
+    isError: isFeedError,
+    hasNextPage,
+    sentinelRef,
+    filters,
+    toggleFilter,
+    clearFilters,
+    submitPost,
+    isSubmitting,
+    submitError,
+    onReact: onWallReact,
+    onEcho: onWallEcho,
+    myReactions,
+    myEchoedIds,
+    refetch,
+  } = useWall();
+
+  const {
+    winner,
+    hook: winnerHook,
+    onReact: onWinnerReact,
+    userReaction: winnerUserReaction,
+  } = useWinner();
+
   const [myReports, setMyReports] = useState<string[]>([]);
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
   const [handle, setHandle] = useState<string | null>(null);
   const [seed, setSeed] = useState("baji");
   const [lastSubmitAt, setLastSubmitAt] = useState<number | null>(null);
   const [shareTarget, setShareTarget] = useState<Unsaid | null>(null);
-  const sentinel = useRef<HTMLDivElement | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const backdrop = useRef<HTMLDivElement | null>(null);
 
-  // MOCKED: simulated Wall fetch. Replace with a real query later.
-  const load = useCallback(() => {
-    setLoading(true);
-    setFailed(false);
-    window.setTimeout(() => {
-      setUnsaids(readUnsaids());
-      setLoading(false);
-    }, 400);
-  }, []);
-
   useEffect(() => {
-    setMyReactions(readMyReactions());
-    setMyEchoes(readMyEchoes());
-    setMyReports(readMyReports());
-    setLastSubmitAt(readLastSubmit());
-    setHandle(readHandle());
-    const existing = readAvatarSeed();
-    if (existing) setSeed(existing);
-    else {
-      const next = randomSeed();
-      writeAvatarSeed(next);
-      setSeed(next);
+    if (typeof window !== "undefined") {
+      setMyReports(readMyReports());
+      setLastSubmitAt(readLastSubmit());
+      setHandle(readHandle());
+      const existing = readAvatarSeed();
+      if (existing) {
+        setSeed(existing);
+      } else {
+        const next = randomSeed();
+        writeAvatarSeed(next);
+        setSeed(next);
+      }
     }
-    load();
-  }, [load]);
-
-  const wall = useMemo(
-    () =>
-      unsaids.filter(
-        (u) => !hiddenIds.includes(u.id) && (filters.length === 0 || filters.includes(u.category)),
-      ),
-    [unsaids, hiddenIds, filters],
-  );
-  const shown = wall.slice(0, visible);
-  const atEnd = shown.length >= wall.length;
-
-  useEffect(() => {
-    setVisible(PAGE);
-  }, [filters]);
-
-  useEffect(() => {
-    const node = sentinel.current;
-    if (!node || atEnd) return;
-    const io = new IntersectionObserver((entries) => {
-      if (entries[0]?.isIntersecting) setVisible((v) => v + PAGE);
-    });
-    io.observe(node);
-    return () => io.disconnect();
-  }, [atEnd, shown.length]);
-
-  const [showScrollTop, setShowScrollTop] = useState(false);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -144,88 +120,16 @@ function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const toggleFilter = (c: Category) => {
-    triggerHaptic("selection");
-    setFilters((prev) => (prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]));
-  };
-
-  const onReact = (id: string, key: ReactionKey) => {
-    // Optimistic: update instantly, never wait on a round trip.
+  const handleReact = (id: string, key: ReactionKey) => {
     const already = (myReactions[id] ?? []).includes(key);
-    const nextMine: MyReactions = {
-      ...myReactions,
-      [id]: already
-        ? (myReactions[id] ?? []).filter((k) => k !== key)
-        : [...(myReactions[id] ?? []), key],
-    };
-    setMyReactions(nextMine);
-    writeMyReactions(nextMine);
-    setUnsaids((prev) =>
-      prev.map((u) =>
-        u.id === id
-          ? {
-              ...u,
-              reactions: {
-                ...u.reactions,
-                [key]: Math.max(0, u.reactions[key] + (already ? -1 : 1)),
-              },
-            }
-          : u,
-      ),
-    );
-
-    if (id === winnerUnsaid.unsaid.id) {
-      setWinnerUnsaid((prev) => ({
-        ...prev,
-        unsaid: {
-          ...prev.unsaid,
-          reactions: {
-            ...prev.unsaid.reactions,
-            [key]: Math.max(0, prev.unsaid.reactions[key] + (already ? -1 : 1)),
-          },
-        },
-      }));
-    }
-
-    // Award +1 Warmth if adding a new reaction
+    onWallReact(id, key);
     if (!already) {
       awardWarmth("react", "Reacted to tea");
     }
   };
 
-  const onEcho = (id: string, text: string, echoHandle: string | null) => {
-    if (myEchoes.includes(id)) return;
-    const nextEchoed = [...myEchoes, id];
-    setMyEchoes(nextEchoed);
-    writeMyEchoes(nextEchoed);
-    setUnsaids((prev) =>
-      prev.map((u) =>
-        u.id === id
-          ? {
-              ...u,
-              echoes: [
-                ...u.echoes,
-                { id: `local-${Date.now()}`, text, handle: echoHandle, createdAt: Date.now() },
-              ],
-            }
-          : u,
-      ),
-    );
-
-    if (id === winnerUnsaid.unsaid.id) {
-      setWinnerUnsaid((prev) => ({
-        ...prev,
-        unsaid: {
-          ...prev.unsaid,
-          echoes: [
-            ...prev.unsaid.echoes,
-            { id: `local-${Date.now()}`, text, handle: echoHandle, createdAt: Date.now() },
-          ],
-        },
-      }));
-    }
-
-    // Award +3 Warmth for adding an echo
+  const handleEcho = async (id: string, text: string, echoHandle: string | null) => {
+    await onWallEcho(id, text, echoHandle);
     awardWarmth("echo", "Added an echo");
   };
 
@@ -234,8 +138,7 @@ function Home() {
     awardWarmth("share", "Shared Unsaid card");
   };
 
-  // MOCK: real auto-hide happens in the moderation queue past REPORT_THRESHOLD.
-  const onReport = (id: string) => {
+  const handleReport = (id: string) => {
     if (myReports.includes(id)) return;
     const next = [...myReports, id];
     setMyReports(next);
@@ -244,6 +147,8 @@ function Home() {
       setHiddenIds((prev) => [...prev, id]);
     }
   };
+
+  const visiblePosts = posts.filter((u) => !hiddenIds.includes(u.id));
 
   return (
     <div className="relative min-h-screen">
@@ -272,50 +177,54 @@ function Home() {
         <h1 className="sr-only">BajiHears — The Wall of Unsaids</h1>
 
         <div className="wall-3d mt-3 sm:mt-4 space-y-4 sm:space-y-6">
-          <UnsaidCard
-            unsaid={winnerUnsaid.unsaid}
-            hero
-            isWinner
-            hook={winnerUnsaid.hook}
-            mine={myReactions[winnerUnsaid.unsaid.id] ?? []}
-            echoed={myEchoes.includes(winnerUnsaid.unsaid.id)}
-            reported={myReports.includes(winnerUnsaid.unsaid.id)}
-            myHandle={handle}
-            onReact={onReact}
-            onEcho={onEcho}
-            onReport={onReport}
-            onShare={handleShareTarget}
-          />
+          {/* Winner Card */}
+          {winner && (
+            <UnsaidCard
+              unsaid={winner}
+              hero
+              isWinner
+              hook={winnerHook}
+              mine={
+                winnerUserReaction
+                  ? [winnerUserReaction]
+                  : myReactions[winner.id] ?? []
+              }
+              echoed={myEchoedIds.includes(winner.id)}
+              reported={myReports.includes(winner.id)}
+              myHandle={handle}
+              onReact={(_id, key) => onWinnerReact(key)}
+              onEcho={handleEcho}
+              onReport={handleReport}
+              onShare={handleShareTarget}
+            />
+          )}
 
+          {/* Submission Box */}
           <WritingBox
             lastSubmitAt={lastSubmitAt}
             myHandle={handle}
+            isSubmitting={isSubmitting}
+            submitError={submitError}
             onUnlock={() => {
               clearLastSubmit();
               setLastSubmitAt(null);
             }}
-            onSubmit={({ text, handle: postHandle, category, preset }) => {
-              const posted: Unsaid = {
-                id: `local-${Date.now()}`,
+            onSubmit={async ({ text, handle: postHandle, category, preset }) => {
+              await submitPost({
                 text,
                 handle: postHandle,
-                createdAt: Date.now(),
                 category,
                 preset,
-                reactions: { heart: 0, sad: 0, fire: 0, hug: 0 },
-                echoes: [],
-              };
-              setUnsaids((prev) => [posted, ...prev]);
+              });
               const ts = Date.now();
               writeLastSubmit(ts);
               setLastSubmitAt(ts);
-
-              // Award +10 Warmth for spilling tea
               awardWarmth("post", "Spilled tea on wall");
               appendMyPostCategory(category);
             }}
           />
 
+          {/* Category Filter Pills */}
           <div className="pt-1">
             <div className="flex items-center justify-between gap-3 px-1 mb-2 font-vibe">
               <span className="text-muted-foreground/70 text-[11px] font-bold tracking-wider uppercase">
@@ -324,8 +233,8 @@ function Home() {
               {filters.length > 0 && (
                 <button
                   type="button"
-                  onClick={() => setFilters([])}
-                  className="text-primary hover:underline shrink-0 text-xs font-medium"
+                  onClick={clearFilters}
+                  className="text-primary hover:underline shrink-0 text-xs font-medium cursor-pointer"
                 >
                   Clear all ({filters.length})
                 </button>
@@ -339,9 +248,12 @@ function Home() {
                     key={c}
                     type="button"
                     aria-pressed={on}
-                    onClick={() => toggleFilter(c)}
+                    onClick={() => {
+                      triggerHaptic("selection");
+                      toggleFilter(c);
+                    }}
                     className={cn(
-                      "shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-all active:scale-95",
+                      "shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-all active:scale-95 cursor-pointer",
                       on
                         ? "border-primary/60 bg-primary/20 text-primary shadow-[0_0_10px_rgba(249,115,22,0.2)]"
                         : "border-white/8 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.07] hover:border-white/15 hover:text-foreground",
@@ -356,27 +268,30 @@ function Home() {
 
           <CommunityRegulars />
 
-          {loading && <FeedSkeleton count={3} />}
+          {/* Initial Loading State */}
+          {isFeedLoading && visiblePosts.length === 0 && <FeedSkeleton count={3} />}
 
-          {!loading && failed && (
+          {/* Error State */}
+          {isFeedError && visiblePosts.length === 0 && (
             <div className="bg-card border-border rounded-3xl border p-5 text-center font-vibe">
               <p className="font-display text-lg">The Wall didn&apos;t load.</p>
               <p className="text-muted-foreground mt-2 text-sm">
-                Happens sometimes. Give it another try?
+                Connection took a breath. Give it another try?
               </p>
               <button
                 type="button"
-                onClick={load}
-                className="bg-brand-gradient text-primary-foreground mt-4 rounded-2xl px-5 py-2.5 text-sm font-semibold"
+                onClick={() => refetch()}
+                className="bg-brand-gradient text-primary-foreground mt-4 rounded-2xl px-5 py-2.5 text-sm font-semibold cursor-pointer"
               >
                 Try again
               </button>
             </div>
           )}
 
-          {!loading && !failed && wall.length === 0 && (
+          {/* Empty State */}
+          {!isFeedLoading && !isFeedError && visiblePosts.length === 0 && (
             <div className="bg-card border-border rounded-3xl border p-5 text-center font-vibe">
-              <p className="font-display text-lg">No tea here yet ☕</p>
+              <p className="font-display text-lg">No whispers here yet ☕</p>
               <p className="text-muted-foreground mt-2 text-sm">
                 {filters.length > 0
                   ? "No tea spilled in this vibe yet. Try another one!"
@@ -385,28 +300,32 @@ function Home() {
             </div>
           )}
 
-          {!loading &&
-            !failed &&
-            shown.map((u, index) => (
-              <Fragment key={u.id}>
-                <UnsaidCard
-                  unsaid={u}
-                  mine={myReactions[u.id] ?? []}
-                  echoed={myEchoes.includes(u.id)}
-                  reported={myReports.includes(u.id)}
-                  myHandle={handle}
-                  onReact={onReact}
-                  onEcho={onEcho}
-                  onReport={onReport}
-                  onShare={handleShareTarget}
-                />
-                {index === 2 && <FeedWritingPrompt />}
-              </Fragment>
-            ))}
+          {/* Feed List */}
+          {visiblePosts.map((u, index) => (
+            <Fragment key={u.id}>
+              <UnsaidCard
+                unsaid={u}
+                mine={myReactions[u.id] ?? []}
+                echoed={myEchoedIds.includes(u.id)}
+                reported={myReports.includes(u.id)}
+                myHandle={handle}
+                onReact={handleReact}
+                onEcho={handleEcho}
+                onReport={handleReport}
+                onShare={handleShareTarget}
+              />
+              {index === 2 && <FeedWritingPrompt />}
+            </Fragment>
+          ))}
 
-          {!loading && !failed && !atEnd && <div ref={sentinel} className="h-10" />}
+          {/* Infinite Scroll Sentinel */}
+          <div ref={sentinelRef} className="h-10 w-full" />
 
-          {!loading && !failed && atEnd && wall.length > 0 && (
+          {/* Loading next page indicator */}
+          {isFetchingNextPage && <FeedSkeleton count={1} />}
+
+          {/* End of Wall */}
+          {!hasNextPage && visiblePosts.length > 0 && (
             <p className="text-muted-foreground/80 py-6 text-center text-xs font-semibold font-vibe tracking-wide">
               You&apos;ve read all the tea ☕. Come back for the next drop!
             </p>

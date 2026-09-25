@@ -94,11 +94,3 @@ export const MOCK_DUELS: Duel[] = [
     },
   },
 ];
-
-export function generateSplit(chosenOptionIndex: 0 | 1): { pctA: number; pctB: number } {
-  const chosenPct = Math.floor(Math.random() * 18) + 55; // 55 to 72%
-  const otherPct = 100 - chosenPct;
-  return chosenOptionIndex === 0
-    ? { pctA: chosenPct, pctB: otherPct }
-    : { pctA: otherPct, pctB: chosenPct };
-}

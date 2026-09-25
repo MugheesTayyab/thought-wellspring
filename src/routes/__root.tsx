@@ -14,7 +14,8 @@ import appCss from "@/styles.css?url";
 import { reportLovableError } from "@/client/lib/lovable-error-reporting";
 import { useWarmth, WarmthProvider, type WarmthContextType } from "@/client/stores/warmth-context";
 import { getOrCreateIdentity, updateVisitStreak } from "@/client/lib/identity";
-import { claimDailyBonus, initializeWall } from "@/client/lib/local-storage";
+import { claimDailyBonus } from "@/client/lib/local-storage";
+import { useWarmthSync } from "@/client/hooks/use-warmth-sync";
 
 export { useWarmth, WarmthProvider, type WarmthContextType };
 
@@ -122,6 +123,11 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function WarmthSyncWatcher() {
+  useWarmthSync();
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const [dailyBonus, setDailyBonus] = useState<{ amount: number; streak: number } | null>(null);
@@ -130,7 +136,6 @@ function RootComponent() {
     getOrCreateIdentity();
     const streakResult = updateVisitStreak();
     const bonusResult = claimDailyBonus();
-    initializeWall();
 
     if (bonusResult.claimed) {
       setDailyBonus({ amount: bonusResult.amount, streak: streakResult.streak });
@@ -143,6 +148,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <WarmthProvider>
+        <WarmthSyncWatcher />
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
 

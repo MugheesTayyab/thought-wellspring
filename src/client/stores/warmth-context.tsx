@@ -52,6 +52,7 @@ export interface WarmthContextType {
   ) => void;
   spendWarmth: (amount: number, label: string) => void;
   updateCallSign: (name: string) => void;
+  syncWarmthTotal: (serverTotal: number) => void;
 }
 
 export const WarmthContext = createContext<WarmthContextType | null>(null);
@@ -212,6 +213,13 @@ export function WarmthProvider({ children }: { children: ReactNode }) {
     setToast({ amount: -amount, label });
   };
 
+  const syncWarmthTotal = (serverTotal: number) => {
+    if (typeof serverTotal === "number" && !isNaN(serverTotal) && serverTotal >= 0) {
+      setTotalWarmth(serverTotal);
+      writeWarmth(serverTotal);
+    }
+  };
+
   return (
     <WarmthContext.Provider
       value={{
@@ -229,6 +237,7 @@ export function WarmthProvider({ children }: { children: ReactNode }) {
         awardWarmth: awardWarmthInternal,
         spendWarmth,
         updateCallSign,
+        syncWarmthTotal,
       }}
     >
       {children}

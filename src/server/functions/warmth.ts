@@ -135,3 +135,70 @@ export async function purchaseStoreItem(
     purchasedItem: item,
   };
 }
+
+/**
+ * Monotonically sync local device warmth with server profile
+ */
+export async function syncWarmth(
+  env: DatabaseEnv | undefined,
+  input: {
+    deviceToken: string;
+    localWarmth: number;
+    profileId?: string | null;
+  }
+): Promise<{ serverTotal: number }> {
+  const { validateDeviceToken } = await import("../middleware/device-token");
+  const token = validateDeviceToken(input.deviceToken);
+  const localWarmth = Math.max(0, Math.floor(input.localWarmth || 0));
+
+  const { getSupabaseAdminClient } = await import("../db/client");
+  const client = getSupabaseAdminClient(env);
+
+  let query = client.from("profiles").select("id, warmth_total");
+  if (input.profileId) {
+    query = query.eq("id", input.profileId);
+  } else {
+    query = query.eq("device_token", token);
+  }
+
+  const { data: existing, error: fetchErr } = await query.maybeSingle();
+
+  if (fetchErr) {
+    console.error("[syncWarmth] Error fetching profile:", fetchErr.message);
+  }
+
+  if (existing) {
+    const serverWarmth = existing.warmth_total ?? 0;
+    const finalTotal = Math.max(serverWarmth, localWarmth);
+
+    if (finalTotal > serverWarmth) {
+      await client
+        .from("profiles")
+        .update({ warmth_total: finalTotal })
+        .eq("id", existing.id);
+    }
+
+    return { serverTotal: finalTotal };
+  } else {
+    const { data: created, error: insertErr } = await client
+      .from("profiles")
+      .insert({
+        device_token: token,
+        warmth_total: localWarmth,
+      })
+      .select("warmth_total")
+      .single();
+
+    if (insertErr) {
+      const { data: retry } = await client
+        .from("profiles")
+        .select("warmth_total")
+        .eq("device_token", token)
+        .maybeSingle();
+
+      return { serverTotal: Math.max(retry?.warmth_total ?? 0, localWarmth) };
+    }
+
+    return { serverTotal: created?.warmth_total ?? localWarmth };
+  }
+}

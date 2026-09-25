@@ -18,3 +18,23 @@ export type StreakMilestone = {
   reward: string;
   label: string;
 };
+
+export interface DbProfile {
+  id: string;
+  handle: string;
+  avatarSeed: number;
+  memberSince: string;
+  deviceToken: string | null;
+  visitStreak: number;
+  lastVisit: string | null;
+  streakFreezeUsed: boolean;
+  totalActions: number;
+  warmthTotal: number;
+  warmthLog: import("./warmth").WarmthLogEntry[];
+  purchasedItems: string[];
+  tabsUnlocked: {
+    duel: boolean;
+    read: boolean;
+  };
+}
+

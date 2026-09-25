@@ -1,4 +1,5 @@
 import { getSupabaseAdminClient, getSupabaseAnonClient, type DatabaseEnv } from "./client";
+import { fetchEchoesForPost } from "./echoes";
 import type { Category, ReactionKey, Unsaid } from "@/shared/types/unsaid";
 
 export interface FeedOptions {
@@ -35,6 +36,7 @@ export function mapRowToUnsaid(row: any): Unsaid {
     isWinner: row.is_winner ?? false,
     winnerCycle: row.winner_cycle ? new Date(row.winner_cycle).getTime() : undefined,
     winnerHook: row.winner_hook ?? null,
+    winnerScore: row.winner_score != null ? Number(row.winner_score) : null,
     pinnedUntil: row.pinned_until ? new Date(row.pinned_until).getTime() : null,
   };
 }
@@ -108,7 +110,17 @@ export async function fetchWinner(
       return { data: null, error: { code: error.code, message: error.message } };
     }
 
-    return { data: data ? mapRowToUnsaid(data) : null, error: null };
+    if (!data) {
+      return { data: null, error: null };
+    }
+
+    const unsaid = mapRowToUnsaid(data);
+    const echoesRes = await fetchEchoesForPost(env, unsaid.id);
+    if (echoesRes.data) {
+      unsaid.echoes = echoesRes.data;
+    }
+
+    return { data: unsaid, error: null };
   } catch (err: any) {
     return { data: null, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
   }
@@ -237,19 +249,20 @@ export async function incrementReaction(
 }
 
 /**
- * Append veto / report from a device
+ * Decrement reaction counter with floor at zero
  */
-export async function appendVeto(
+export async function decrementReaction(
   env: DatabaseEnv | undefined,
   postId: string,
-  reporterDeviceToken: string
-): Promise<{ data: { vetoCount: number; status: string } | null; error: { code: string; message: string } | null }> {
+  reactionKey: ReactionKey
+): Promise<{ data: Record<ReactionKey, number> | null; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAdminClient(env);
 
+    // Fetch current reactions
     const { data: post, error: fetchErr } = await client
       .from("unsaids")
-      .select("device_token, veto_count, vetoed_by, status")
+      .select("reactions, status")
       .eq("id", postId)
       .maybeSingle();
 
@@ -260,35 +273,65 @@ export async function appendVeto(
       return { data: null, error: { code: "NOT_FOUND", message: "Post not found" } };
     }
 
-    // Author cannot veto own post
-    if (post.device_token === reporterDeviceToken) {
-      return { data: null, error: { code: "SELF_VETO_FORBIDDEN", message: "Author cannot report own post" } };
-    }
+    const currentReactions: Record<ReactionKey, number> = post.reactions || {
+      heart: 0,
+      sad: 0,
+      fire: 0,
+      hug: 0,
+    };
 
-    // Deduplication check
-    const vetoedBy: string[] = post.vetoed_by || [];
-    if (vetoedBy.includes(reporterDeviceToken)) {
-      return { data: null, error: { code: "ALREADY_REPORTED", message: "Device has already reported this post" } };
-    }
-
-    const newVetoedBy = [...vetoedBy, reporterDeviceToken];
-    const newVetoCount = (post.veto_count ?? 0) + 1;
-    const newStatus = newVetoCount >= 5 ? "review" : post.status;
+    const currentCount = currentReactions[reactionKey] || 0;
+    const updatedReactions: Record<ReactionKey, number> = {
+      ...currentReactions,
+      [reactionKey]: Math.max(0, currentCount - 1),
+    };
 
     const { error: updateErr } = await client
       .from("unsaids")
-      .update({
-        vetoed_by: newVetoedBy,
-        veto_count: newVetoCount,
-        status: newStatus,
-      })
+      .update({ reactions: updatedReactions })
       .eq("id", postId);
 
     if (updateErr) {
       return { data: null, error: { code: updateErr.code, message: updateErr.message } };
     }
 
-    return { data: { vetoCount: newVetoCount, status: newStatus }, error: null };
+    return { data: updatedReactions, error: null };
+  } catch (err: any) {
+    return { data: null, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
+  }
+}
+
+/**
+ * Append veto / report from a device using atomic RPC
+ */
+export async function appendVeto(
+  env: DatabaseEnv | undefined,
+  postId: string,
+  reporterDeviceToken: string
+): Promise<{ data: { vetoCount: number; status: string } | null; error: { code: string; message: string } | null }> {
+  try {
+    const client = getSupabaseAdminClient(env);
+
+    const { data, error } = await client.rpc("append_veto_atomic", {
+      p_post_id: postId,
+      p_reporter_device_token: reporterDeviceToken,
+    });
+
+    if (error) {
+      return { data: null, error: { code: error.code, message: error.message } };
+    }
+
+    if (!data.success) {
+      return { data: null, error: { code: data.code, message: data.message } };
+    }
+
+    return { 
+      data: { 
+        vetoCount: data.veto_count, 
+        status: data.quarantined ? 'review' : 'published' 
+      }, 
+      error: null 
+    };
   } catch (err: any) {
     return { data: null, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
   }

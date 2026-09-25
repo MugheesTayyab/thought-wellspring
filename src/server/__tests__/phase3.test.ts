@@ -5,11 +5,11 @@ import {
   handleFetchWinner,
   handleSubmitPost,
   handleReactToPost,
-} from "../../routes/api/wall";
+} from "../handlers/wall";
 import {
   handleFetchActiveDuel,
   handleSubmitDuelVote,
-} from "../../routes/api/duels";
+} from "../handlers/duels";
 import { wrapServerFn } from "../lib/wrap-server-fn";
 import { setWorkerEnv } from "../lib/get-env";
 import { DeviceTokenError } from "../middleware/device-token";

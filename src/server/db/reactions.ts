@@ -68,6 +68,35 @@ export async function recordReaction(
 }
 
 /**
+ * Remove a reaction deduplication entry
+ */
+export async function removeReaction(
+  env: DatabaseEnv | undefined,
+  postId: string,
+  deviceToken: string,
+  reactionKey: ReactionKey
+): Promise<{ success: boolean; error: { code: string; message: string } | null }> {
+  try {
+    const client = getSupabaseAdminClient(env);
+
+    const { error } = await client
+      .from("reactions")
+      .delete()
+      .eq("unsaid_id", postId)
+      .eq("device_token", deviceToken)
+      .eq("reaction_key", reactionKey);
+
+    if (error) {
+      return { success: false, error: { code: error.code, message: error.message } };
+    }
+
+    return { success: true, error: null };
+  } catch (err: any) {
+    return { success: false, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
+  }
+}
+
+/**
  * Count reactions by device in rolling window (for rate limiting)
  */
 export async function countDeviceReactionsInWindow(

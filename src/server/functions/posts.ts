@@ -5,15 +5,19 @@ import {
   fetchPostById as dbFetchPostById,
   insertPost,
   incrementReaction,
+  decrementReaction,
 } from "../db/unsaids";
-import { recordReaction, hasDeviceReacted } from "../db/reactions";
+import { recordReaction, hasDeviceReacted, removeReaction } from "../db/reactions";
+import { insertEcho } from "../db/echoes";
 import { incrementTotalActions } from "../db/profiles";
 import { validateDeviceToken } from "../middleware/device-token";
 import { checkRateLimit } from "../middleware/rate-limit";
-import { checkServerSpam } from "../lib/spam-filter";
+import { normalizeText } from "../lib/moderation/normalize";
+import { checkHardFilters, escapeHtml } from "../lib/moderation/hard-filters";
+import { checkSoftFilters } from "../lib/moderation/soft-filters";
 import { FALLBACK_WINNER } from "../lib/fallback-winner";
 import { CATEGORIES } from "@/shared/constants/categories";
-import type { Category, ReactionKey, Unsaid } from "@/shared/types/unsaid";
+import type { Category, Echo, ReactionKey, Unsaid } from "@/shared/types/unsaid";
 
 export interface SubmitPostInput {
   text: string;
@@ -55,13 +59,24 @@ export async function submitPost(
   // 1. Rate limiting: 3 posts per hour
   await checkRateLimit(env, "submit_post", token);
 
-  // 2. Spam filter check
-  const spamCheck = checkServerSpam(text);
-  const status: "published" | "review" = spamCheck.passed ? "published" : "review";
+  // 2. Moderation Pipeline Check
+  const normalizedPayload = normalizeText(text);
+  
+  const hardResult = checkHardFilters(normalizedPayload);
+  if (hardResult.blocked) {
+    const error = new Error(hardResult.details || "CONTENT_VIOLATION");
+    (error as any).code = 'CONTENT_VIOLATION';
+    throw error;
+  }
+  
+  const softResult = checkSoftFilters(normalizedPayload);
+  const status: "published" | "review" = softResult.flagged ? "review" : "published";
+
+  const safeText = escapeHtml(text);
 
   // 3. Database insert
   const res = await insertPost(env, {
-    text,
+    text: safeText,
     category: input.category,
     preset: input.preset || "midnight-static",
     handle: input.handle ?? null,
@@ -205,4 +220,112 @@ export async function reactToPost(
   }
 
   return { reactions: counterRes.data };
+}
+
+/**
+ * Unreact to post with deduplication removal
+ */
+export async function unreactToPost(
+  env: DatabaseEnv | undefined,
+  input: {
+    postId: string;
+    reactionKey: ReactionKey;
+    deviceToken: string;
+    profileId?: string | null;
+  }
+): Promise<{ reactions: Record<ReactionKey, number> }> {
+  const token = validateDeviceToken(input.deviceToken);
+
+  // 1. Check deduplication: did this device react with this emoji?
+  const alreadyReacted = await hasDeviceReacted(env, input.postId, token, input.reactionKey);
+  if (!alreadyReacted) {
+    // Idempotent: nothing to unreact
+    const postRes = await dbFetchPostById(env, input.postId);
+    return { reactions: postRes.data?.reactions || { heart: 0, sad: 0, fire: 0, hug: 0 } };
+  }
+
+  // 2. Remove reaction from ledger
+  const removeRes = await removeReaction(env, input.postId, token, input.reactionKey);
+  if (removeRes.error) {
+    throw new Error(removeRes.error.message);
+  }
+
+  // 3. Decrement counter on post
+  const counterRes = await decrementReaction(env, input.postId, input.reactionKey);
+  if (counterRes.error || !counterRes.data) {
+    throw new Error(counterRes.error?.message || "Failed to decrement reaction");
+  }
+
+  return { reactions: counterRes.data };
+}
+
+/**
+ * Add echo to confession post with rate limiting and validation
+ */
+export async function addEcho(
+  env: DatabaseEnv | undefined,
+  input: {
+    unsaidId: string;
+    text: string;
+    deviceToken: string;
+    handle?: string | null;
+    profileId?: string | null;
+  }
+): Promise<Echo> {
+  const token = validateDeviceToken(input.deviceToken);
+
+  const text = input.text?.trim() || "";
+  if (text.length < 1) {
+    throw new Error("Echo cannot be empty.");
+  }
+  if (text.length > 200) {
+    throw new Error("Echo must not exceed 200 characters.");
+  }
+
+  // Rate limiting: 10 echoes per 30 minutes
+  await checkRateLimit(env, "echo", token);
+
+  // Moderation pipeline check
+  const normalizedPayload = normalizeText(text);
+  
+  const hardResult = checkHardFilters(normalizedPayload);
+  if (hardResult.blocked) {
+    const error = new Error(hardResult.details || "CONTENT_VIOLATION");
+    (error as any).code = 'CONTENT_VIOLATION';
+    throw error;
+  }
+
+  const softResult = checkSoftFilters(normalizedPayload);
+  if (softResult.flagged) {
+    throw new Error("Echo was flagged for community review.");
+  }
+
+  const safeText = escapeHtml(text);
+
+  const res = await insertEcho(env, {
+    unsaidId: input.unsaidId,
+    text: safeText,
+    handle: input.handle ?? null,
+    deviceToken: token,
+    profileId: input.profileId ?? null,
+  });
+
+  if (res.error || !res.data) {
+    throw new Error(res.error?.message || "Failed to add echo");
+  }
+
+  if (input.profileId) {
+    await incrementTotalActions(env, input.profileId).catch((err) =>
+      console.error("[addEcho] incrementTotalActions error:", err)
+    );
+  }
+
+  return {
+    id: res.data.id,
+    text,
+    handle: input.handle ?? null,
+    createdAt: res.data.createdAt,
+    profileId: input.profileId ?? null,
+    deviceToken: token,
+  };
 }

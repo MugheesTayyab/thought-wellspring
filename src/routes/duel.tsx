@@ -1,13 +1,10 @@
-import React, { useState, useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
-import { MOCK_DUELS, generateSplit } from "@/shared/constants/duels";
-import type { AnsweredDuelRecord } from "@/shared/types/duel";
-import { readAnsweredDuels, writeAnsweredDuels } from "@/client/lib/local-storage";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { DuelCard } from "@/client/components/bajihears/DuelCard";
 import { WarmthOrb } from "@/client/components/bajihears/WarmthOrb";
 import { BottomNav } from "@/client/components/bajihears/BottomNav";
 import { useWarmth } from "@/client/stores/warmth-context";
+import { useDuel } from "@/client/hooks/use-duel";
 
 export const Route = createFileRoute("/duel")({
   head: () => ({
@@ -16,7 +13,7 @@ export const Route = createFileRoute("/duel")({
       {
         name: "description",
         content:
-          "Snackable confession duels. Choose which confession speaks to your soul and earn Warmth Points.",
+          "Live community confession duels. Choose which confession speaks to your soul and earn Warmth Points.",
       },
       { property: "og:title", content: "The Duel — BajiHears" },
       {
@@ -30,44 +27,22 @@ export const Route = createFileRoute("/duel")({
 });
 
 function DuelPage() {
-  const { totalWarmth, awardWarmth, openWarmthSheet, isFlashingOrb } = useWarmth();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [answeredRecord, setAnsweredRecord] = useState<AnsweredDuelRecord>({});
-  const [mounted, setMounted] = useState(false);
+  const { totalWarmth, openWarmthSheet, isFlashingOrb } = useWarmth();
+  const {
+    duel,
+    alreadyVoted,
+    userChoice,
+    pctA,
+    pctB,
+    isLoading,
+    vote,
+    answeredCount,
+  } = useDuel();
 
-  useEffect(() => {
-    setAnsweredRecord(readAnsweredDuels());
-    setMounted(true);
-  }, []);
-
-  const currentDuel = MOCK_DUELS[currentIndex % MOCK_DUELS.length] ?? MOCK_DUELS[0]!;
-  const existingAnswer = answeredRecord[currentDuel.id] ?? null;
-
-  const handleAnswer = (choiceIndex: 0 | 1) => {
-    if (existingAnswer) return;
-
-    // Generate session-randomized split skewed towards user's choice
-    const split = generateSplit(choiceIndex);
-    const newRecord = {
-      ...answeredRecord,
-      [currentDuel.id]: {
-        choiceIndex,
-        pctA: split.pctA,
-        pctB: split.pctB,
-        answeredAt: Date.now(),
-      },
-    };
-
-    setAnsweredRecord(newRecord);
-    writeAnsweredDuels(newRecord);
-
-    // Award +2 Warmth
-    awardWarmth("duel", "Answered Duel");
-  };
-
-  const handleNext = () => {
-    setCurrentIndex((prev) => prev + 1);
-  };
+  const answeredState =
+    alreadyVoted && userChoice !== undefined
+      ? { choiceIndex: userChoice, pctA, pctB }
+      : null;
 
   return (
     <div className="relative min-h-screen w-full bg-[#0F0A0A] text-white flex flex-col items-center p-4 pb-32 sm:pb-36 md:p-8 md:pb-36">
@@ -93,29 +68,41 @@ function DuelPage() {
       </header>
 
       {/* Main Duel Content */}
-      <main className="relative z-10 my-auto py-5 sm:py-8 w-full flex flex-col items-center justify-center">
-        <DuelCard
-          duel={currentDuel}
-          answeredState={existingAnswer}
-          onAnswer={handleAnswer}
-          onNext={handleNext}
-        />
+      <main className="relative z-10 my-auto py-5 sm:py-8 w-full flex flex-col items-center justify-center min-h-[420px]">
+        {isLoading && !duel ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-16 text-white/60">
+            <Loader2 className="size-6 animate-spin text-primary" />
+            <p className="text-xs tracking-wide">Summoning the daily duel…</p>
+          </div>
+        ) : duel ? (
+          <DuelCard
+            duel={duel}
+            answeredState={answeredState}
+            onAnswer={(choiceIndex) => vote(choiceIndex)}
+            onNext={() => {}}
+          />
+        ) : (
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center max-w-md">
+            <p className="text-base font-bold text-white mb-1">No Active Duel Today</p>
+            <p className="text-xs text-white/60">
+              The daily duel resets every 24 hours. Check back soon for the next choice.
+            </p>
+          </div>
+        )}
       </main>
 
       {/* Bottom Footer Stats */}
       <footer className="relative z-10 w-full max-w-2xl mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-white/50">
-        <span suppressHydrationWarning>
+        <span>
           Duels Answered:{" "}
-          <strong suppressHydrationWarning className="text-white font-mono">
-            {mounted ? Object.keys(answeredRecord).length : 0}
-          </strong>
+          <strong className="text-white font-mono">{answeredCount}</strong>
         </span>
         <button
           type="button"
           onClick={openWarmthSheet}
           className="hover:text-primary transition-colors flex items-center gap-1 cursor-pointer font-mono"
         >
-          <span suppressHydrationWarning>Earned {totalWarmth} Warmth</span>
+          <span>Earned {totalWarmth} Warmth</span>
           <span>🔥</span>
         </button>
       </footer>
