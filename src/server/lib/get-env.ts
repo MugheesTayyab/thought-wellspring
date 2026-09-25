@@ -65,11 +65,27 @@ function searchRecord(record: Record<string, any> | undefined | null, targetKey:
   return undefined;
 }
 
+function getStartRequestContext(): Record<string, any> | undefined {
+  try {
+    const sym = Symbol.for("tanstack-start:start-storage-context");
+    const storage = (globalThis as any)[sym];
+    const store = storage?.getStore();
+    return (
+      store?.request?.runtime?.cloudflare?.env ||
+      store?.contextAfterGlobalMiddlewares?.env ||
+      store?.context?.env
+    );
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Get resolved database environment bindings
  */
 export function getServerEnv(): DatabaseEnv {
   const nitroEnv = (globalThis as any).__env__;
+  const requestEnv = getStartRequestContext();
   const wEnv = currentWorkerEnv || (globalThis as any).__worker_env__;
   const gThis = globalThis as Record<string, any>;
   const procEnv = typeof process !== "undefined" ? process.env : undefined;
@@ -78,7 +94,7 @@ export function getServerEnv(): DatabaseEnv {
       ? (import.meta.env as Record<string, string | undefined>)
       : undefined;
 
-  const sources = [nitroEnv, wEnv, gThis, procEnv, metaEnv];
+  const sources = [requestEnv, nitroEnv, wEnv, gThis, procEnv, metaEnv];
 
   const getVal = (key: string): string | undefined => {
     for (const src of sources) {

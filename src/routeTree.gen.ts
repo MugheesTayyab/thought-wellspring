@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CornerRouteImport } from './routes/corner'
+import { Route as DiagnosticsRouteImport } from './routes/diagnostics'
 import { Route as DuelRouteImport } from './routes/duel'
 import { Route as ReadRouteImport } from './routes/read'
 
@@ -22,6 +23,11 @@ const IndexRoute = IndexRouteImport.update({
 const CornerRoute = CornerRouteImport.update({
   id: '/corner',
   path: '/corner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiagnosticsRoute = DiagnosticsRouteImport.update({
+  id: '/diagnostics',
+  path: '/diagnostics',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DuelRoute = DuelRouteImport.update({
@@ -38,12 +44,14 @@ const ReadRoute = ReadRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/corner': typeof CornerRoute
+  '/diagnostics': typeof DiagnosticsRoute
   '/duel': typeof DuelRoute
   '/read': typeof ReadRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/corner': typeof CornerRoute
+  '/diagnostics': typeof DiagnosticsRoute
   '/duel': typeof DuelRoute
   '/read': typeof ReadRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/corner': typeof CornerRoute
+  '/diagnostics': typeof DiagnosticsRoute
   '/duel': typeof DuelRoute
   '/read': typeof ReadRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/corner' | '/duel' | '/read'
+  fullPaths: '/' | '/corner' | '/diagnostics' | '/duel' | '/read'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/corner' | '/duel' | '/read'
-  id: '__root__' | '/' | '/corner' | '/duel' | '/read'
+  to: '/' | '/corner' | '/diagnostics' | '/duel' | '/read'
+  id: '__root__' | '/' | '/corner' | '/diagnostics' | '/duel' | '/read'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CornerRoute: typeof CornerRoute
+  DiagnosticsRoute: typeof DiagnosticsRoute
   DuelRoute: typeof DuelRoute
   ReadRoute: typeof ReadRoute
 }
@@ -83,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/corner'
       fullPath: '/corner'
       preLoaderRoute: typeof CornerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/diagnostics': {
+      id: '/diagnostics'
+      path: '/diagnostics'
+      fullPath: '/diagnostics'
+      preLoaderRoute: typeof DiagnosticsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/duel': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CornerRoute: CornerRoute,
+  DiagnosticsRoute: DiagnosticsRoute,
   DuelRoute: DuelRoute,
   ReadRoute: ReadRoute,
 }
