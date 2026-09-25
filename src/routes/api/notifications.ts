@@ -48,15 +48,7 @@ export async function handleSavePushSubscription(data: {
  * TanStack Start Server Functions
  */
 export const apiSavePushSubscription = createServerFn({ method: "POST" })
-  .handler(
-    async ({
-      data,
-    }: {
-      data: {
-        subscription: PushSubscriptionPayload;
-        jwt?: string;
-      };
-    }) => {
-      return handleSavePushSubscription(data);
-    }
-  );
+  .validator((data: { subscription: PushSubscriptionPayload; jwt?: string }) => data)
+  .handler(async ({ data }) => {
+    return handleSavePushSubscription(data);
+  });

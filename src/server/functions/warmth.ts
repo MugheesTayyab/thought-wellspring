@@ -26,7 +26,7 @@ export async function claimDailyBonus(
   }
 
   const profile = profileRes.data;
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = new Date().toISOString().split("T")[0] ?? "";
 
   if (profile.lastVisit === todayStr) {
     throw new Error("Daily bonus has already been claimed today.");

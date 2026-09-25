@@ -25,7 +25,7 @@ export function mapRowToProfile(row: any): DbProfile {
     id: row.id,
     handle: row.handle,
     avatarSeed: row.avatar_seed ?? 1,
-    memberSince: row.member_since ? String(row.member_since) : new Date().toISOString().split("T")[0],
+    memberSince: row.member_since ? String(row.member_since) : (new Date().toISOString().split("T")[0] ?? ""),
     deviceToken: row.device_token ?? null,
     visitStreak: row.visit_streak ?? 0,
     lastVisit: row.last_visit ? String(row.last_visit) : null,

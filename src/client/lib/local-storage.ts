@@ -125,6 +125,7 @@ export const FALLBACK_MOCK_UNSAIDS: Unsaid[] = [
 
 export const readUnsaids = (): Unsaid[] => read<Unsaid[]>(UNSAIDS_KEY, FALLBACK_MOCK_UNSAIDS);
 export const writeUnsaids = (v: Unsaid[]) => write(UNSAIDS_KEY, v);
+export { WINNER, FALLBACK_WINNER } from "@/shared/constants/fallback-winner";
 
 export function initializeWall(): void {
   if (typeof window === "undefined") return;

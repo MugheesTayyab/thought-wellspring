@@ -79,20 +79,13 @@ export async function handlePurchaseStoreItem(data: {
  * TanStack Start Server Functions
  */
 export const apiClaimDailyBonus = createServerFn({ method: "POST" })
-  .handler(async ({ data }: { data?: { jwt?: string } }) => {
+  .validator((data?: { jwt?: string }) => data)
+  .handler(async ({ data }) => {
     return handleClaimDailyBonus(data);
   });
 
 export const apiPurchaseStoreItem = createServerFn({ method: "POST" })
-  .handler(
-    async ({
-      data,
-    }: {
-      data: {
-        itemId: string;
-        jwt?: string;
-      };
-    }) => {
-      return handlePurchaseStoreItem(data);
-    }
-  );
+  .validator((data: { itemId: string; jwt?: string }) => data)
+  .handler(async ({ data }) => {
+    return handlePurchaseStoreItem(data);
+  });

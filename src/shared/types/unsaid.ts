@@ -26,8 +26,8 @@ export type Echo = {
   text: string;
   handle: string | null;
   createdAt: number;
-  profileId?: string | null;
-  deviceToken?: string;
+  profileId?: string | null | undefined;
+  deviceToken?: string | undefined;
 };
 
 export type Unsaid = {
@@ -39,23 +39,23 @@ export type Unsaid = {
   preset: string;
   reactions: Record<ReactionKey, number>;
   echoes: Echo[];
-  status?: "published" | "pending" | "review" | "rejected";
-  pendingUntil?: number;
-  deviceToken?: string;
-  profileId?: string | null;
-  vetoCount?: number;
-  vetoedBy?: string[];
-  isWinner?: boolean;
-  winnerCycle?: number;
-  winnerHook?: string | null;
-  pinnedUntil?: number | null;
-  type?: "confession" | "which_one";
+  status?: "published" | "pending" | "review" | "rejected" | undefined;
+  pendingUntil?: number | undefined;
+  deviceToken?: string | undefined;
+  profileId?: string | null | undefined;
+  vetoCount?: number | undefined;
+  vetoedBy?: string[] | undefined;
+  isWinner?: boolean | undefined;
+  winnerCycle?: number | undefined;
+  winnerHook?: string | null | undefined;
+  pinnedUntil?: number | null | undefined;
+  type?: "confession" | "which_one" | undefined;
   whichOne?: {
     optionA: string;
     optionB: string;
     votesA: number;
     votesB: number;
-  };
+  } | undefined;
 };
 
 export type MyReactions = Record<string, ReactionKey[]>;

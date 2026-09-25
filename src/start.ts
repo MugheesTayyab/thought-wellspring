@@ -27,7 +27,7 @@ const csrfMiddleware = createCsrfMiddleware({
 const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => {
   const response = await next();
   if (response instanceof Response) {
-    const isProd = process.env.NODE_ENV === "production";
+    const isProd = process.env["NODE_ENV"] === "production";
     if (isProd) {
       response.headers.set(
         "Strict-Transport-Security",

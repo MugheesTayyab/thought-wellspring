@@ -2,9 +2,9 @@ import { getSupabaseAdminClient, getSupabaseAnonClient, type DatabaseEnv } from 
 import type { Category, ReactionKey, Unsaid } from "@/shared/types/unsaid";
 
 export interface FeedOptions {
-  category?: Category;
-  limit?: number;
-  offset?: number;
+  category?: Category | undefined;
+  limit?: number | undefined;
+  offset?: number | undefined;
 }
 
 export interface InsertPostInput {

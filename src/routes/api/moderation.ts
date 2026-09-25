@@ -27,6 +27,7 @@ export async function handleReportPost(
  * TanStack Start Server Functions
  */
 export const apiReportPost = createServerFn({ method: "POST" })
-  .handler(async ({ data }: { data: ReportPostInput }) => {
+  .validator((data: ReportPostInput) => data)
+  .handler(async ({ data }) => {
     return handleReportPost(data);
   });

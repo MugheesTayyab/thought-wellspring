@@ -21,6 +21,7 @@ import { REPORT_THRESHOLD } from "@/shared/constants/cycle";
 import type { Category, MyReactions, ReactionKey, Unsaid } from "@/shared/types/unsaid";
 import {
   FALLBACK_MOCK_UNSAIDS as MOCK_UNSAIDS,
+  WINNER,
   readUnsaids,
   appendMyPostCategory,
   clearLastSubmit,
@@ -64,6 +65,7 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [unsaids, setUnsaids] = useState<Unsaid[]>([]);
+  const [winnerUnsaid, setWinnerUnsaid] = useState<{ unsaid: Unsaid; hook: string }>(WINNER);
   const [visible, setVisible] = useState(PAGE);
   const [filters, setFilters] = useState<Category[]>([]);
   const [myReactions, setMyReactions] = useState<MyReactions>({});
@@ -172,6 +174,19 @@ function Home() {
       ),
     );
 
+    if (id === winnerUnsaid.unsaid.id) {
+      setWinnerUnsaid((prev) => ({
+        ...prev,
+        unsaid: {
+          ...prev.unsaid,
+          reactions: {
+            ...prev.unsaid.reactions,
+            [key]: Math.max(0, prev.unsaid.reactions[key] + (already ? -1 : 1)),
+          },
+        },
+      }));
+    }
+
     // Award +1 Warmth if adding a new reaction
     if (!already) {
       awardWarmth("react", "Reacted to tea");
@@ -196,6 +211,19 @@ function Home() {
           : u,
       ),
     );
+
+    if (id === winnerUnsaid.unsaid.id) {
+      setWinnerUnsaid((prev) => ({
+        ...prev,
+        unsaid: {
+          ...prev.unsaid,
+          echoes: [
+            ...prev.unsaid.echoes,
+            { id: `local-${Date.now()}`, text, handle: echoHandle, createdAt: Date.now() },
+          ],
+        },
+      }));
+    }
 
     // Award +3 Warmth for adding an echo
     awardWarmth("echo", "Added an echo");
@@ -245,13 +273,13 @@ function Home() {
 
         <div className="wall-3d mt-3 sm:mt-4 space-y-4 sm:space-y-6">
           <UnsaidCard
-            unsaid={WINNER.unsaid}
+            unsaid={winnerUnsaid.unsaid}
             hero
             isWinner
-            hook={WINNER.hook}
-            mine={myReactions[WINNER.unsaid.id] ?? []}
-            echoed={myEchoes.includes(WINNER.unsaid.id)}
-            reported={myReports.includes(WINNER.unsaid.id)}
+            hook={winnerUnsaid.hook}
+            mine={myReactions[winnerUnsaid.unsaid.id] ?? []}
+            echoed={myEchoes.includes(winnerUnsaid.unsaid.id)}
+            reported={myReports.includes(winnerUnsaid.unsaid.id)}
             myHandle={handle}
             onReact={onReact}
             onEcho={onEcho}

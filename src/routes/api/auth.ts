@@ -82,22 +82,20 @@ export async function handleRefreshProfile(data?: {
  * TanStack Start Server Functions
  */
 export const apiMigrateGuestToAccount = createServerFn({ method: "POST" })
-  .handler(
-    async ({
-      data,
-    }: {
-      data: {
-        deviceToken: string;
-        handle: string;
-        avatarSeed?: number;
-        jwt?: string;
-      };
-    }) => {
-      return handleMigrateGuestToAccount(data);
-    }
-  );
+  .validator(
+    (data: {
+      deviceToken: string;
+      handle: string;
+      avatarSeed?: number;
+      jwt?: string;
+    }) => data
+  )
+  .handler(async ({ data }) => {
+    return handleMigrateGuestToAccount(data);
+  });
 
 export const apiRefreshProfile = createServerFn({ method: "GET" })
-  .handler(async ({ data }: { data?: { jwt?: string } }) => {
+  .validator((data?: { jwt?: string }) => data)
+  .handler(async ({ data }) => {
     return handleRefreshProfile(data);
   });

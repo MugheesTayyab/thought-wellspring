@@ -12,7 +12,7 @@ import type { Duel } from "@/shared/types/duel";
 export interface ActiveDuelResponse {
   duel: Duel | null;
   alreadyVoted: boolean;
-  userChoice?: 0 | 1;
+  userChoice?: 0 | 1 | undefined;
 }
 
 /**

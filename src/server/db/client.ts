@@ -8,33 +8,30 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 export interface DatabaseEnv {
-  SUPABASE_URL?: string;
-  VITE_SUPABASE_URL?: string;
-  SUPABASE_SERVICE_ROLE_KEY?: string;
-  SUPABASE_ANON_KEY?: string;
-  VITE_SUPABASE_ANON_KEY?: string;
+  SUPABASE_URL?: string | undefined;
+  VITE_SUPABASE_URL?: string | undefined;
+  SUPABASE_SERVICE_ROLE_KEY?: string | undefined;
+  SUPABASE_ANON_KEY?: string | undefined;
+  VITE_SUPABASE_ANON_KEY?: string | undefined;
 }
 
 function resolveEnv(env?: DatabaseEnv) {
+  const p = typeof process !== "undefined" ? process.env : undefined;
   const url =
     env?.SUPABASE_URL ||
     env?.VITE_SUPABASE_URL ||
-    (typeof process !== "undefined"
-      ? process.env?.SUPABASE_URL || process.env?.VITE_SUPABASE_URL
-      : undefined);
+    p?.["SUPABASE_URL"] ||
+    p?.["VITE_SUPABASE_URL"];
 
   const serviceRoleKey =
     env?.SUPABASE_SERVICE_ROLE_KEY ||
-    (typeof process !== "undefined"
-      ? process.env?.SUPABASE_SERVICE_ROLE_KEY
-      : undefined);
+    p?.["SUPABASE_SERVICE_ROLE_KEY"];
 
   const anonKey =
     env?.SUPABASE_ANON_KEY ||
     env?.VITE_SUPABASE_ANON_KEY ||
-    (typeof process !== "undefined"
-      ? process.env?.SUPABASE_ANON_KEY || process.env?.VITE_SUPABASE_ANON_KEY
-      : undefined);
+    p?.["SUPABASE_ANON_KEY"] ||
+    p?.["VITE_SUPABASE_ANON_KEY"];
 
   return { url, serviceRoleKey, anonKey };
 }

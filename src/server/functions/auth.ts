@@ -6,7 +6,7 @@ export interface MigrateGuestInput {
   userId: string;
   deviceToken: string;
   handle: string;
-  avatarSeed?: number;
+  avatarSeed?: number | undefined;
 }
 
 /**

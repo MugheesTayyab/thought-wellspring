@@ -89,7 +89,8 @@ export async function handleFetchPostById(
  * TanStack Start Server Functions
  */
 export const apiFetchFeed = createServerFn({ method: "GET" })
-  .handler(async ({ data }: { data?: { category?: Category; page?: number; limit?: number } }) => {
+  .validator((data?: { category?: Category; page?: number; limit?: number }) => data)
+  .handler(async ({ data }) => {
     return handleFetchFeed(data);
   });
 
@@ -99,27 +100,26 @@ export const apiFetchWinner = createServerFn({ method: "GET" })
   });
 
 export const apiSubmitPost = createServerFn({ method: "POST" })
-  .handler(async ({ data }: { data: SubmitPostInput }) => {
+  .validator((data: SubmitPostInput) => data)
+  .handler(async ({ data }) => {
     return handleSubmitPost(data);
   });
 
 export const apiReactToPost = createServerFn({ method: "POST" })
-  .handler(
-    async ({
-      data,
-    }: {
-      data: {
-        postId: string;
-        reactionKey: ReactionKey;
-        deviceToken: string;
-        profileId?: string | null;
-      };
-    }) => {
-      return handleReactToPost(data);
-    }
-  );
+  .validator(
+    (data: {
+      postId: string;
+      reactionKey: ReactionKey;
+      deviceToken: string;
+      profileId?: string | null;
+    }) => data
+  )
+  .handler(async ({ data }) => {
+    return handleReactToPost(data);
+  });
 
 export const apiFetchPostById = createServerFn({ method: "GET" })
-  .handler(async ({ data }: { data: { id: string } }) => {
+  .validator((data: { id: string }) => data)
+  .handler(async ({ data }) => {
     return handleFetchPostById(data);
   });

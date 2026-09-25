@@ -43,22 +43,20 @@ export async function handleSubmitDuelVote(
  * TanStack Start Server Functions
  */
 export const apiFetchActiveDuel = createServerFn({ method: "GET" })
-  .handler(async ({ data }: { data?: { deviceToken?: string } }) => {
+  .validator((data?: { deviceToken?: string }) => data)
+  .handler(async ({ data }) => {
     return handleFetchActiveDuel(data);
   });
 
 export const apiSubmitDuelVote = createServerFn({ method: "POST" })
-  .handler(
-    async ({
-      data,
-    }: {
-      data: {
-        duelId: string;
-        choiceIndex: 0 | 1;
-        deviceToken: string;
-        profileId?: string | null;
-      };
-    }) => {
-      return handleSubmitDuelVote(data);
-    }
-  );
+  .validator(
+    (data: {
+      duelId: string;
+      choiceIndex: 0 | 1;
+      deviceToken: string;
+      profileId?: string | null;
+    }) => data
+  )
+  .handler(async ({ data }) => {
+    return handleSubmitDuelVote(data);
+  });

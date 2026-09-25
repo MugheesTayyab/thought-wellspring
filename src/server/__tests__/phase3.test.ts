@@ -31,19 +31,19 @@ function loadEnv(): DatabaseEnv {
       }
     }
     return {
-      SUPABASE_URL: env.VITE_SUPABASE_URL,
-      VITE_SUPABASE_URL: env.VITE_SUPABASE_URL,
-      SUPABASE_SERVICE_ROLE_KEY: env.SUPABASE_SERVICE_ROLE_KEY,
-      SUPABASE_ANON_KEY: env.VITE_SUPABASE_ANON_KEY,
-      VITE_SUPABASE_ANON_KEY: env.VITE_SUPABASE_ANON_KEY,
+      SUPABASE_URL: env["VITE_SUPABASE_URL"],
+      VITE_SUPABASE_URL: env["VITE_SUPABASE_URL"],
+      SUPABASE_SERVICE_ROLE_KEY: env["SUPABASE_SERVICE_ROLE_KEY"],
+      SUPABASE_ANON_KEY: env["VITE_SUPABASE_ANON_KEY"],
+      VITE_SUPABASE_ANON_KEY: env["VITE_SUPABASE_ANON_KEY"],
     };
   } catch {
     return {
-      SUPABASE_URL: process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL,
-      VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL,
-      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-      SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY,
-      VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY,
+      SUPABASE_URL: process.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"],
+      VITE_SUPABASE_URL: process.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"],
+      SUPABASE_SERVICE_ROLE_KEY: process.env["SUPABASE_SERVICE_ROLE_KEY"],
+      SUPABASE_ANON_KEY: process.env["VITE_SUPABASE_ANON_KEY"] || process.env["SUPABASE_ANON_KEY"],
+      VITE_SUPABASE_ANON_KEY: process.env["VITE_SUPABASE_ANON_KEY"] || process.env["SUPABASE_ANON_KEY"],
     };
   }
 }
@@ -55,9 +55,9 @@ async function runPhase3Tests() {
 
   const env = loadEnv();
   setWorkerEnv(env);
-  process.env.VITE_SUPABASE_URL = env.VITE_SUPABASE_URL;
-  process.env.SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
-  process.env.VITE_SUPABASE_ANON_KEY = env.VITE_SUPABASE_ANON_KEY;
+  process.env["VITE_SUPABASE_URL"] = env["VITE_SUPABASE_URL"];
+  process.env["SUPABASE_SERVICE_ROLE_KEY"] = env["SUPABASE_SERVICE_ROLE_KEY"];
+  process.env["VITE_SUPABASE_ANON_KEY"] = env["VITE_SUPABASE_ANON_KEY"];
 
   const testRunId = Math.random().toString(16).slice(2, 6);
   const testDeviceA = `333344445555${testRunId}`;
@@ -107,7 +107,7 @@ async function runPhase3Tests() {
 
     // V-03: wrapServerFn utility: RateLimitError returns { ok: false, error: { code: 'RATE_LIMIT_EXCEEDED' } }
     const v03Res = await wrapServerFn(async () => {
-      throw new RateLimitError("Rate limit reached: Maximum 3 confessions per hour.", "submit_post", 3, 60);
+      throw new RateLimitError("Rate limit reached: Maximum 3 confessions per hour.", 3, 0, 60);
     });
     assert(
       v03Res.ok === false &&
@@ -151,7 +151,7 @@ async function runPhase3Tests() {
     // V-06: apiSubmitPost handler: Returns { ok: false, error: { code: 'MISSING_DEVICE_TOKEN' } } on missing token
     const v06Res = await handleSubmitPost({
       text: "This should fail validation due to empty token.",
-      category: "general",
+      category: "Silent Thoughts",
       deviceToken: "",
     });
     assert(
