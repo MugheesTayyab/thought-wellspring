@@ -1,4 +1,5 @@
 import type { DatabaseEnv } from "../db/client";
+import { getServerEnv } from "../lib/get-env";
 import {
   sendWebPushNotification,
   type VapidDetails,
@@ -36,9 +37,10 @@ export async function dispatchWinnerPushNotification(
   env?: DatabaseEnv
 ): Promise<PushDispatchResult> {
   try {
-    const publicKey = env?.VAPID_PUBLIC_KEY || process.env.VAPID_PUBLIC_KEY || process.env.VITE_VAPID_PUBLIC_KEY;
-    const privateKey = env?.VAPID_PRIVATE_KEY || process.env.VAPID_PRIVATE_KEY;
-    const subject = env?.VAPID_SUBJECT || process.env.VAPID_SUBJECT || "mailto:admin@bajihears.com";
+    const fallback = getServerEnv();
+    const publicKey = env?.VAPID_PUBLIC_KEY || fallback.VAPID_PUBLIC_KEY || process.env.VAPID_PUBLIC_KEY || process.env.VITE_VAPID_PUBLIC_KEY;
+    const privateKey = env?.VAPID_PRIVATE_KEY || fallback.VAPID_PRIVATE_KEY || process.env.VAPID_PRIVATE_KEY;
+    const subject = env?.VAPID_SUBJECT || fallback.VAPID_SUBJECT || process.env.VAPID_SUBJECT || "mailto:admin@bajihears.com";
 
     if (!publicKey || !privateKey) {
       console.warn("[PushDispatch] VAPID keys not configured in environment. Skipping push broadcast.");

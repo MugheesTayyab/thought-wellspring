@@ -6,6 +6,7 @@
  * - Works identically in Cloudflare Workers, Node.js runtimes, and Nitro/Vite.
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { getServerEnv } from "../lib/get-env";
 
 export interface DatabaseEnv {
   SUPABASE_URL?: string | undefined;
@@ -13,23 +14,35 @@ export interface DatabaseEnv {
   SUPABASE_SERVICE_ROLE_KEY?: string | undefined;
   SUPABASE_ANON_KEY?: string | undefined;
   VITE_SUPABASE_ANON_KEY?: string | undefined;
+  VAPID_PUBLIC_KEY?: string | undefined;
+  VITE_VAPID_PUBLIC_KEY?: string | undefined;
+  VAPID_PRIVATE_KEY?: string | undefined;
+  VAPID_SUBJECT?: string | undefined;
+  CRON_SECRET?: string | undefined;
 }
 
 function resolveEnv(env?: DatabaseEnv) {
+  const fallback = getServerEnv();
   const p = typeof process !== "undefined" ? process.env : undefined;
+
   const url =
     env?.SUPABASE_URL ||
     env?.VITE_SUPABASE_URL ||
+    fallback.SUPABASE_URL ||
+    fallback.VITE_SUPABASE_URL ||
     p?.["SUPABASE_URL"] ||
     p?.["VITE_SUPABASE_URL"];
 
   const serviceRoleKey =
     env?.SUPABASE_SERVICE_ROLE_KEY ||
+    fallback.SUPABASE_SERVICE_ROLE_KEY ||
     p?.["SUPABASE_SERVICE_ROLE_KEY"];
 
   const anonKey =
     env?.SUPABASE_ANON_KEY ||
     env?.VITE_SUPABASE_ANON_KEY ||
+    fallback.SUPABASE_ANON_KEY ||
+    fallback.VITE_SUPABASE_ANON_KEY ||
     p?.["SUPABASE_ANON_KEY"] ||
     p?.["VITE_SUPABASE_ANON_KEY"];
 
