@@ -1,19 +1,24 @@
 /**
  * Environment Binding Extraction Utility
  *
- * Extracts runtime environment variables (Supabase URL, Anon Key, Service Role Key)
+ * Extracts runtime environment variables (Supabase URL, Anon Key, Service Role Key, VAPID)
  * whether running inside Cloudflare Workers, Nitro, Node.js dev server, or test runners.
  */
 import type { DatabaseEnv } from "../db/client";
 
-let currentWorkerEnv: DatabaseEnv | null = null;
+let currentWorkerEnv: Record<string, any> | null = null;
 
 /**
  * Capture Cloudflare Worker env context passed into worker fetch handler
  */
 export function setWorkerEnv(env: unknown): void {
   if (env && typeof env === "object") {
-    currentWorkerEnv = env as DatabaseEnv;
+    currentWorkerEnv = env as Record<string, any>;
+    try {
+      (globalThis as any).__worker_env__ = env;
+    } catch {
+      // ignore
+    }
   }
 }
 
@@ -21,35 +26,41 @@ export function setWorkerEnv(env: unknown): void {
  * Get resolved database environment bindings
  */
 export function getServerEnv(): DatabaseEnv {
-  if (currentWorkerEnv) {
-    return currentWorkerEnv;
-  }
-
-  // Fallback to process.env and/or import.meta.env
+  const wEnv = (currentWorkerEnv || (globalThis as any).__worker_env__ || {}) as Record<string, any>;
+  const gThis = globalThis as Record<string, any>;
   const procEnv = typeof process !== "undefined" ? process.env : undefined;
   const metaEnv =
     typeof import.meta !== "undefined" && import.meta.env
       ? (import.meta.env as Record<string, string | undefined>)
       : undefined;
 
+  const getVal = (key: string): string | undefined => {
+    return (
+      wEnv[key] ||
+      gThis[key] ||
+      procEnv?.[key] ||
+      metaEnv?.[key] ||
+      wEnv[`VITE_${key}`] ||
+      gThis[`VITE_${key}`] ||
+      procEnv?.[`VITE_${key}`] ||
+      metaEnv?.[`VITE_${key}`]
+    );
+  };
+
+  const supabaseUrl = getVal("SUPABASE_URL") || getVal("VITE_SUPABASE_URL");
+  const anonKey = getVal("SUPABASE_ANON_KEY") || getVal("VITE_SUPABASE_ANON_KEY");
+  const serviceRoleKey = getVal("SUPABASE_SERVICE_ROLE_KEY");
+
   return {
-    SUPABASE_URL:
-      procEnv?.["SUPABASE_URL"] ||
-      metaEnv?.["VITE_SUPABASE_URL"] ||
-      procEnv?.["VITE_SUPABASE_URL"],
-    VITE_SUPABASE_URL:
-      metaEnv?.["VITE_SUPABASE_URL"] ||
-      procEnv?.["VITE_SUPABASE_URL"] ||
-      procEnv?.["SUPABASE_URL"],
-    SUPABASE_SERVICE_ROLE_KEY:
-      procEnv?.["SUPABASE_SERVICE_ROLE_KEY"],
-    SUPABASE_ANON_KEY:
-      procEnv?.["SUPABASE_ANON_KEY"] ||
-      metaEnv?.["VITE_SUPABASE_ANON_KEY"] ||
-      procEnv?.["VITE_SUPABASE_ANON_KEY"],
-    VITE_SUPABASE_ANON_KEY:
-      metaEnv?.["VITE_SUPABASE_ANON_KEY"] ||
-      procEnv?.["VITE_SUPABASE_ANON_KEY"] ||
-      procEnv?.["SUPABASE_ANON_KEY"],
+    SUPABASE_URL: supabaseUrl,
+    VITE_SUPABASE_URL: supabaseUrl,
+    SUPABASE_SERVICE_ROLE_KEY: serviceRoleKey,
+    SUPABASE_ANON_KEY: anonKey,
+    VITE_SUPABASE_ANON_KEY: anonKey,
+    VAPID_PUBLIC_KEY: getVal("VAPID_PUBLIC_KEY") || getVal("VITE_VAPID_PUBLIC_KEY"),
+    VITE_VAPID_PUBLIC_KEY: getVal("VITE_VAPID_PUBLIC_KEY") || getVal("VAPID_PUBLIC_KEY"),
+    VAPID_PRIVATE_KEY: getVal("VAPID_PRIVATE_KEY"),
+    VAPID_SUBJECT: getVal("VAPID_SUBJECT"),
+    CRON_SECRET: getVal("CRON_SECRET"),
   };
 }
