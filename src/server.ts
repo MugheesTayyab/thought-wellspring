@@ -101,10 +101,29 @@ export default {
     try {
       const { getServerEnv } = await import("./server/lib/get-env");
       const { executeWinnerSelection } = await import("./server/jobs/winner-selection");
+      const { getSupabaseAdminClient } = await import("./server/db/client");
       const dbEnv = getServerEnv();
-      const task = executeWinnerSelection(dbEnv, { triggeredBy: "cron" })
-        .then((res) => console.log("[Scheduled Cron] Winner selection result:", res))
-        .catch((err) => console.error("[Scheduled Cron] Winner selection error:", err));
+
+      const cronRoutine = async () => {
+        // 1. Execute Winner Selection and Push Broadcast
+        try {
+          const winnerRes = await executeWinnerSelection(dbEnv, { triggeredBy: "cron" });
+          console.log("[Scheduled Cron] Winner selection result:", winnerRes);
+        } catch (err) {
+          console.error("[Scheduled Cron] Winner selection error:", err);
+        }
+
+        // 2. Automated TTL cleanup: purge device_actions older than 48h to prevent table bloat
+        try {
+          const adminClient = getSupabaseAdminClient(dbEnv);
+          await adminClient.rpc("purge_old_device_actions");
+          console.log("[Scheduled Cron] Successfully purged device_actions older than 48h");
+        } catch (purgeErr) {
+          console.warn("[Scheduled Cron] Purge device_actions notice:", purgeErr);
+        }
+      };
+
+      const task = cronRoutine();
 
       if (ctx && typeof ctx.waitUntil === "function") {
         ctx.waitUntil(task);

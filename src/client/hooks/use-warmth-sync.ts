@@ -20,6 +20,7 @@ export function useWarmthSync(): UseWarmthSyncReturn {
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
   const isSyncingRef = useRef(false);
+  const lastSyncedRef = useRef<number>(0);
 
   const syncNow = useCallback(async () => {
     if (!isReady || !deviceToken || isSyncingRef.current) return;
@@ -38,11 +39,14 @@ export function useWarmthSync(): UseWarmthSyncReturn {
         },
       });
 
+      const now = Date.now();
+      lastSyncedRef.current = now;
+      setLastSyncedAt(now);
+
       if (result.ok && typeof result.data.serverTotal === "number") {
         if (result.data.serverTotal > effectiveWarmth) {
           syncWarmthTotal(result.data.serverTotal);
         }
-        setLastSyncedAt(Date.now());
       }
     } catch (err) {
       console.warn("[useWarmthSync] Background sync bypassed or offline:", err);
@@ -58,10 +62,12 @@ export function useWarmthSync(): UseWarmthSyncReturn {
     // Initial sync on mount
     syncNow();
 
-    // Foreground listener: sync when user returns to app tab
+    // Foreground listener: sync when user returns to app tab with a 60s cooldown
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        syncNow();
+        if (Date.now() - lastSyncedRef.current > 60_000) {
+          syncNow();
+        }
       }
     };
 

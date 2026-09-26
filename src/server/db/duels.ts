@@ -115,7 +115,31 @@ export async function recordDuelVote(
   try {
     const client = getSupabaseAdminClient(env);
 
-    // 1. Insert vote record (unique constraint enforces single vote per device)
+    // 1. Primary Path: Atomic transaction in PostgreSQL (1 roundtrip, race-condition immune)
+    const { data: rpcData, error: rpcErr } = await client.rpc("record_duel_vote_atomic", {
+      p_duel_id: duelId,
+      p_device_token: deviceToken,
+      p_choice_index: choiceIndex,
+    });
+
+    if (!rpcErr && rpcData) {
+      if (rpcData.success) {
+        return {
+          data: {
+            choiceIndex,
+            votesA: rpcData.votes_a ?? 0,
+            votesB: rpcData.votes_b ?? 0,
+          },
+          error: null,
+        };
+      }
+      return {
+        data: null,
+        error: { code: rpcData.code || "VOTE_FAILED", message: rpcData.message || "Failed to record vote" },
+      };
+    }
+
+    // 2. Fallback Path: Standard multi-step transaction
     const { error: insertErr } = await client.from("duel_votes").insert({
       duel_id: duelId,
       device_token: deviceToken,
@@ -129,7 +153,6 @@ export async function recordDuelVote(
       return { data: null, error: { code: insertErr.code, message: insertErr.message } };
     }
 
-    // 2. Fetch current votes and increment
     const { data: duel, error: fetchErr } = await client
       .from("duels")
       .select("votes_a, votes_b")

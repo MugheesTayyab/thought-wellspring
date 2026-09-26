@@ -93,14 +93,17 @@ export async function dispatchWinnerPushNotification(
       tag: "bajihears-winner",
     });
 
-    // 4. Batch dispatch in chunks of 25 to respect edge subrequest limits
-    const CHUNK_SIZE = 25;
+    // 4. Batch dispatch in chunks of 20 to respect edge subrequest limits
+    // Cloudflare Free Worker enforces a hard cap of 50 outgoing subrequests per invocation.
+    const MAX_PUSH_PER_INVOCATION = 45;
+    const targets = subscribers.slice(0, MAX_PUSH_PER_INVOCATION);
+    const CHUNK_SIZE = 15;
     let deliveredCount = 0;
     let failedCount = 0;
     let prunedCount = 0;
 
-    for (let i = 0; i < subscribers.length; i += CHUNK_SIZE) {
-      const chunk = subscribers.slice(i, i + CHUNK_SIZE);
+    for (let i = 0; i < targets.length; i += CHUNK_SIZE) {
+      const chunk = targets.slice(i, i + CHUNK_SIZE);
       const results = await Promise.allSettled(
         chunk.map((sub) => sendWebPushNotification(sub, messageData, vapid))
       );

@@ -206,7 +206,17 @@ export async function incrementReaction(
   try {
     const client = getSupabaseAdminClient(env);
 
-    // Fetch current reactions
+    // 1. Primary Path: Atomic single-statement update in PostgreSQL (zero race conditions)
+    const { data: rpcData, error: rpcErr } = await client.rpc("increment_reaction_atomic", {
+      p_post_id: postId,
+      p_reaction_key: reactionKey,
+    });
+
+    if (!rpcErr && rpcData) {
+      return { data: rpcData as Record<ReactionKey, number>, error: null };
+    }
+
+    // 2. Fallback Path: Read-modify-write if RPC is unavailable
     const { data: post, error: fetchErr } = await client
       .from("unsaids")
       .select("reactions, status")
