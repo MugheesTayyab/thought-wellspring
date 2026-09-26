@@ -14,5 +14,10 @@
     "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzbG9xcXZkdW5mdXlxcWRtZ2lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNjg3MDcsImV4cCI6MjEwNTg0NDcwN30.Hi4UGMoRlKDKKmSmstY4Ues7XrGD3XvGSYLxeWqLhiA",
     "VAPID_PUBLIC_KEY": "BC2J76RtDSeeFuYN3VnrvChrz3qKHVD_bhO1eKaFHl3RO5dz3CUA8JOMIoicqBQG5XBrE1WvriUXP5RDAOmugsI",
     "VAPID_SUBJECT": "mailto:admin@bajihears.com"
+  },
+  "triggers": {
+    "crons": [
+      "0 0,12 * * *"
+    ]
   }
 }

@@ -14,6 +14,7 @@ import { Route as CornerRouteImport } from './routes/corner'
 import { Route as DiagnosticsRouteImport } from './routes/diagnostics'
 import { Route as DuelRouteImport } from './routes/duel'
 import { Route as ReadRouteImport } from './routes/read'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const ReadRoute = ReadRouteImport.update({
   path: '/read',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/diagnostics': typeof DiagnosticsRoute
   '/duel': typeof DuelRoute
   '/read': typeof ReadRoute
+  '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/diagnostics': typeof DiagnosticsRoute
   '/duel': typeof DuelRoute
   '/read': typeof ReadRoute
+  '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,22 @@ export interface FileRoutesById {
   '/diagnostics': typeof DiagnosticsRoute
   '/duel': typeof DuelRoute
   '/read': typeof ReadRoute
+  '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/corner' | '/diagnostics' | '/duel' | '/read'
+  fullPaths:
+    '/' | '/corner' | '/diagnostics' | '/duel' | '/read' | '/auth/callback'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/corner' | '/diagnostics' | '/duel' | '/read'
-  id: '__root__' | '/' | '/corner' | '/diagnostics' | '/duel' | '/read'
+  to: '/' | '/corner' | '/diagnostics' | '/duel' | '/read' | '/auth/callback'
+  id:
+    | '__root__'
+    | '/'
+    | '/corner'
+    | '/diagnostics'
+    | '/duel'
+    | '/read'
+    | '/auth/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +94,7 @@ export interface RootRouteChildren {
   DiagnosticsRoute: typeof DiagnosticsRoute
   DuelRoute: typeof DuelRoute
   ReadRoute: typeof ReadRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +134,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReadRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +150,7 @@ const rootRouteChildren: RootRouteChildren = {
   DiagnosticsRoute: DiagnosticsRoute,
   DuelRoute: DuelRoute,
   ReadRoute: ReadRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

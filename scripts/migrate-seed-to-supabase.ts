@@ -79,7 +79,7 @@ async function migrate() {
         reactions: item.reactions,
         status: "published",
         created_at: new Date(item.createdAt).toISOString(),
-        device_token: "seed_system_token",
+        device_token: "00000000seed0001",
       };
     });
 

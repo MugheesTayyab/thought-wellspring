@@ -13,9 +13,11 @@ import "@/styles.css";
 import appCss from "@/styles.css?url";
 import { reportLovableError } from "@/client/lib/lovable-error-reporting";
 import { useWarmth, WarmthProvider, type WarmthContextType } from "@/client/stores/warmth-context";
+import { AuthProvider } from "@/client/stores/auth-context";
 import { getOrCreateIdentity, updateVisitStreak } from "@/client/lib/identity";
 import { claimDailyBonus } from "@/client/lib/local-storage";
 import { useWarmthSync } from "@/client/hooks/use-warmth-sync";
+import { registerServiceWorker } from "@/client/lib/notifications";
 
 export { useWarmth, WarmthProvider, type WarmthContextType };
 
@@ -83,10 +85,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "BajiHears" },
-      { name: "description", content: "Say the unsaid." },
+      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" },
+      { title: "BajiHears — Say the Unsaid" },
+      { name: "description", content: "An intimate sanctuary for anonymous confessions, hot takes, and real connection." },
+      { name: "theme-color", content: "#0F0A0A" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "BajiHears" },
       { property: "og:type", content: "website" },
+      { property: "og:title", content: "BajiHears — Say the Unsaid" },
+      { property: "og:description", content: "An intimate sanctuary for anonymous confessions, hot takes, and real connection." },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
@@ -101,6 +109,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,600&family=Playfair+Display:ital,wght@1,600;1,700&display=swap",
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/favicon.png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
     ],
   }),
   shellComponent: RootShell,
@@ -136,6 +146,7 @@ function RootComponent() {
     getOrCreateIdentity();
     const streakResult = updateVisitStreak();
     const bonusResult = claimDailyBonus();
+    registerServiceWorker();
 
     if (bonusResult.claimed) {
       setDailyBonus({ amount: bonusResult.amount, streak: streakResult.streak });
@@ -147,24 +158,26 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <WarmthProvider>
-        <WarmthSyncWatcher />
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
+      <AuthProvider>
+        <WarmthProvider>
+          <WarmthSyncWatcher />
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
 
-        {/* Daily Return Bonus Toast */}
-        {dailyBonus && (
-          <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4 pointer-events-none animate-[slideDown_0.3s_cubic-bezier(0.34,1.56,0.64,1)]">
-            <div className="pointer-events-auto flex items-center gap-2.5 rounded-full border border-primary/40 bg-[#170e0e]/95 px-4 py-2 text-sm font-semibold text-white shadow-[0_0_25px_rgba(250,84,28,0.4)] backdrop-blur-md">
-              <span className="text-base animate-bounce">🔥</span>
-              <span>+{dailyBonus.amount} Warmth — welcome back!</span>
-              <span className="rounded-full bg-primary/20 px-2 py-0.5 font-mono text-[11px] text-primary">
-                {dailyBonus.streak}d streak
-              </span>
+          {/* Daily Return Bonus Toast */}
+          {dailyBonus && (
+            <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4 pointer-events-none animate-[slideDown_0.3s_cubic-bezier(0.34,1.56,0.64,1)]">
+              <div className="pointer-events-auto flex items-center gap-2.5 rounded-full border border-primary/40 bg-[#170e0e]/95 px-4 py-2 text-sm font-semibold text-white shadow-[0_0_25px_rgba(250,84,28,0.4)] backdrop-blur-md">
+                <span className="text-base animate-bounce">🔥</span>
+                <span>+{dailyBonus.amount} Warmth — welcome back!</span>
+                <span className="rounded-full bg-primary/20 px-2 py-0.5 font-mono text-[11px] text-primary">
+                  {dailyBonus.streak}d streak
+                </span>
+              </div>
             </div>
-          </div>
-        )}
-      </WarmthProvider>
+          )}
+        </WarmthProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

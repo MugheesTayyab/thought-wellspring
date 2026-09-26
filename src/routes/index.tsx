@@ -13,6 +13,8 @@ import { CommunityRegulars } from "@/client/components/bajihears/CommunityRegula
 import { FeedWritingPrompt } from "@/client/components/bajihears/FeedWritingPrompt";
 import { BajiMascot } from "@/client/components/bajihears/BajiMascot";
 import { BajiIntroSplash } from "@/client/components/bajihears/BajiIntroSplash";
+import { PushPermissionSheet } from "@/client/components/bajihears/PushPermissionSheet";
+import { shouldShowPushPrompt } from "@/client/lib/notifications";
 import { useWarmth } from "@/client/stores/warmth-context";
 import { useWall } from "@/client/hooks/use-wall";
 import { useWinner } from "@/client/hooks/use-winner";
@@ -89,6 +91,7 @@ function Home() {
   const [lastSubmitAt, setLastSubmitAt] = useState<number | null>(null);
   const [shareTarget, setShareTarget] = useState<Unsaid | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [showPushSheet, setShowPushSheet] = useState(false);
   const backdrop = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -125,6 +128,10 @@ function Home() {
     onWallReact(id, key);
     if (!already) {
       awardWarmth("react", "Reacted to tea");
+      const totalReactions = Object.values(myReactions).flat().length + 1;
+      if (totalReactions >= 3 && shouldShowPushPrompt()) {
+        window.setTimeout(() => setShowPushSheet(true), 1200);
+      }
     }
   };
 
@@ -221,6 +228,9 @@ function Home() {
               setLastSubmitAt(ts);
               awardWarmth("post", "Spilled tea on wall");
               appendMyPostCategory(category);
+              if (shouldShowPushPrompt()) {
+                window.setTimeout(() => setShowPushSheet(true), 1500);
+              }
             }}
           />
 
@@ -334,6 +344,7 @@ function Home() {
       </div>
 
       <QuoteCardDialog unsaid={shareTarget} onClose={() => setShareTarget(null)} />
+      <PushPermissionSheet isOpen={showPushSheet} onClose={() => setShowPushSheet(false)} />
 
       {/* Floating Back to Top Button */}
       {showScrollTop && (

@@ -95,4 +95,24 @@ export default {
       });
     }
   },
+
+  async scheduled(event: unknown, env: unknown, ctx: { waitUntil?: (p: Promise<unknown>) => void }) {
+    setWorkerEnv(env);
+    try {
+      const { getServerEnv } = await import("./server/lib/get-env");
+      const { executeWinnerSelection } = await import("./server/jobs/winner-selection");
+      const dbEnv = getServerEnv();
+      const task = executeWinnerSelection(dbEnv, { triggeredBy: "cron" })
+        .then((res) => console.log("[Scheduled Cron] Winner selection result:", res))
+        .catch((err) => console.error("[Scheduled Cron] Winner selection error:", err));
+
+      if (ctx && typeof ctx.waitUntil === "function") {
+        ctx.waitUntil(task);
+      } else {
+        await task;
+      }
+    } catch (err) {
+      console.error("[Scheduled Cron] Fatal execution error:", err);
+    }
+  },
 };
