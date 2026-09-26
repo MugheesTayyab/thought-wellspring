@@ -19,11 +19,13 @@ export interface InsertPostInput {
 }
 
 export function mapRowToUnsaid(row: any): Unsaid {
+  const parsedTime = row.created_at ? new Date(row.created_at).getTime() : 0;
+  const createdAt = parsedTime > 1_000_000 ? parsedTime : Date.now();
   return {
     id: row.id,
     text: row.text,
     handle: row.handle ?? null,
-    createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+    createdAt,
     category: row.category as Category,
     preset: row.preset || "midnight-static",
     reactions: row.reactions || { heart: 0, sad: 0, fire: 0, hug: 0 },

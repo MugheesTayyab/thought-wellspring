@@ -24,6 +24,7 @@ export function buildShareUrl(postId: string): string {
 }
 
 export function relativeTime(ts: number, from = Date.now()): string {
+  if (!ts || Number.isNaN(ts) || ts <= 0) return "just now";
   const diff = Math.max(0, from - ts);
   const m = Math.floor(diff / 60_000);
   if (m < 1) return "just now";
