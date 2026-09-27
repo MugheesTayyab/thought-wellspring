@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
-import { Settings2, Share2, X, LogIn, LogOut, CheckCircle2, MessageCircle } from "lucide-react";
+import { Settings2, Share2, X, LogIn, LogOut, CheckCircle2, MessageCircle, Image as ImageIcon } from "lucide-react";
 import { CornerAvatar } from "./CornerAvatar";
 import { useAuth } from "@/client/stores/auth-context";
+import { readAvatarPhoto, writeAvatarPhoto } from "@/client/lib/local-storage";
+import { triggerHaptic } from "@/client/lib/haptics";
 
 export function CornerMenu({ seed }: { seed: string }) {
   const [open, setOpen] = useState(false);
+  const [customPhoto, setCustomPhoto] = useState<string | null>(() => readAvatarPhoto());
   const { user, profile, signInWithGoogle, signOut, isLoading } = useAuth();
 
   useEffect(() => {
@@ -16,6 +19,47 @@ export function CornerMenu({ seed }: { seed: string }) {
       document.body.style.overflow = "";
     };
   }, [open]);
+
+  const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxSize = 256;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxSize) {
+            height = Math.round((height * maxSize) / width);
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = Math.round((width * maxSize) / height);
+            height = maxSize;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+          setCustomPhoto(dataUrl);
+          writeAvatarPhoto(dataUrl);
+          triggerHaptic("selection");
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const share = async () => {
     const url = typeof window !== "undefined" ? window.location.origin : "";
@@ -38,7 +82,7 @@ export function CornerMenu({ seed }: { seed: string }) {
         aria-label="Your Public Corner"
         className="relative rounded-full ring-2 ring-primary/40 hover:ring-primary shadow-[0_0_12px_rgba(250,84,28,0.25)] hover:shadow-[0_0_20px_rgba(250,84,28,0.45)] transition-all duration-300 p-0.5 active:scale-95 cursor-pointer"
       >
-        <CornerAvatar seed={seed} size={32} />
+        <CornerAvatar seed={seed} photoUrl={customPhoto} size={32} />
         {user && (
           <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-500 ring-2 ring-[#0F0A0A]" />
         )}
@@ -50,21 +94,21 @@ export function CornerMenu({ seed }: { seed: string }) {
           <div
             role="dialog"
             aria-modal="true"
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-xl animate-[fadeIn_0.15s_ease-out]"
             onClick={() => setOpen(false)}
           >
             <div
-              className="w-full max-w-[300px] rounded-3xl border border-white/10 bg-[#17110D]/90 p-5 text-[#F5EFE9] shadow-2xl backdrop-blur-2xl animate-[scaleUp_0.18s_ease-out]"
+              className="w-full max-w-[310px] rounded-3xl border border-white/12 bg-gradient-to-b from-[#1f1712]/95 via-[#17110D]/95 to-[#100b08]/98 p-5 text-[#F5EFE9] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] backdrop-blur-2xl animate-[scaleUp_0.18s_ease-out]"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
-                  <CornerAvatar seed={seed} size={40} />
+                  <CornerAvatar seed={seed} photoUrl={customPhoto} size={42} />
                   <div className="min-w-0">
                     <p className="font-display truncate text-base font-bold">
                       {profile?.handle || (user?.email ? user.email.split("@")[0] : "Your Public Corner")}
                     </p>
-                    <p className="font-vibe text-[11px] text-muted-foreground flex items-center gap-1">
+                    <p className="font-sans text-[11px] text-muted-foreground flex items-center gap-1">
                       {user ? (
                         <>
                           <CheckCircle2 className="size-3 text-emerald-400" />
@@ -84,6 +128,20 @@ export function CornerMenu({ seed }: { seed: string }) {
                 >
                   <X className="text-[#9C8F87] size-4 hover:text-[#F5EFE9] transition-colors" />
                 </button>
+              </div>
+
+              {/* Avatar Quick Switch: Choose from Gallery */}
+              <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between gap-2">
+                <label className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] px-2.5 py-1.5 text-[11px] font-sans font-medium text-[#F5EFE9] transition cursor-pointer">
+                  <ImageIcon className="size-3 text-[#E8552E]" />
+                  <span>Choose from Gallery</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleGalleryUpload}
+                    className="hidden"
+                  />
+                </label>
               </div>
 
               {/* Google Sign In / Account Status */}

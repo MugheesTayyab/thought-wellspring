@@ -119,10 +119,10 @@ export function ScrollMascot() {
           setFrame(6); // begin reverse
         }
 
-        // Minimal 60ms debounce fallback for immediate snap on scroll stop
+        // Minimal 50ms debounce fallback for instantaneous snap on scroll stop
         idleTimer.current = setTimeout(() => {
           onScrollEnd();
-        }, 60);
+        }, 50);
       });
     };
 

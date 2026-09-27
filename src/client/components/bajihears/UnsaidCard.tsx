@@ -298,7 +298,7 @@ export function UnsaidCard({
         {burst && (
           <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
             <div className="animate-like-heart-settle flex items-center justify-center">
-              <Heart className="size-14 text-rose-500 fill-rose-500 drop-shadow-[0_4px_16px_rgba(244,63,94,0.6)]" />
+              <Heart className="size-9 text-rose-500 fill-rose-500 drop-shadow-[0_2px_10px_rgba(244,63,94,0.5)]" />
             </div>
           </div>
         )}
@@ -322,7 +322,7 @@ export function UnsaidCard({
                 👑
               </span>
               <div className="flex flex-col">
-                <span className="font-sans text-[11px] font-bold uppercase tracking-[0.14em] text-amber-300 leading-tight">
+                <span className="font-sans text-xs font-semibold uppercase tracking-wider text-amber-300 leading-tight">
                   CYCLE CHAMPION
                 </span>
                 <span className="text-[10px] text-[#9C8F87] font-sans leading-tight">
@@ -337,10 +337,58 @@ export function UnsaidCard({
           </div>
         )}
 
-        {/* Quote: The Hero */}
+        {/* Standard Card Header Row: Handle, Instagram icon to the right, date, and category tag */}
+        <div className="flex items-center justify-between gap-3 text-xs font-sans mb-3 pb-2.5 border-b border-white/[0.04]">
+          <div className="flex items-center gap-2 text-[#9C8F87] min-w-0">
+            {unsaid.handle ? (
+              <div className="inline-flex items-center gap-1.5 truncate">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setProfileModalId(unsaid.profileId || unsaid.handle);
+                  }}
+                  style={auraStyle}
+                  className="inline-flex items-center gap-1 text-[13px] font-medium text-[#F5EFE9] hover:text-[#E8552E] transition-colors cursor-pointer group"
+                  title={`Open @${stripHandle(unsaid.handle)}'s Public Corner`}
+                >
+                  {crownIcon && <span className="text-[10px]">👑</span>}
+                  <span className="group-hover:underline">@{stripHandle(unsaid.handle)}</span>
+                </button>
+
+                {getInstagramUrl(unsaid.handle) && (
+                  <a
+                    href={getInstagramUrl(unsaid.handle)!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-[#9C8F87] hover:text-pink-400 transition-colors p-0.5 inline-flex items-center"
+                    title="Open Instagram"
+                  >
+                    <Instagram className="size-3 text-[#E8552E] opacity-80 hover:opacity-100" aria-hidden />
+                  </a>
+                )}
+              </div>
+            ) : (
+              <span className="text-[12px] font-sans font-medium text-[#9C8F87]/80">
+                anonymous
+              </span>
+            )}
+            <span className="text-[#9C8F87]/40 text-xs select-none">·</span>
+            <span className="text-[12px] text-[#9C8F87]/70 whitespace-nowrap">
+              {relativeTime(unsaid.createdAt)}
+            </span>
+          </div>
+
+          <span className="shrink-0 border border-white/10 text-[#9C8F87] rounded-full px-2.5 py-0.5 text-[11px] font-normal bg-transparent">
+            #{unsaid.category.toLowerCase().replace(/\s+/g, "")}
+          </span>
+        </div>
+
+        {/* Quote: The Hero Body Text (never overlaps metadata or date) */}
         <p
           className={cn(
-            "font-quote font-normal leading-[1.65] text-[#F5EFE9] tracking-normal select-none text-balance text-pretty",
+            "font-quote font-normal leading-[1.65] text-[#F5EFE9] tracking-normal select-none [text-wrap:pretty] [text-wrap:balance]",
             isWinner ? "text-[21px] sm:text-[24px] leading-[1.6]" : "text-[18px] sm:text-[20px]",
           )}
         >
@@ -361,53 +409,6 @@ export function UnsaidCard({
             <span>warming up: visible to others shortly</span>
           </div>
         )}
-
-        {/* Metadata Row: Handle, Time, and Category */}
-        <div className="mt-4 flex items-center justify-between gap-3 text-xs font-sans">
-          <div className="flex items-center gap-2.5 text-[#9C8F87]">
-            {unsaid.handle ? (
-              <div className="inline-flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setProfileModalId(unsaid.profileId || unsaid.handle);
-                  }}
-                  style={auraStyle}
-                  className="inline-flex items-center gap-1 text-[13px] font-medium text-[#9C8F87] hover:text-[#E8552E] transition-colors cursor-pointer group"
-                  title={`Open @${stripHandle(unsaid.handle)}'s Public Corner`}
-                >
-                  {crownIcon && <span className="text-[10px]">👑</span>}
-                  <span className="group-hover:underline">@{stripHandle(unsaid.handle)}</span>
-                </button>
-
-                {getInstagramUrl(unsaid.handle) && (
-                  <a
-                    href={getInstagramUrl(unsaid.handle)!}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="text-[#9C8F87] hover:text-pink-400 transition-colors p-0.5"
-                    title="Open Instagram"
-                  >
-                    <Instagram className="size-3 opacity-70 hover:opacity-100" aria-hidden />
-                  </a>
-                )}
-              </div>
-            ) : (
-              <span className="text-[12px] font-sans font-medium text-[#9C8F87]/80">
-                anonymous
-              </span>
-            )}
-            <span className="text-[12px] text-[#9C8F87]/60">
-              {relativeTime(unsaid.createdAt)}
-            </span>
-          </div>
-
-          <span className="border border-white/10 text-[#9C8F87] rounded-full px-2.5 py-0.5 text-[11px] font-normal bg-transparent">
-            #{unsaid.category.toLowerCase().replace(/\s+/g, "")}
-          </span>
-        </div>
 
       {copied && (
         <p className="text-[#E8552E] mt-2 text-center text-xs font-semibold animate-fade-in font-sans">
@@ -603,8 +604,8 @@ export function UnsaidCard({
                   className="ml-2 inline-flex items-center gap-1 font-semibold text-primary hover:underline text-[11px]"
                   title={`Visit Instagram @${stripHandle(echo.handle)}`}
                 >
-                  <Instagram className="size-2.5 text-primary shrink-0" aria-hidden />
                   <span>@{stripHandle(echo.handle)}</span>
+                  <Instagram className="size-2.5 text-primary shrink-0" aria-hidden />
                 </a>
               ) : (
                 <span className="text-muted-foreground ml-2 text-[11px] font-semibold">

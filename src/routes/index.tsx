@@ -310,7 +310,7 @@ function Home() {
 
             {/* Category Filter Pills */}
             <div className="flex items-center justify-between gap-3 px-1 mb-2 font-vibe">
-              <span className="text-muted-foreground/70 text-[11px] font-bold tracking-wider uppercase">
+              <span className="text-[#D5CAC2] text-xs font-semibold tracking-wide uppercase">
                 Filter by vibe
               </span>
               {filters.length > 0 && (
@@ -349,8 +349,6 @@ function Home() {
             </div>
           </div>
 
-          <CommunityRegulars />
-
           {/* Initial Loading State */}
           {isFeedLoading && visiblePosts.length === 0 && <FeedSkeleton count={3} />}
 
@@ -371,19 +369,25 @@ function Home() {
             </div>
           )}
 
-          {/* Empty State */}
+          {/* Empty State with Introvert Value Proposition */}
           {!isFeedLoading && !isFeedError && visiblePosts.length === 0 && (
-            <div className="bg-[#17110D] border border-white/[0.08] rounded-3xl p-6 text-center font-sans">
-              <p className="font-display text-lg font-bold text-[#F5EFE9]">A quiet moment on the wall</p>
-              <p className="text-muted-foreground mt-2 text-xs max-w-xs mx-auto leading-relaxed">
+            <div className="bg-[#17110D] border border-white/[0.08] rounded-3xl p-6 text-center font-sans space-y-3">
+              <p className="font-display text-xl font-bold text-[#F5EFE9]">A quiet moment on the wall</p>
+              <p className="text-[#9C8F87] text-xs max-w-sm mx-auto leading-relaxed [text-wrap:pretty]">
                 {filters.length > 0
                   ? "No confessions found in this category. Try selecting another filter."
-                  : "If you have unsaid thoughts kept inside, write them freely. An anonymous whisper here can reach thousands of kindred souls."}
+                  : "For introverts with a lot on their mind: this is where an anonymous confession can reach thousands of people without followers or pressure."}
               </p>
+              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3 max-w-sm mx-auto text-left text-[11px] text-[#9C8F87] space-y-1">
+                <span className="font-semibold text-amber-300 block">The Featured Path:</span>
+                <p className="leading-relaxed">
+                  Posts resonating strongly with the community and chosen by curators for raw authenticity get crowned Cycle Champion and featured on Bajislays.
+                </p>
+              </div>
             </div>
           )}
 
-          {/* Feed List */}
+          {/* Feed List with Interspersed Elements */}
           {visiblePosts.map((u, index) => (
             <Fragment key={u.id}>
               <UnsaidCard
@@ -398,6 +402,12 @@ function Home() {
                 onShare={handleShareTarget}
               />
               {index === 2 && <FeedWritingPrompt />}
+              {/* Community Regulars surfaced naturally every 12 posts */}
+              {index > 0 && index % 12 === 0 && (
+                <div className="py-2">
+                  <CommunityRegulars />
+                </div>
+              )}
             </Fragment>
           ))}
 

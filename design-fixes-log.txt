@@ -165,4 +165,84 @@ exude authentic, candlelit, premium intimacy—no robotic tropes or stock kits.
 - Configuration-level: In Google Cloud Console (APIs & Services > OAuth consent screen),
   update the public App Name to "BajiHears" and set user support email to the
   production administrator contact so no internal project IDs appear.
+
+--------------------------------------------------------------------------------
+10. GESTURE CONFLICT RESOLUTION (DOUBLE-TAP VS. COPY)
+--------------------------------------------------------------------------------
+[IDENTIFIED ANTI-PATTERN]
+- Double-tapping a post accidentally triggered both browser/app copy and the
+  like animation simultaneously, causing jarring feedback.
+
+[PRODUCTION RULE & FIX]
+- Gesture decoupling: Single card taps and double taps are completely isolated
+  from copy actions. Double tap exclusively triggers `onReact(id, "heart")` and
+  the minimal like heart pop. Copy is accessible strictly via the 3-dot overflow
+  menu or long-press.
+- Minimal like animation: Scaled down from `size-14` to a delicate `size-9` heart
+  pop with low motion and quick 0.28s settle that never obscures body text.
+
+--------------------------------------------------------------------------------
+11. POST CARD METADATA & INSTAGRAM POSITIONING
+--------------------------------------------------------------------------------
+[IDENTIFIED ANTI-PATTERN]
+- Date stamp sitting awkwardly over body text or conflicting with badges.
+- Instagram logo placed inconsistently to the left of the handle in some views.
+
+[PRODUCTION RULE & FIX]
+- Standard card header conventions:
+  * Top metadata row hosts author handle, Instagram icon to the right of username,
+    clean middot separator, and relative time (`2h ago`), with category tag on right.
+  * Post quote body is rendered cleanly below the header, ensuring the date never
+    overlaps or sits on top of body text.
+  * Echo lists consistently position the Instagram icon to the right of the handle.
+
+--------------------------------------------------------------------------------
+12. FEED SEQUENCE & INTERSPERSED COMMUNITY LEADERBOARD
+--------------------------------------------------------------------------------
+[IDENTIFIED ANTI-PATTERN]
+- Rigidly pinning Community Regulars directly below the writing box and sorting
+  toggles, cluttering the top of the feed for returning visitors.
+
+[PRODUCTION RULE & FIX]
+- Removed Community Regulars from fixed header sequence.
+- Interspersed naturally every 12 posts (`index % 12 === 0`) as the user scrolls,
+  providing fresh social proof without obstructing the initial writing flow.
+
+--------------------------------------------------------------------------------
+13. SCROLL-SYNCED BADGE ACCURACY & SNAP DEBOUNCE
+--------------------------------------------------------------------------------
+[IDENTIFIED ANTI-PATTERN]
+- Side mascot or badges lagging behind scroll instead of snapping the instant
+  scrolling stops, caused by large arbitrary timeouts.
+
+[PRODUCTION RULE & FIX]
+- Native `scrollend` event support with a tight 50ms fallback debounce.
+- Instant velocity decay on stop so the resting frame snaps with zero perceptible lag.
+- Winner badge given a subtle 3D physical float (`perspective(600px) translateZ(12px)`)
+  rather than flat generic bounce.
+
+--------------------------------------------------------------------------------
+14. TEXT WRAPPING & ORPHAN PREVENTION
+--------------------------------------------------------------------------------
+[IDENTIFIED ANTI-PATTERN]
+- Short words orphaned onto awkward isolated second lines across quotes and badges.
+
+[PRODUCTION RULE & FIX]
+- Global application of `[text-wrap:balance]` and `[text-wrap:pretty]` across all
+  post quotes, teaser cards, headers, and badges.
+- Native CSS layout balances lines naturally across all device viewports.
+
+--------------------------------------------------------------------------------
+15. SELECTION CRITERIA & INTROVERT ONBOARDING
+--------------------------------------------------------------------------------
+[IDENTIFIED ANTI-PATTERN]
+- Unclear path to getting featured on Instagram / Bajislays; lack of explicit
+  selection criteria for both editorial curators and audience voting.
+
+[PRODUCTION RULE & FIX]
+- High-visibility onboarding in both `HeroIntro` and Wall Empty State:
+  * Dedicated to introverts with a loud mind: anonymous thoughts reach thousands.
+  * Explicit criteria: Curators judge raw authenticity, writing craft, and emotional weight.
+  * Audience votes on relatability, emotional resonance, and shared human truth.
 ================================================================================
+

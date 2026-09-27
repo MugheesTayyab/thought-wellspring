@@ -210,7 +210,7 @@ export function WritingBox({
                 value={igHandle}
                 onChange={(e) => setIgHandle(e.target.value)}
                 placeholder="instagram_handle"
-                className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/60 font-mono"
+                className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/60 font-sans font-medium"
               />
             </div>
           )}
