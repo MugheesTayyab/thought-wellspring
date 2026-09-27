@@ -101,17 +101,17 @@ export function QuoteCardDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 backdrop-blur-md sm:items-center">
-      <div className="bg-gradient-to-b from-white/[0.05] to-transparent bg-card border-white/12 shadow-glow w-full max-w-sm rounded-3xl border p-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-[fadeIn_0.15s_ease-out]">
+      <div className="bg-[#17110D]/90 border-white/10 shadow-2xl backdrop-blur-2xl text-[#F5EFE9] w-full max-w-[320px] rounded-3xl border p-4 animate-[scaleUp_0.18s_ease-out]">
         <div className="flex items-center justify-between">
-          <p className="font-display text-sm font-semibold tracking-wide">Share to your story</p>
+          <p className="font-sans text-xs font-semibold text-[#F5EFE9]">Share to your story</p>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="tap-44 grid place-items-center"
+            className="tap-44 grid place-items-center cursor-pointer"
           >
-            <X className="text-muted-foreground hover:text-foreground size-5 transition-colors" />
+            <X className="text-[#9C8F87] hover:text-[#F5EFE9] size-4 transition-colors" />
           </button>
         </div>
 

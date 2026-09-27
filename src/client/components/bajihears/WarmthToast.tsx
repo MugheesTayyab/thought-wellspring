@@ -24,33 +24,24 @@ export const WarmthToast: React.FC<WarmthToastProps> = ({ toast, onDone }) => {
     if (!toast) return;
     const timer = setTimeout(() => {
       onDone();
-    }, 2200);
+    }, 2000);
     return () => clearTimeout(timer);
   }, [toast, onDone]);
 
   if (!mounted || !toast) return null;
 
-  return createPortal(
-    <div className="pointer-events-none fixed top-6 left-1/2 -translate-x-1/2 z-50 select-none w-auto max-w-sm px-4">
-      <div className="relative flex items-center gap-3 rounded-full border border-primary/40 bg-gradient-to-r from-[#1c1212]/95 via-[#120c0c]/95 to-black/95 px-4 py-2.5 backdrop-blur-2xl shadow-[0_8px_32px_rgba(250,84,28,0.45)] border-t-primary/60 animate-[toastSpring_0.4s_cubic-bezier(0.34,1.56,0.64,1)_forwards]">
-        {/* Glowing Flame Badge */}
-        <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary via-flame to-ember shadow-[0_0_15px_rgba(250,84,28,0.8)] animate-pulse">
-          <span className="text-sm">🔥</span>
-        </div>
+  const isPositive = toast.amount > 0;
 
-        {/* Text Details */}
-        <div className="flex items-baseline gap-2 font-display">
-          <span
-            className={`text-sm font-extrabold tracking-tight ${
-              toast.amount < 0 ? "text-destructive text-red-400" : "text-brand-gradient"
-            }`}
-          >
-            {toast.amount > 0 ? `+${toast.amount}` : toast.amount} WARMTH
-          </span>
-          <span className="text-xs font-medium text-white/70 tracking-wide font-sans">
-            · {toast.label}
-          </span>
-        </div>
+  return createPortal(
+    <div className="pointer-events-none fixed top-5 left-1/2 -translate-x-1/2 z-50 select-none">
+      <div className="flex items-center gap-2 rounded-full border border-white/10 bg-[#17110D]/85 px-3.5 py-1.5 text-xs text-[#F5EFE9] shadow-[0_8px_30px_rgba(0,0,0,0.6)] backdrop-blur-2xl font-sans animate-[slideDown_0.25s_cubic-bezier(0.16,1,0.3,1)]">
+        <span className="text-xs shrink-0 select-none">🔥</span>
+        <span className="font-semibold tabular-nums text-[#E8552E]">
+          {isPositive ? `+${toast.amount}` : toast.amount}
+        </span>
+        <span className="text-[#9C8F87] text-[11px] font-normal truncate max-w-[160px]">
+          {toast.label}
+        </span>
       </div>
     </div>,
     document.body,

@@ -595,18 +595,18 @@ export function UnsaidCard({
       )}
       {/* Gift Confirmation Modal */}
       {giftConfirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-[fadeIn_0.15s_ease-out]">
-          <div className="w-full max-w-xs rounded-3xl border border-white/10 bg-[#17110D] p-5 shadow-2xl text-center text-foreground font-sans animate-[scaleUp_0.2s_ease-out]">
-            <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400">
-              <Gift className="size-6" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-[fadeIn_0.15s_ease-out]">
+          <div className="w-full max-w-[280px] rounded-3xl border border-white/10 bg-[#17110D]/90 p-4 text-center shadow-2xl backdrop-blur-2xl text-foreground font-sans animate-[scaleUp_0.18s_ease-out]">
+            <div className="mx-auto mb-2.5 flex size-10 items-center justify-center rounded-2xl bg-[#E8552E]/10 border border-[#E8552E]/25 text-[#E8552E]">
+              <Gift className="size-5" />
             </div>
-            <h4 className="text-sm font-bold text-white">Send 10 Warmth?</h4>
-            <p className="text-xs text-[#9C8F87] mt-1">Spread quiet appreciation to this anonymous author.</p>
-            <div className="mt-4 flex items-center justify-end gap-2">
+            <h4 className="text-sm font-bold text-[#F5EFE9]">Send 10 warmth?</h4>
+            <p className="text-[11px] text-[#9C8F87] mt-0.5">Spread quiet appreciation to this author.</p>
+            <div className="mt-3.5 flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setGiftConfirmOpen(false)}
-                className="w-full rounded-xl border border-white/10 py-2 text-xs font-semibold text-white/70 hover:bg-white/[0.04] cursor-pointer"
+                className="w-full rounded-xl border border-white/10 py-1.5 text-xs font-medium text-[#9C8F87] hover:text-[#F5EFE9] hover:bg-white/[0.04] cursor-pointer"
               >
                 Cancel
               </button>
@@ -614,9 +614,9 @@ export function UnsaidCard({
                 type="button"
                 onClick={handleSendGift}
                 disabled={totalWarmth < 10}
-                className="w-full rounded-xl bg-[#E8552E] py-2 text-xs font-bold text-white shadow-md transition hover:opacity-95 disabled:opacity-50 cursor-pointer"
+                className="w-full rounded-xl bg-[#E8552E] py-1.5 text-xs font-bold text-white shadow-md transition hover:opacity-95 disabled:opacity-40 cursor-pointer"
               >
-                {totalWarmth < 10 ? "Need 10🔥" : "Send (10🔥)"}
+                {totalWarmth < 10 ? "Need 10🔥" : "Send 10🔥"}
               </button>
             </div>
           </div>

@@ -54,7 +54,7 @@ export function CornerMenu({ seed }: { seed: string }) {
             onClick={() => setOpen(false)}
           >
             <div
-              className="pop-in bg-card/95 border-border shadow-glow w-full max-w-xs rounded-3xl border p-5 text-foreground"
+              className="w-full max-w-[300px] rounded-3xl border border-white/10 bg-[#17110D]/90 p-5 text-[#F5EFE9] shadow-2xl backdrop-blur-2xl animate-[scaleUp_0.18s_ease-out]"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between gap-3">
@@ -82,15 +82,15 @@ export function CornerMenu({ seed }: { seed: string }) {
                   aria-label="Close"
                   className="shrink-0 cursor-pointer"
                 >
-                  <X className="text-muted-foreground size-5 hover:text-foreground" />
+                  <X className="text-[#9C8F87] size-4 hover:text-[#F5EFE9] transition-colors" />
                 </button>
               </div>
 
               {/* Google Sign In / Account Status */}
               {!user ? (
-                <div className="mt-4 rounded-2xl border border-primary/20 bg-primary/5 p-3 text-center">
-                  <p className="font-sans text-xs text-foreground/80 mb-2.5 leading-snug">
-                    Sign in to secure your Corner and keep your streak safe. <span className="text-[#E8552E] font-semibold">Reach 10 days and Baji follows you back! 👑</span>
+                <div className="mt-3.5 rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-center">
+                  <p className="font-sans text-xs text-[#F5EFE9]/80 mb-2.5 leading-snug">
+                    Sign in to secure your Corner and keep your streak safe. <span className="text-[#E8552E] font-medium">10-day streak gets followed by Baji! 👑</span>
                   </p>
                   <button
                     type="button"
@@ -132,19 +132,19 @@ export function CornerMenu({ seed }: { seed: string }) {
               <button
                 type="button"
                 onClick={share}
-                className="border-border bg-secondary/40 mt-3 flex w-full items-center gap-3 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition hover:bg-secondary/70 cursor-pointer"
+                className="mt-3 flex w-full items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs font-semibold text-[#F5EFE9] transition hover:bg-white/[0.07] cursor-pointer"
               >
-                <Share2 className="text-primary size-4" aria-hidden />
-                Share BajiHears
+                <Share2 className="text-[#E8552E] size-3.5" aria-hidden />
+                <span>Share BajiHears</span>
               </button>
 
               <Link
                 to="/corner"
                 onClick={() => setOpen(false)}
-                className="border-border bg-secondary/40 mt-2 flex w-full items-center gap-3 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition hover:bg-secondary/70 cursor-pointer"
+                className="mt-2 flex w-full items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs font-semibold text-[#F5EFE9] transition hover:bg-white/[0.07] cursor-pointer"
               >
-                <Settings2 className="text-primary size-4" aria-hidden />
-                Adjust your Corner
+                <Settings2 className="text-[#E8552E] size-3.5" aria-hidden />
+                <span>Adjust your Corner</span>
               </Link>
 
               {user && (
@@ -154,10 +154,10 @@ export function CornerMenu({ seed }: { seed: string }) {
                     signOut();
                     setOpen(false);
                   }}
-                  className="mt-2 flex w-full items-center gap-3 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-2.5 text-sm font-semibold text-rose-400 transition hover:bg-rose-500/20 cursor-pointer"
+                  className="mt-2 flex w-full items-center gap-2.5 rounded-xl border border-rose-500/25 bg-rose-500/10 px-3.5 py-2 text-xs font-semibold text-rose-400 transition hover:bg-rose-500/15 cursor-pointer"
                 >
-                  <LogOut className="size-4" aria-hidden />
-                  Sign Out
+                  <LogOut className="size-3.5" aria-hidden />
+                  <span>Sign Out</span>
                 </button>
               )}
             </div>

@@ -174,12 +174,14 @@ function RootComponent() {
 
           {/* Daily Return Bonus Toast */}
           {dailyBonus && (
-            <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4 pointer-events-none animate-[slideDown_0.3s_cubic-bezier(0.34,1.56,0.64,1)]">
-              <div className="pointer-events-auto flex items-center gap-2.5 rounded-full border border-primary/40 bg-[#170e0e]/95 px-4 py-2 text-sm font-semibold text-white shadow-[0_0_25px_rgba(250,84,28,0.4)] backdrop-blur-md">
-                <span className="text-base animate-bounce">🔥</span>
-                <span>+{dailyBonus.amount} Warmth — welcome back!</span>
-                <span className="rounded-full bg-primary/20 px-2 py-0.5 font-mono text-[11px] text-primary">
-                  {dailyBonus.streak}d streak
+            <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none select-none">
+              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-[#17110D]/85 px-3.5 py-1.5 text-xs text-[#F5EFE9] shadow-[0_8px_30px_rgba(0,0,0,0.6)] backdrop-blur-2xl font-sans animate-[slideDown_0.25s_cubic-bezier(0.16,1,0.3,1)]">
+                <span className="text-xs shrink-0 select-none">🔥</span>
+                <span className="font-semibold tabular-nums text-[#E8552E]">
+                  +{dailyBonus.amount}
+                </span>
+                <span className="text-[#9C8F87] text-[11px] font-normal truncate max-w-[200px]">
+                  Welcome back · {dailyBonus.streak}d streak
                 </span>
               </div>
             </div>

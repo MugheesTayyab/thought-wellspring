@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import type { GiftMilestone as GiftMilestoneType } from "@/shared/types/warmth";
 import { generateClaimCode } from "@/shared/utils";
+import { Check, Copy } from "lucide-react";
 
 interface GiftMilestoneModalProps {
   milestone: GiftMilestoneType | null;
@@ -14,62 +15,77 @@ export const GiftMilestoneModal: React.FC<GiftMilestoneModalProps> = ({
   avatarSeed,
   onClaim,
 }) => {
+  const [copied, setCopied] = useState(false);
+
   if (!milestone) return null;
 
   const claimCode = generateClaimCode(milestone.threshold, avatarSeed);
 
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-lg animate-[fadeIn_0.2s_ease-out]">
-      <div className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-primary/50 bg-gradient-to-b from-[#1c1212] via-[#120d0d] to-black p-6 text-center shadow-[0_0_50px_rgba(250,84,28,0.4)] animate-[scaleUp_0.3s_ease-out]">
-        {/* Glow backdrop effect */}
-        <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-48 w-48 rounded-full bg-primary/30 blur-3xl pointer-events-none" />
+  const copyCode = () => {
+    try {
+      navigator.clipboard?.writeText(claimCode);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {}
+  };
 
-        {/* Emoji Badge Burst */}
-        <div className="relative mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full border-2 border-primary/40 bg-gradient-to-br from-primary/20 to-black text-4xl shadow-[0_0_25px_rgba(250,84,28,0.6)] animate-bounce">
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-[fadeIn_0.15s_ease-out]"
+      onClick={onClaim}
+    >
+      <div
+        className="w-full max-w-[270px] rounded-3xl border border-white/10 bg-[#17110D]/90 p-4 text-center shadow-2xl backdrop-blur-2xl font-sans text-[#F5EFE9] animate-[scaleUp_0.18s_ease-out]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Subtle Icon Badge */}
+        <div className="mx-auto mb-2.5 flex size-9 items-center justify-center rounded-xl bg-[#E8552E]/10 border border-[#E8552E]/25 text-base select-none">
           {milestone.badgeEmoji}
         </div>
 
         {/* Header */}
-        <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-primary">
-          Milestone Unlocked!
-        </h3>
-        <h2 className="text-2xl font-extrabold text-white mt-1">{milestone.title}</h2>
-        <p className="text-xs font-medium text-amber-400 mt-0.5 font-mono">
-          Reached {milestone.threshold} Warmth Points 🔥
+        <h2 className="text-sm font-bold text-[#F5EFE9] leading-tight">
+          {milestone.title}
+        </h2>
+        <p className="text-[11px] text-[#9C8F87] mt-0.5">
+          {milestone.threshold} warmth unlocked
         </p>
 
-        {/* Reward Box */}
-        <div className="my-5 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left space-y-2">
-          <div className="text-[11px] font-semibold text-white/50 uppercase tracking-wider">
-            Reward
-          </div>
-          <div className="text-sm font-bold text-white leading-snug">{milestone.reward}</div>
+        {/* Minimal Reward Box */}
+        <div className="my-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-2.5 text-left space-y-1.5">
+          <p className="text-[11px] text-[#F5EFE9]/85 leading-snug">{milestone.reward}</p>
 
-          <div className="mt-3 pt-3 border-t border-white/10 space-y-1">
-            <div className="text-[10px] text-white/60">Claim Code</div>
-            <div className="flex items-center justify-between rounded-lg bg-black/80 px-3 py-1.5 border border-primary/40 font-mono text-sm font-extrabold text-primary">
-              <span>{claimCode}</span>
-              <button
-                type="button"
-                onClick={() => {
-                  navigator.clipboard?.writeText(claimCode);
-                }}
-                className="text-[10px] font-sans font-semibold text-white/70 hover:text-white"
-              >
-                Copy
-              </button>
-            </div>
+          <div className="flex items-center justify-between rounded-lg bg-black/40 px-2 py-1 border border-white/10">
+            <span className="font-mono text-xs font-semibold text-[#E8552E]">{claimCode}</span>
+            <button
+              type="button"
+              onClick={copyCode}
+              className="text-[10px] font-medium text-[#9C8F87] hover:text-[#F5EFE9] flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              {copied ? (
+                <>
+                  <Check className="size-2.5 text-emerald-400" />
+                  <span className="text-emerald-400">Copied</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="size-2.5" />
+                  <span>Copy</span>
+                </>
+              )}
+            </button>
           </div>
-          <p className="text-[10px] text-white/40">{milestone.claimInstruction}</p>
         </div>
 
-        {/* Button */}
+        {/* Action Button */}
         <button
           onClick={onClaim}
           type="button"
-          className="w-full rounded-2xl bg-gradient-to-r from-primary via-flame to-ember py-3 text-sm font-extrabold text-white shadow-lg transition-transform active:scale-95"
+          className="w-full rounded-xl bg-[#E8552E] py-2 text-xs font-semibold text-white shadow-md transition hover:opacity-95 active:scale-98 cursor-pointer"
         >
-          Claim Reward & Keep Glowing 🔥
+          Keep Spilling
         </button>
       </div>
     </div>,

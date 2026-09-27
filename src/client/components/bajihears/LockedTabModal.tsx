@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Compass, Swords, Lock, CheckCircle2, Circle, ArrowRight, Zap, X } from "lucide-react";
+import { Compass, Swords, Lock, CheckCircle2, ArrowRight, Zap, X } from "lucide-react";
 import { triggerHaptic } from "@/client/lib/haptics";
 import { getOrCreateIdentity } from "@/client/lib/identity";
 
@@ -31,10 +31,10 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
   const progressPercent = Math.min(100, Math.round((currentActions / targetActions) * 100));
 
   const isDuel = type === "duel";
-  const title = isDuel ? "The Duel unlocks in 3 actions" : "Baji Read unlocks after 5 reactions";
+  const title = isDuel ? "The Duel unlocks in 3 actions" : "Baji Read unlocks in 5 actions";
   const subtitle = isDuel
     ? "Vote on dilemmas or react on the Wall to join the community voting pool."
-    : "Baji decodes your psychological vibe from the confessions you react to. No forms, no quizzes.";
+    : "Baji decodes your psychological vibe from what you react to. No quizzes.";
 
   const handleInstantUnlock = () => {
     triggerHaptic("success");
@@ -60,100 +60,90 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl animate-[fadeIn_0.2s_ease-out]"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-[fadeIn_0.15s_ease-out]"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-primary/40 bg-gradient-to-b from-[#1c1212] via-[#120d0d] to-[#090606] p-6 text-foreground shadow-[0_0_50px_rgba(250,84,28,0.35)] animate-[scaleUp_0.25s_cubic-bezier(0.16,1,0.3,1)]"
+        className="relative w-full max-w-[320px] rounded-3xl border border-white/10 bg-[#17110D]/90 p-5 text-foreground shadow-2xl backdrop-blur-2xl animate-[scaleUp_0.2s_ease-out]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Ambient Top Glow */}
-        <div className="absolute -top-20 left-1/2 -translate-x-1/2 h-40 w-48 rounded-full bg-primary/25 blur-3xl pointer-events-none" />
-
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-4 right-4 z-10 rounded-full p-1.5 text-white/50 hover:text-white hover:bg-white/10 transition cursor-pointer"
+          className="absolute top-4 right-4 z-10 rounded-full p-1 text-[#9C8F87] hover:text-[#F5EFE9] hover:bg-white/10 transition cursor-pointer"
         >
-          <X className="size-5" />
+          <X className="size-4" />
         </button>
 
         {/* Locked Badge Icon */}
-        <div className="relative mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/40 bg-gradient-to-br from-primary/20 via-[#261512] to-black shadow-[0_0_25px_rgba(250,84,28,0.5)]">
+        <div className="relative mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-[#E8552E]/10 border border-[#E8552E]/25 text-[#E8552E]">
           {isDuel ? (
-            <Swords className="size-8 text-primary" />
+            <Swords className="size-6" />
           ) : (
-            <Compass className="size-8 text-primary" />
+            <Compass className="size-6" />
           )}
-          <div className="absolute -bottom-1 -right-1 flex size-6 items-center justify-center rounded-full bg-[#0d0909] border border-primary/60 text-primary shadow-sm">
-            <Lock className="size-3" />
+          <div className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-[#17110D] border border-white/10 text-[#E8552E]">
+            <Lock className="size-2.5" />
           </div>
         </div>
 
         {/* Header Titles */}
         <div className="text-center">
-          <h2 className="text-xl font-bold text-[#F5EFE9] mt-1 tracking-tight font-display">{title}</h2>
-          <p className="text-xs text-[#9C8F87] mt-1.5 leading-relaxed font-sans">
+          <h2 className="text-base sm:text-lg font-bold text-[#F5EFE9] tracking-tight font-display">{title}</h2>
+          <p className="text-xs text-[#9C8F87] mt-1 leading-relaxed font-sans">
             {subtitle}
           </p>
         </div>
 
         {/* Progress Tracker */}
-        <div className="my-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-          <div className="flex items-center justify-between text-xs font-semibold mb-2">
-            <span className="text-[#9C8F87]">Your reactions & echoes</span>
+        <div className="my-3.5 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-left">
+          <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
+            <span className="text-[#9C8F87]">Progress</span>
             <span className="font-mono text-[#E8552E] font-bold">
-              {currentActions} / {targetActions} completed
+              {currentActions} / {targetActions}
             </span>
           </div>
 
-          <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
             <div
-              className="h-full rounded-full bg-[#E8552E] transition-all duration-500 shadow-[0_0_10px_rgba(232,85,46,0.6)]"
+              className="h-full rounded-full bg-[#E8552E] transition-all duration-500"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
 
           {/* Quick Step Checklist */}
-          <div className="mt-4 space-y-2 border-t border-white/8 pt-3 text-left">
-            <p className="text-[11px] font-semibold text-[#9C8F87]">
-              How to complete actions on the Wall:
-            </p>
-            <div className="flex items-center gap-2 text-xs text-[#F5EFE9]/90">
-              <CheckCircle2 className="size-3.5 text-[#E8552E] shrink-0" />
-              <span>Tap ❤️ on 3-5 confessions on the Wall</span>
+          <div className="mt-3 space-y-1.5 border-t border-white/[0.06] pt-2.5">
+            <div className="flex items-center gap-2 text-xs text-[#F5EFE9]/85">
+              <CheckCircle2 className="size-3 text-[#E8552E] shrink-0" />
+              <span>Tap ❤️ on confessions</span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-[#F5EFE9]/90">
-              <CheckCircle2 className="size-3.5 text-[#E8552E] shrink-0" />
+            <div className="flex items-center gap-2 text-xs text-[#F5EFE9]/85">
+              <CheckCircle2 className="size-3 text-[#E8552E] shrink-0" />
               <span>Drop an anonymous 💬 Echo reply</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-[#F5EFE9]/90">
-              <CheckCircle2 className="size-3.5 text-[#E8552E] shrink-0" />
-              <span>Spill your own anonymous tea</span>
             </div>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <button
             type="button"
             onClick={onClose}
-            className="w-full rounded-2xl bg-gradient-to-r from-primary via-flame to-ember py-3 text-sm font-bold text-white shadow-[0_4px_20px_rgba(250,84,28,0.4)] transition hover:opacity-95 active:scale-98 cursor-pointer flex items-center justify-center gap-2"
+            className="w-full rounded-xl bg-[#E8552E] py-2.5 text-xs font-bold text-white shadow-md transition hover:opacity-95 active:scale-98 cursor-pointer flex items-center justify-center gap-1.5"
           >
-            <span>Explore The Feed & Unlock</span>
-            <ArrowRight className="size-4" />
+            <span>Explore The Feed</span>
+            <ArrowRight className="size-3.5" />
           </button>
 
           <button
             type="button"
             onClick={handleInstantUnlock}
-            className="w-full text-center py-2 text-[11px] font-semibold text-white/40 hover:text-primary transition flex items-center justify-center gap-1 cursor-pointer"
+            className="w-full text-center py-1.5 text-[11px] font-medium text-[#9C8F87]/60 hover:text-[#E8552E] transition flex items-center justify-center gap-1 cursor-pointer"
           >
             <Zap className="size-3" />
-            <span>Tester Mode: Unlock Instantly</span>
+            <span>Tester: Unlock Instantly</span>
           </button>
         </div>
       </div>

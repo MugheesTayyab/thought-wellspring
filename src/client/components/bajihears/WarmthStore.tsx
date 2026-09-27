@@ -55,28 +55,28 @@ export const WarmthStore: React.FC<WarmthStoreProps> = ({ isOpen, onClose }) => 
       <div className="absolute inset-0" onClick={onClose} />
 
       {/* Sheet Container */}
-      <div className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col rounded-t-3xl border-t border-primary/30 bg-[#120d0d] p-5 sm:p-6 shadow-2xl text-white overflow-hidden animate-[slideUp_0.3s_cubic-bezier(0.34,1.56,0.64,1)]">
+      <div className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col rounded-t-3xl border-t border-white/10 bg-[#17110D]/95 p-5 shadow-2xl backdrop-blur-2xl text-[#F5EFE9] overflow-hidden animate-[slideUp_0.3s_cubic-bezier(0.16,1,0.3,1)]">
         {/* Drag Handle */}
         <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-white/20" />
 
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-white/10">
           <div>
-            <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            <h2 className="text-lg font-bold tracking-tight text-[#F5EFE9] flex items-center gap-2">
               <span>Warmth Store</span>
             </h2>
-            <p className="text-xs text-white/60">Turn your quiet kindness into exclusive perks</p>
+            <p className="text-xs text-[#9C8F87]">Turn your quiet kindness into exclusive perks</p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-mono font-bold text-primary shadow-[0_0_15px_rgba(250,84,28,0.3)]">
+          <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs font-mono font-bold text-[#E8552E]">
               <Flame className="size-3.5 fill-current" />
               <span>{totalWarmth.toLocaleString()}</span>
             </div>
             <button
               onClick={onClose}
               type="button"
-              className="rounded-full p-2 text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+              className="rounded-full p-1.5 text-[#9C8F87] hover:bg-white/10 hover:text-[#F5EFE9] transition-colors cursor-pointer"
             >
               <X className="size-4" />
             </button>

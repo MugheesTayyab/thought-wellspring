@@ -43,28 +43,28 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
       <div className="absolute inset-0" onClick={onClose} />
 
       {/* Sheet Container */}
-      <div className="relative z-10 flex max-h-[85vh] w-full max-w-lg flex-col rounded-t-3xl border-t border-white/10 bg-[#120d0d] p-6 shadow-2xl text-white overflow-hidden animate-[slideUp_0.3s_ease-out_forwards]">
+      <div className="relative z-10 flex max-h-[85vh] w-full max-w-lg flex-col rounded-t-3xl border-t border-white/10 bg-[#17110D]/95 p-5 shadow-2xl backdrop-blur-2xl text-[#F5EFE9] overflow-hidden animate-[slideUp_0.3s_cubic-bezier(0.16,1,0.3,1)]">
         {/* Drag handle */}
-        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20" />
+        <div className="mx-auto mb-3.5 h-1.5 w-12 rounded-full bg-white/20" />
 
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-white/10">
+        <div className="flex items-center justify-between pb-3.5 border-b border-white/10">
           <div>
-            <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            <h2 className="text-lg font-bold tracking-tight text-[#F5EFE9] flex items-center gap-2">
               <span>Warmth</span>
               <span
-                className="rounded-full px-2.5 py-0.5 text-xs font-semibold text-white"
+                className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white"
                 style={{ backgroundColor: currentTier.colorCss }}
               >
                 {currentTier.name}
               </span>
             </h2>
-            <p className="text-xs text-white/60">Your quiet impact on the wall</p>
+            <p className="text-xs text-[#9C8F87]">Your quiet impact on the wall</p>
           </div>
           <button
             onClick={onClose}
             type="button"
-            className="rounded-full p-2 text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+            className="rounded-full p-1.5 text-[#9C8F87] hover:bg-white/10 hover:text-[#F5EFE9] transition-colors cursor-pointer"
           >
             ✕
           </button>

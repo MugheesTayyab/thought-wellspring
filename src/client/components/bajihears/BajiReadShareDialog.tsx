@@ -154,12 +154,12 @@ export function BajiReadShareDialog({ archetype, open, onClose }: BajiReadShareD
       role="dialog"
       aria-modal="true"
       aria-label={`Share ${archetype.name} to Story`}
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-4 backdrop-blur-md sm:items-center animate-[fadeIn_0.2s_ease-out]"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-[fadeIn_0.15s_ease-out]"
     >
-      <div className="bg-[#140e0e]/95 border-white/12 shadow-glow w-full max-w-sm rounded-3xl border p-5 max-h-[92vh] overflow-y-auto no-scrollbar">
+      <div className="bg-[#17110D]/95 border-white/10 shadow-2xl backdrop-blur-2xl text-[#F5EFE9] w-full max-w-[320px] rounded-3xl border p-4 max-h-[92vh] overflow-y-auto no-scrollbar animate-[scaleUp_0.18s_ease-out]">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <p className="font-display text-sm font-bold tracking-wide text-white">
+          <p className="font-sans text-xs font-semibold text-[#F5EFE9]">
             Share your Baji Read
           </p>
           <button
@@ -168,7 +168,7 @@ export function BajiReadShareDialog({ archetype, open, onClose }: BajiReadShareD
             aria-label="Close"
             className="tap-44 grid place-items-center cursor-pointer"
           >
-            <X className="text-muted-foreground hover:text-foreground size-5 transition-colors" />
+            <X className="text-[#9C8F87] hover:text-[#F5EFE9] size-4 transition-colors" />
           </button>
         </div>
 
