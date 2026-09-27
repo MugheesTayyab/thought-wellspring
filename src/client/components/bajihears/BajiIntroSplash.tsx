@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Logo } from "./Logo";
 
 interface BajiIntroSplashProps {
   onComplete?: () => void;
@@ -22,12 +22,12 @@ export const BajiIntroSplash: React.FC<BajiIntroSplashProps> = ({ onComplete }) 
 
     const fadeTimer = window.setTimeout(() => {
       setFading(true);
-    }, 2200);
+    }, 1800);
 
     const endTimer = window.setTimeout(() => {
       setVisible(false);
       onComplete?.();
-    }, 2800);
+    }, 2400);
 
     return () => {
       window.clearTimeout(fadeTimer);
@@ -39,7 +39,7 @@ export const BajiIntroSplash: React.FC<BajiIntroSplashProps> = ({ onComplete }) 
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0d0808] transition-opacity duration-700 select-none ${
+      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0d0808] transition-opacity duration-600 select-none ${
         fading ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
@@ -47,18 +47,17 @@ export const BajiIntroSplash: React.FC<BajiIntroSplashProps> = ({ onComplete }) 
       <div className="absolute size-96 rounded-full bg-primary/20 blur-3xl animate-pulse" />
 
       <div className="relative z-10 flex flex-col items-center gap-4 text-center px-6">
-        {/* Animated Brand Emblem */}
-        <div className="relative flex size-20 items-center justify-center rounded-3xl bg-brand-gradient text-3xl shadow-[0_0_50px_rgba(250,84,28,0.6)] animate-bounce-once">
-          🧕
-          <Sparkles className="absolute -top-1 -right-1 size-5 text-amber-300 animate-spin" />
+        {/* Animated Brand Mascot Emblem */}
+        <div className="relative flex items-center justify-center shadow-[0_0_50px_rgba(250,84,28,0.5)]">
+          <Logo size={76} />
         </div>
 
         <div className="space-y-1.5 animate-fade-in">
           <h1 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-brand-gradient drop-shadow-md">
             BajiHears
           </h1>
-          <p className="font-vibe text-xs sm:text-sm font-medium tracking-wide text-white/70">
-            Say the unsaid. We're listening.
+          <p className="font-vibe text-xs sm:text-sm font-medium tracking-wide text-white/80">
+            Say what you couldn't say. 100% anonymous.
           </p>
         </div>
 

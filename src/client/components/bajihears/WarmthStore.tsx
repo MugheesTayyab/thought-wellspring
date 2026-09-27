@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
-import { Sparkles, X, Check, Flame, ArrowRight } from "lucide-react";
+import { X, Check, Flame, ArrowRight } from "lucide-react";
 import type { StoreItem, StoreItemCategory } from "@/shared/types/warmth";
 import { STORE_ITEMS } from "@/shared/constants/warmth";
 import { randomSeed } from "@/shared/utils";
@@ -64,7 +64,6 @@ export const WarmthStore: React.FC<WarmthStoreProps> = ({ isOpen, onClose }) => 
           <div>
             <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
               <span>Warmth Store</span>
-              <Sparkles className="size-4 text-primary" />
             </h2>
             <p className="text-xs text-white/60">Turn your quiet kindness into exclusive perks</p>
           </div>

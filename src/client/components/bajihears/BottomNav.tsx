@@ -1,23 +1,20 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Sparkles, Compass, Swords, Lock } from "lucide-react";
-import { WarmthOrb } from "./WarmthOrb";
+import { Flame, Compass, Swords, Lock } from "lucide-react";
 import { readBajiReadCache, getArchetype } from "@/client/lib/bajiRead";
 import { triggerHaptic } from "@/client/lib/haptics";
 import { getOrCreateIdentity } from "@/client/lib/identity";
+import { LockedTabModal } from "./LockedTabModal";
 
 export interface BottomNavProps {
-  totalWarmth: number;
-  isFlashingOrb: boolean;
-  onOpenWarmthSheet: () => void;
+  totalWarmth?: number;
+  isFlashingOrb?: boolean;
+  onOpenWarmthSheet?: () => void;
   readState?: "locked" | "ready" | "visited";
   archetypeColor?: string;
 }
 
 export function BottomNav({
-  totalWarmth,
-  isFlashingOrb,
-  onOpenWarmthSheet,
   readState: propReadState,
   archetypeColor: propColor,
 }: BottomNavProps) {
@@ -36,14 +33,18 @@ export function BottomNav({
     read: false,
   });
 
-  const [lockedToast, setLockedToast] = useState<string | null>(null);
+  const [lockedModalType, setLockedModalType] = useState<"read" | "duel" | null>(null);
 
-  useEffect(() => {
+  const refreshTabs = () => {
     const id = getOrCreateIdentity();
     setTabsUnlocked({
       duel: id.tabsUnlocked?.duel ?? false,
       read: id.tabsUnlocked?.read ?? false,
     });
+  };
+
+  useEffect(() => {
+    refreshTabs();
   }, [pathname]);
 
   useEffect(() => {
@@ -71,50 +72,34 @@ export function BottomNav({
     }
   }, [propReadState, propColor, pathname]);
 
-  const showLockedToast = (msg: string) => {
-    triggerHaptic("warning");
-    setLockedToast(msg);
-    window.setTimeout(() => setLockedToast(null), 3500);
-  };
-
   const isWallActive = pathname === "/";
   const isReadActive = pathname.startsWith("/read");
   const isDuelActive = pathname.startsWith("/duel");
 
   return (
     <>
-      {/* Locked Tab Tooltip/Toast */}
-      {lockedToast && (
-        <div className="fixed bottom-20 inset-x-0 z-50 flex justify-center px-4 pointer-events-none animate-[slideDown_0.2s_ease-out]">
-          <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-primary/40 bg-[#160d0d]/95 px-4 py-2 text-xs font-semibold text-white shadow-[0_4px_20px_rgba(250,84,28,0.3)] backdrop-blur-md">
-            <Lock className="size-3.5 text-primary shrink-0" />
-            <span>{lockedToast}</span>
-          </div>
-        </div>
-      )}
-
       <nav
         aria-label="Main Navigation"
-        className="fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-[#0d0909]/92 backdrop-blur-2xl px-4 pt-2 pb-[max(env(safe-area-inset-bottom),0.75rem)] shadow-[0_-8px_30px_rgba(0,0,0,0.6)] select-none"
+        className="fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-[#0d0909]/92 backdrop-blur-2xl px-6 pt-2 pb-[max(env(safe-area-inset-bottom),0.75rem)] shadow-[0_-8px_30px_rgba(0,0,0,0.6)] select-none"
       >
-        <div className="mx-auto flex max-w-md items-center justify-around">
+        <div className="mx-auto flex max-w-sm items-center justify-between">
           {/* Wall Tab */}
           <Link
             to="/"
             aria-current={isWallActive ? "page" : undefined}
             onClick={() => triggerHaptic("selection")}
-            className={`spring-press flex flex-col items-center gap-1 text-[11px] font-medium transition-all ${
+            className={`spring-press flex flex-col items-center gap-1 py-1 px-4 text-[11px] font-medium transition-all ${
               isWallActive ? "text-primary scale-105" : "text-white/50 hover:text-white/80"
             }`}
           >
             <div className="relative flex items-center justify-center">
-              <Sparkles
-                className={`size-5 transition-transform ${isWallActive ? "text-primary" : "text-white/60"}`}
+              <Flame
+                className={`size-5 transition-transform ${isWallActive ? "text-primary fill-primary/20" : "text-white/60"}`}
               />
             </div>
-            <span className="font-mono text-[10px] tracking-tight">Wall</span>
+            <span className="font-mono text-[11px] tracking-tight">Wall</span>
             <span
-              className={`h-0.5 w-3 rounded-full transition-all duration-300 ${
+              className={`h-0.5 w-4 rounded-full transition-all duration-300 ${
                 isWallActive ? "bg-primary shadow-[0_0_8px_rgba(250,84,28,0.8)]" : "bg-transparent"
               }`}
             />
@@ -126,7 +111,7 @@ export function BottomNav({
               to="/read"
               aria-current={isReadActive ? "page" : undefined}
               onClick={() => triggerHaptic("selection")}
-              className={`spring-press relative flex flex-col items-center gap-1 text-[11px] font-medium transition-all animate-[popIn_0.3s_cubic-bezier(0.34,1.56,0.64,1)] ${
+              className={`spring-press relative flex flex-col items-center gap-1 py-1 px-4 text-[11px] font-medium transition-all animate-[popIn_0.3s_cubic-bezier(0.34,1.56,0.64,1)] ${
                 isReadActive ? "text-primary scale-105" : "text-white/50 hover:text-white/80"
               }`}
             >
@@ -142,9 +127,9 @@ export function BottomNav({
                   />
                 )}
               </div>
-              <span className="font-mono text-[10px] tracking-tight">Read</span>
+              <span className="font-mono text-[11px] tracking-tight">Read</span>
               <span
-                className={`h-0.5 w-3 rounded-full transition-all duration-300 ${
+                className={`h-0.5 w-4 rounded-full transition-all duration-300 ${
                   isReadActive
                     ? "bg-primary shadow-[0_0_8px_rgba(250,84,28,0.8)]"
                     : "bg-transparent"
@@ -154,30 +139,20 @@ export function BottomNav({
           ) : (
             <button
               type="button"
-              onClick={() => showLockedToast("Do 5 things on the wall — then Baji Read unlocks.")}
-              className="flex flex-col items-center gap-1 text-[11px] font-medium opacity-35 transition-opacity hover:opacity-60 cursor-pointer"
+              onClick={() => {
+                triggerHaptic("warning");
+                setLockedModalType("read");
+              }}
+              className="spring-press flex flex-col items-center gap-1 py-1 px-4 text-[11px] font-medium opacity-50 transition-opacity hover:opacity-85 cursor-pointer"
             >
               <div className="relative flex items-center justify-center">
                 <Compass className="size-5 text-white/50" />
                 <Lock className="absolute -top-1 -right-1.5 size-2.5 text-primary" />
               </div>
-              <span className="font-mono text-[10px] tracking-tight text-white/40">Read</span>
-              <span className="h-0.5 w-3 rounded-full bg-transparent" />
+              <span className="font-mono text-[11px] tracking-tight text-white/50">Read</span>
+              <span className="h-0.5 w-4 rounded-full bg-transparent" />
             </button>
           )}
-
-          {/* Warmth Orb Center Trigger */}
-          <div className="flex flex-col items-center justify-center -my-1">
-            <WarmthOrb
-              totalWarmth={totalWarmth}
-              isFlashing={isFlashingOrb}
-              onClick={() => {
-                triggerHaptic("impactLight");
-                onOpenWarmthSheet();
-              }}
-              mini
-            />
-          </div>
 
           {/* Duel Tab */}
           {tabsUnlocked.duel ? (
@@ -185,7 +160,7 @@ export function BottomNav({
               to="/duel"
               aria-current={isDuelActive ? "page" : undefined}
               onClick={() => triggerHaptic("selection")}
-              className={`spring-press flex flex-col items-center gap-1 text-[11px] font-medium transition-all animate-[popIn_0.3s_cubic-bezier(0.34,1.56,0.64,1)] ${
+              className={`spring-press flex flex-col items-center gap-1 py-1 px-4 text-[11px] font-medium transition-all animate-[popIn_0.3s_cubic-bezier(0.34,1.56,0.64,1)] ${
                 isDuelActive ? "text-primary scale-105" : "text-white/50 hover:text-white/80"
               }`}
             >
@@ -194,9 +169,9 @@ export function BottomNav({
                   className={`size-5 transition-transform ${isDuelActive ? "text-primary" : "text-white/60"}`}
                 />
               </div>
-              <span className="font-mono text-[10px] tracking-tight">Duel</span>
+              <span className="font-mono text-[11px] tracking-tight">Duel</span>
               <span
-                className={`h-0.5 w-3 rounded-full transition-all duration-300 ${
+                className={`h-0.5 w-4 rounded-full transition-all duration-300 ${
                   isDuelActive
                     ? "bg-primary shadow-[0_0_8px_rgba(250,84,28,0.8)]"
                     : "bg-transparent"
@@ -206,21 +181,31 @@ export function BottomNav({
           ) : (
             <button
               type="button"
-              onClick={() =>
-                showLockedToast("Do 3 things on the wall — then The Duel opens for you.")
-              }
-              className="flex flex-col items-center gap-1 text-[11px] font-medium opacity-35 transition-opacity hover:opacity-60 cursor-pointer"
+              onClick={() => {
+                triggerHaptic("warning");
+                setLockedModalType("duel");
+              }}
+              className="spring-press flex flex-col items-center gap-1 py-1 px-4 text-[11px] font-medium opacity-50 transition-opacity hover:opacity-85 cursor-pointer"
             >
               <div className="relative flex items-center justify-center">
                 <Swords className="size-5 text-white/50" />
                 <Lock className="absolute -top-1 -right-1.5 size-2.5 text-primary" />
               </div>
-              <span className="font-mono text-[10px] tracking-tight text-white/40">Duel</span>
-              <span className="h-0.5 w-3 rounded-full bg-transparent" />
+              <span className="font-mono text-[11px] tracking-tight text-white/50">Duel</span>
+              <span className="h-0.5 w-4 rounded-full bg-transparent" />
             </button>
           )}
         </div>
       </nav>
+
+      {/* Educational Locked Tab Modal */}
+      <LockedTabModal
+        type={lockedModalType}
+        onClose={() => setLockedModalType(null)}
+        onUnlocked={() => {
+          refreshTabs();
+        }}
+      />
     </>
   );
 }

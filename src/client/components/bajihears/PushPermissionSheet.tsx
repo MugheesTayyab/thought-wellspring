@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Bell, Sparkles, Smartphone, Loader2 } from "lucide-react";
+import { Bell, Smartphone, Loader2 } from "lucide-react";
 import {
   subscribeDeviceToPush,
   markPushPromptShown,
@@ -70,7 +70,6 @@ export const PushPermissionSheet: React.FC<PushPermissionSheetProps> = ({ isOpen
               <h3 className="font-display text-base font-bold text-white tracking-tight">
                 Never miss the daily crown.
               </h3>
-              <Sparkles className="size-3.5 text-primary shrink-0" />
             </div>
             <p className="font-vibe text-xs text-white/70 leading-relaxed">
               Get an instant ping when the 12-hour winner is crowned or when your confession gets echoed.

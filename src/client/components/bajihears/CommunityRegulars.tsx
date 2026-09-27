@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles, Flame, Crown } from "lucide-react";
+import { Flame, Crown } from "lucide-react";
 import { CornerAvatar } from "./CornerAvatar";
 import { triggerHaptic } from "@/client/lib/haptics";
 
@@ -70,7 +70,6 @@ export const CommunityRegulars: React.FC = () => {
           <div>
             <h2 className="font-display text-sm font-bold text-white tracking-tight flex items-center gap-1.5">
               <span>Community Regulars</span>
-              <Sparkles className="size-3 text-primary shrink-0" />
             </h2>
             <p className="text-[11px] text-muted-foreground/80 font-vibe">
               Those who keep the quiet warmth alive

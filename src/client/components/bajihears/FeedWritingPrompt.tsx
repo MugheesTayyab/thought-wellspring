@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Feather, Sparkles } from "lucide-react";
+import { Feather } from "lucide-react";
 import { triggerHaptic } from "@/client/lib/haptics";
 
 const PROMPT_SUBTEXTS = [
@@ -54,7 +54,6 @@ export const FeedWritingPrompt: React.FC<FeedWritingPromptProps> = ({ onWriteCli
         <div className="space-y-1 max-w-sm">
           <h3 className="font-display text-base sm:text-lg font-bold text-white tracking-tight flex items-center justify-center gap-1.5">
             <span>You've been listening for a while.</span>
-            <Sparkles className="size-3.5 text-primary shrink-0" />
           </h3>
           <p className="font-vibe text-xs sm:text-sm text-white/75 leading-relaxed">"{subtext}"</p>
         </div>

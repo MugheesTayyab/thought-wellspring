@@ -11,7 +11,7 @@ import { WarmthOrb } from "@/client/components/bajihears/WarmthOrb";
 import { BottomNav } from "@/client/components/bajihears/BottomNav";
 import { CommunityRegulars } from "@/client/components/bajihears/CommunityRegulars";
 import { FeedWritingPrompt } from "@/client/components/bajihears/FeedWritingPrompt";
-import { BajiMascot } from "@/client/components/bajihears/BajiMascot";
+import { HeroIntro } from "@/client/components/bajihears/HeroIntro";
 import { BajiIntroSplash } from "@/client/components/bajihears/BajiIntroSplash";
 import { PushPermissionSheet } from "@/client/components/bajihears/PushPermissionSheet";
 import { shouldShowPushPrompt } from "@/client/lib/notifications";
@@ -184,6 +184,9 @@ function Home() {
         <h1 className="sr-only">BajiHears — The Wall of Unsaids</h1>
 
         <div className="wall-3d mt-3 sm:mt-4 space-y-4 sm:space-y-6">
+          {/* 5-Second Comprehension Hero Banner */}
+          <HeroIntro />
+
           {/* Winner Card */}
           {winner && (
             <UnsaidCard
@@ -301,11 +304,11 @@ function Home() {
           {/* Empty State */}
           {!isFeedLoading && !isFeedError && visiblePosts.length === 0 && (
             <div className="bg-card border-border rounded-3xl border p-5 text-center font-vibe">
-              <p className="font-display text-lg">No whispers here yet ☕</p>
+              <p className="font-display text-lg font-bold">No confessions here yet</p>
               <p className="text-muted-foreground mt-2 text-sm">
                 {filters.length > 0
-                  ? "No tea spilled in this vibe yet. Try another one!"
-                  : "Be the first to spill your tea or silent thoughts 💅"}
+                  ? "No confessions found in this category. Try selecting another!"
+                  : "Be the first to share an unspoken thought or secret confession."}
               </p>
             </div>
           )}
@@ -337,7 +340,7 @@ function Home() {
           {/* End of Wall */}
           {!hasNextPage && visiblePosts.length > 0 && (
             <p className="text-muted-foreground/80 py-6 text-center text-xs font-semibold font-vibe tracking-wide">
-              You&apos;ve read all the tea ☕. Come back for the next drop!
+              You&apos;re all caught up on confessions. Check back soon for new drops!
             </p>
           )}
         </div>
@@ -357,9 +360,6 @@ function Home() {
           <ArrowUp className="size-4" />
         </button>
       )}
-
-      {/* Interactive Baji Mascot Guide */}
-      <BajiMascot />
 
       {/* 3-Second Smooth Intro Splash on First Load */}
       <BajiIntroSplash />

@@ -59,13 +59,13 @@ export function WritingBox({
     return (
       <section className="bg-hero-gradient border-primary/30 rounded-3xl border p-5 text-center">
         <p className="text-primary text-[11px] tracking-widest uppercase font-bold">
-          Your tea is live ☕
+          Your confession is live 💬
         </p>
-        <p className="font-display mt-2 text-xl">
-          Next drop unlocks in {formatCountdown(unlockAt! - now)}
+        <p className="font-display mt-2 text-xl font-bold text-white">
+          Next post unlocks in {formatCountdown(unlockAt! - now)}
         </p>
         <p className="text-muted-foreground mt-2 text-xs">
-          One drop per cycle. Keep reading The Wall while you wait.
+          Each device gets 1 thoughtful post per cycle. Keep reading the feed below while you wait.
         </p>
         <button
           type="button"
@@ -126,7 +126,7 @@ export function WritingBox({
           onFocus={() => setFocused(true)}
           onChange={(e) => setText(e.target.value.slice(0, MAX_LEN))}
           rows={2}
-          placeholder="your words matter — spill your tea or silent thoughts..."
+          placeholder="What's something you've never said out loud? (100% anonymous)"
           className="bg-white/[0.03] border-white/10 placeholder:text-muted-foreground/60 focus:border-primary/60 focus:ring-primary/20 w-full resize-none rounded-2xl border p-3.5 text-base leading-relaxed outline-none focus:ring-2 transition-all font-vibe"
         />
         <div
@@ -275,7 +275,7 @@ export function WritingBox({
               : "bg-secondary text-muted-foreground",
           )}
         >
-          {sending ? "spill in progress…" : "Spill it ☕"}
+          {sending ? "Posting anonymously…" : "Post Anonymously 🔒"}
         </button>
       </div>
     </section>

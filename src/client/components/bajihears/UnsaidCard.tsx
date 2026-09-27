@@ -9,7 +9,7 @@ import {
   Instagram,
   MessageCircle,
   CloudRain,
-  Sparkles,
+  Crown,
   Gift,
   MoreHorizontal,
   Clock,
@@ -244,7 +244,7 @@ export function UnsaidCard({
       {isWinner && (
         <div className="relative z-10 mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-amber-400/20 pb-2.5">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 px-3 py-1 text-[10px] font-extrabold tracking-wider uppercase text-black shadow-[0_0_15px_rgba(251,191,36,0.4)]">
-            <Sparkles className="size-3 fill-current" aria-hidden />⭐ Baji Heard This
+            <Crown className="size-3 fill-current" aria-hidden /> Most Resonant Confession
           </span>
           <RevealCountdown className="text-amber-300 text-xs font-semibold tracking-wide" />
         </div>
@@ -254,7 +254,7 @@ export function UnsaidCard({
       {unsaid.status === "pending" && (
         <div className="relative z-10 mb-3 flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-300">
           <Clock className="size-3.5 animate-spin shrink-0" />
-          <span>Your post is warming up — visible to others shortly</span>
+          <span>Your confession is warming up — visible to others shortly</span>
         </div>
       )}
 
@@ -262,8 +262,8 @@ export function UnsaidCard({
       {hero && !isWinner && (
         <div className="relative z-10 mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2.5">
           <span className="bg-brand-gradient text-primary-foreground inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold tracking-wider uppercase shadow-xs">
-            <Sparkles className="size-3 fill-current" aria-hidden />
-            Top Echoed Tea 👑
+            <Flame className="size-3 fill-current" aria-hidden />
+            Featured Confession
           </span>
           <RevealCountdown className="text-primary/90 text-xs font-semibold tracking-wide" />
         </div>
