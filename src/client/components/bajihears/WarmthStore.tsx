@@ -50,12 +50,12 @@ export const WarmthStore: React.FC<WarmthStoreProps> = ({ isOpen, onClose }) => 
   const categories: StoreItemCategory[] = ["feature", "social", "cosmetic"];
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/85 backdrop-blur-xl">
       {/* Backdrop */}
       <div className="absolute inset-0" onClick={onClose} />
 
       {/* Sheet Container */}
-      <div className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col rounded-t-3xl border-t border-white/10 bg-[#17110D]/95 p-5 shadow-2xl backdrop-blur-2xl text-[#F5EFE9] overflow-hidden animate-[slideUp_0.3s_cubic-bezier(0.16,1,0.3,1)]">
+      <div className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col rounded-t-3xl border-t border-white/12 bg-gradient-to-b from-[#1f1712]/95 via-[#17110D]/95 to-[#100b08]/98 p-5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] backdrop-blur-2xl text-[#F5EFE9] overflow-hidden animate-[slideUp_0.3s_cubic-bezier(0.16,1,0.3,1)]">
         {/* Drag Handle */}
         <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-white/20" />
 
@@ -63,15 +63,15 @@ export const WarmthStore: React.FC<WarmthStoreProps> = ({ isOpen, onClose }) => 
         <div className="flex items-center justify-between pb-4 border-b border-white/10">
           <div>
             <h2 className="text-lg font-bold tracking-tight text-[#F5EFE9] flex items-center gap-2">
-              <span>Warmth Store</span>
+              <span>Perks & Store</span>
             </h2>
-            <p className="text-xs text-[#9C8F87]">Turn your quiet kindness into exclusive perks</p>
+            <p className="text-xs text-[#9C8F87]">Use your earned points to unlock exclusive perks</p>
           </div>
 
           <div className="flex items-center gap-2.5">
-            <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs font-mono font-bold text-[#E8552E]">
-              <Flame className="size-3.5 fill-current" />
-              <span>{totalWarmth.toLocaleString()}</span>
+            <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs font-sans font-bold tabular-nums text-white">
+              <Flame className="size-3.5 fill-[#E8552E] text-[#E8552E]" />
+              <span>{totalWarmth.toLocaleString()} pts</span>
             </div>
             <button
               onClick={onClose}
@@ -125,7 +125,7 @@ export const WarmthStore: React.FC<WarmthStoreProps> = ({ isOpen, onClose }) => 
                                 {item.name}
                               </h4>
                               {item.isLimited && (
-                                <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-2 py-0.2 text-[9px] font-mono font-bold text-amber-400">
+                                <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-2 py-0.2 text-[9px] font-sans font-bold tabular-nums text-amber-400">
                                   {item.usesRemaining} left
                                 </span>
                               )}

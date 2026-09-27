@@ -602,6 +602,16 @@
   }
 }
 
+/* Minimal progress animation for intro loader */
+@keyframes progress {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
 .winner-crown-bob {
   animation: winnerBadgeFloat 3.2s ease-in-out infinite;
 }

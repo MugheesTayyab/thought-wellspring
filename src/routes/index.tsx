@@ -97,6 +97,12 @@ function Home() {
   const [shareTarget, setShareTarget] = useState<Unsaid | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showPushSheet, setShowPushSheet] = useState(false);
+  const [introCompleted, setIntroCompleted] = useState(() => {
+    if (typeof window !== "undefined") {
+      return Boolean(sessionStorage.getItem("bh:introPlayed"));
+    }
+    return false;
+  });
   const backdrop = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -174,7 +180,12 @@ function Home() {
     <div className="relative min-h-screen">
       <div ref={backdrop} className="wall-backdrop" aria-hidden />
 
-      <div className="mx-auto w-full max-w-md px-4 sm:px-5 pb-[calc(7.5rem+env(safe-area-inset-bottom,0px))]">
+      <div
+        className={cn(
+          "mx-auto w-full max-w-md px-4 sm:px-5 pb-[calc(7.5rem+env(safe-area-inset-bottom,0px))] transition-opacity duration-500 ease-out",
+          introCompleted ? "opacity-100" : "opacity-0 pointer-events-none",
+        )}
+      >
         <header className="bg-background/85 border-b border-white/8 sticky top-0 z-30 -mx-4 sm:-mx-5 flex items-center justify-between px-4 sm:px-5 py-3 backdrop-blur-xl shadow-xs">
           <div className="flex items-center gap-2 shrink-0">
             <Logo size={28} />
@@ -423,8 +434,8 @@ function Home() {
       {/* Scroll-scrubbed Baji Mascot — peeks from right edge */}
       <ScrollMascot />
 
-      {/* 3-Second Smooth Intro Splash on First Load */}
-      <BajiIntroSplash />
+      {/* 2-Second Smooth Intro Splash on First Load */}
+      <BajiIntroSplash onComplete={() => setIntroCompleted(true)} />
 
       {/* Shared Frosted Glassmorphic Bottom Navigation Bar */}
       <BottomNav

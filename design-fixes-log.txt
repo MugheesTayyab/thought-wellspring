@@ -1,0 +1,168 @@
+================================================================================
+BAJIHEARS DESIGN FIXES & ANTI-AI-SLOP QUALITY LOG
+================================================================================
+Purpose: This log records every anti-pattern and AI-generated design tell
+identified and eliminated from BajiHears. Every new feature, UI tweak, and copy
+change must be vetted against this checklist before shipping to production.
+
+Target Audience & Context:
+Direct link-in from Instagram bio with ~10,000 active users. All interfaces must
+exude authentic, candlelit, premium intimacy—no robotic tropes or stock kits.
+
+--------------------------------------------------------------------------------
+1. TYPOGRAPHY & FONT CONSISTENCY
+--------------------------------------------------------------------------------
+[IDENTIFIED ANTI-PATTERN]
+- Spraying `font-mono` across non-code UI elements (e.g. "+2 warmth earned",
+  unlock progress "0/5", match confidence "96% Match", trait breakdowns, labels).
+  Monospace in mainstream consumer/teen social apps feels clinical, cold, and
+  screams "lazy AI boilerplate".
+- Inconsistent decorative fonts for winner labels ("Cycle Champion") that looked
+  like stock templates rather than the brand's typographic identity.
+
+[PRODUCTION RULE & FIX]
+- Primary Copy: Warm, clean system sans (`font-sans`).
+- Brand & Display Headers: Warm serif display (`font-display`, Cormorant/serif).
+- Confession & Literary Quotes: Atmospheric quote font (`font-quote`).
+- Numerical Metrics & Counts: Always use `font-sans font-bold tabular-nums text-white`
+  or warm neutral tones. Numbers align cleanly without monospace robotic aesthetics.
+- Audited and purged `font-mono` from:
+  * WarmthToast & earn notifications
+  * WarmthSheet & Points Balance
+  * LockedTabModal progress counters
+  * BajiReadLockedCard status counters
+  * BajiReadCard trait breakdown percentages & badges
+  * PublicProfileModal header pills
+  * WarmthStore balance badges and limited-item pill tags
+
+--------------------------------------------------------------------------------
+2. PUNCTUATION & AI SYNTAX (EM DASH PURGE)
+--------------------------------------------------------------------------------
+[IDENTIFIED ANTI-PATTERN]
+- Excessive use of em dashes ("—") in user-facing copy, subtitles, and button
+  labels. In modern web and mobile copy, heavy em-dash cadence is one of the most
+  notorious telltale markers of unedited LLM-generated prose.
+
+[PRODUCTION RULE & FIX]
+- Absolute zero em dashes in user-facing UI, toast notifications, badges, or copy.
+- Use natural sentence structures, clean periods, or standard hyphens ("-") only
+  when strictly required for hyphenated adjectives (e.g., "candle-lit").
+- Rephrased all teaser, unlock, and psychology paragraphs into concise, human,
+  spoken cadence.
+
+--------------------------------------------------------------------------------
+3. FLASHING, PULSING & SHIMMER GIMMICKS
+--------------------------------------------------------------------------------
+[IDENTIFIED ANTI-PATTERN]
+- Repeating flashing/shimmering animations (`animate-pulse`) on either side of
+  "Instant Unlock" or "Open Duel" badges and lock icons.
+- Constant pulsing creates visual agitation, looks like a cheap mobile game ad,
+  and distracts from the core content.
+- Unnecessary AI sparkles (`✨`, `⭐`) attached as filler decoration.
+
+[PRODUCTION RULE & FIX]
+- Replace all repeating strobe/pulse effects with restrained static highlights or
+  a single, minimal hover transition (`border-white/10 bg-white/[0.04] hover:bg-white/[0.08]`).
+- Instant Unlock is styled as a dignified glass button with a subtle static
+  amber icon (`Zap className="text-amber-400"`), no pulsating halos.
+- Lock icons use a static, soft candlelight ember backdrop without `animate-pulse`.
+
+--------------------------------------------------------------------------------
+4. COPYWRITING, GAMIFICATION & COGNITIVE LOAD
+--------------------------------------------------------------------------------
+[IDENTIFIED ANTI-PATTERN]
+- Vague, pseudo-mystical jargon ("aura", "warmth", "ecological read"). First-time
+  users could not immediately understand what warmth was, why they had it, or what
+  they could do with it.
+- "+2 warmth earned" displayed in an abrasive green terminal font that clashed
+  with the dark warm candlelight palette.
+- Overlong, breathless run-on explanations that overwhelmed incoming visitors in
+  their first 5 seconds.
+
+[PRODUCTION RULE & FIX]
+- Visibility of System Status & Plain Language:
+  * Renamed section headers to "Points & Status" and "Perks & Store".
+  * Added one concise, immediately parseable definition:
+    "Points you earn by sharing thoughts and voting, used to unlock personality reads and special perks."
+  * Renamed "Total Warmth" to "Points Balance" with crisp white tabular numbers.
+  * Replaced "+2 warmth earned" green text with a glowing candlelight pill
+    ("+2 points earned" in `font-sans font-bold tabular-nums text-white`).
+  * Renamed "PSYCHOLOGICAL READ" / "ecological read" to "2 MIN READ · PERSONALITY INSIGHT"
+    (plain language conveying estimated read time and content type).
+
+--------------------------------------------------------------------------------
+5. UNLOCK PROGRESS & CALLS TO ACTION
+--------------------------------------------------------------------------------
+[IDENTIFIED ANTI-PATTERN]
+- Bare, context-free fractions like "0/3" or "0/5" without telling the user
+  what action was required to advance the counter.
+
+[PRODUCTION RULE & FIX]
+- Every unlock bar must state the exact, actionable imperative:
+  * Duel: "Vote in 3 duels to unlock" accompanied by "X of 3 completed"
+  * Read: "Read 5 posts to unlock" accompanied by "X of 5 completed"
+- Counter rendered in clean, high-contrast white font (`text-white font-bold tabular-nums`).
+
+--------------------------------------------------------------------------------
+6. MATCH & INSIGHT BADGES
+--------------------------------------------------------------------------------
+[IDENTIFIED ANTI-PATTERN]
+- Ad-hoc, unpolished badges like a green-dot pulsating ".94% match" or a single
+  dense string of traits joined by bullets ("Observant Radar • High Intuition").
+
+[PRODUCTION RULE & FIX]
+- Match Confidence: Restrained warm amber pill (`border-amber-500/25 bg-amber-500/10 text-amber-300`)
+  clearly labeled: "{matchAccuracy}% Personality Match".
+- Insight Tags: Distinct, individual glassmorphic badges with candlelight dot
+  accents (`Observant`, `High Intuition`, `Silent Boundaries`), matching industry
+  benchmarks from Spotify Wrapped and Hinge.
+
+--------------------------------------------------------------------------------
+7. APP LOAD SEQUENCE & FOUC ELIMINATION
+--------------------------------------------------------------------------------
+[IDENTIFIED ANTI-PATTERN]
+- Flash of unstyled or partially loaded feed before the intro animation mounted.
+  Caused by initializing splash visibility to `false` and waiting for an
+  asynchronous client `useEffect` to inspect `sessionStorage`.
+
+[PRODUCTION RULE & FIX]
+- Synchronous initialization: `BajiIntroSplash` initializes `visible` to `true`
+  immediately if `sessionStorage.getItem("bh:introPlayed")` is absent.
+- Parent mount gating: The main feed in `src/routes/index.tsx` is held at
+  `opacity-0 pointer-events-none` while the intro plays behind a high-z-index
+  dark canvas, fading smoothly to `opacity-100` only upon `onComplete`.
+- Redesigned Intro Animation:
+  * Replaced generic loader with organic candlelight flame glow.
+  * Floating, borderless Baji mascot emblem.
+  * Timed 4-word poetic value proposition: "Whisper your truth. Read the unsaid."
+  * Hairline smooth progress bar.
+
+--------------------------------------------------------------------------------
+8. GLOBAL GLASSMORPHISM STANDARDIZATION
+--------------------------------------------------------------------------------
+[IDENTIFIED ANTI-PATTERN]
+- Modals and sheets using inconsistent backdrops (`bg-black/75`, `backdrop-blur-md`)
+  and flat dark boxes (`bg-[#17110D]/95`) while other popups had rich gradients.
+
+[PRODUCTION RULE & FIX]
+- Uniform Overlay Design System:
+  * Backdrop: `bg-black/85 backdrop-blur-xl animate-[fadeIn_0.15s_ease-out]`
+  * Container: `border border-white/12 bg-gradient-to-b from-[#1f1712]/95 via-[#17110D]/95 to-[#100b08]/98 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] backdrop-blur-2xl rounded-3xl`
+  * Standardized across `LockedTabModal`, `BajiReadLockedCard`, `PublicProfileModal`,
+    `QuoteCardDialog`, `PushPermissionSheet`, `GiftMilestone`, `BajiReadShareDialog`,
+    and `WarmthStore`.
+
+--------------------------------------------------------------------------------
+9. GOOGLE ACCOUNT CONNECTION & OAUTH BRANDING
+--------------------------------------------------------------------------------
+[IDENTIFIED ANTI-PATTERN]
+- Google sign-in consent screen showing internal/placeholder project names
+  ("continue to QSLOQQ event" referencing internal Supabase project ids).
+
+[PRODUCTION RULE & FIX]
+- Code-level: Added `queryParams: { prompt: "select_account", access_type: "offline" }`
+  in `auth-context.tsx` to force the clean Google account selection sheet.
+- Configuration-level: In Google Cloud Console (APIs & Services > OAuth consent screen),
+  update the public App Name to "BajiHears" and set user support email to the
+  production administrator contact so no internal project IDs appear.
+================================================================================

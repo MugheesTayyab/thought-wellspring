@@ -54,13 +54,13 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
         <div className="flex items-center justify-between pb-3 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-bold tracking-tight text-[#F5EFE9] font-display">
-              Aura & Warmth
+              Points & Status
             </h2>
             <span
-              className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white shadow-sm"
+              className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white shadow-sm font-sans"
               style={{ backgroundColor: currentTier.colorCss }}
             >
-              {currentTier.name} Aura
+              {currentTier.name}
             </span>
           </div>
           <button
@@ -73,26 +73,31 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
           </button>
         </div>
 
+        {/* Clear, immediate explanation of points system */}
+        <p className="text-xs text-[#9C8F87] leading-relaxed pt-2.5 pb-0.5 font-sans">
+          Points you earn by sharing thoughts and voting, used to unlock personality reads and special perks.
+        </p>
+
         {/* Scrollable Body: HUD, Earn Strip, Tabs & Details */}
-        <div className="flex-1 overflow-y-auto pr-0.5 space-y-3.5 pt-3 font-sans">
+        <div className="flex-1 overflow-y-auto pr-0.5 space-y-3.5 pt-2 font-sans">
           {/* Unified Hero HUD */}
           <div className="relative overflow-hidden rounded-2xl border border-[#E8552E]/30 bg-gradient-to-br from-[#E8552E]/10 via-[#1c130e] to-black/60 p-4 shadow-sm">
             <div className="flex items-baseline justify-between">
               <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-[#9C8F87] font-semibold">
-                  Total Warmth
+                <span className="text-[10px] font-sans uppercase tracking-wider text-[#9C8F87] font-semibold">
+                  Points Balance
                 </span>
-                <div className="text-3xl font-extrabold font-mono text-[#E8552E] flex items-center gap-1.5 mt-0.5">
+                <div className="text-3xl font-extrabold font-sans tabular-nums text-[#E8552E] flex items-center gap-1.5 mt-0.5">
                   <span>{totalWarmth.toLocaleString()}</span>
                   <Flame className="size-5 text-[#E8552E]" />
                 </div>
               </div>
 
               <div className="text-right">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-[#9C8F87] font-semibold">
+                <span className="text-[10px] font-sans uppercase tracking-wider text-[#9C8F87] font-semibold">
                   Daily Streak
                 </span>
-                <div className="text-xl font-bold font-mono text-amber-400 flex items-center justify-end gap-1 mt-0.5">
+                <div className="text-xl font-bold font-sans tabular-nums text-amber-400 flex items-center justify-end gap-1 mt-0.5">
                   <Zap className="size-4 text-amber-400 fill-amber-400" />
                   <span>{streakCount} {streakCount === 1 ? "Day" : "Days"}</span>
                 </div>
@@ -158,19 +163,19 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
             </div>
           </div>
 
-          {/* Minimal 1-row Earn Strip (Instant readability, zero paragraphs) */}
+          {/* Minimal 1-row Earn Strip */}
           <div className="grid grid-cols-3 gap-2 text-center text-xs">
             <div className="rounded-xl bg-white/[0.03] p-2 border border-white/[0.06]">
               <p className="text-[#9C8F87] text-[11px]">☕ Spill Tea</p>
-              <p className="font-mono font-bold text-[#E8552E] mt-0.5">+10 pts</p>
+              <p className="font-sans font-bold tabular-nums text-[#E8552E] mt-0.5">+10 pts</p>
             </div>
             <div className="rounded-xl bg-white/[0.03] p-2 border border-white/[0.06]">
               <p className="text-[#9C8F87] text-[11px]">💬 Leave Echo</p>
-              <p className="font-mono font-bold text-[#E8552E] mt-0.5">+3 pts</p>
+              <p className="font-sans font-bold tabular-nums text-[#E8552E] mt-0.5">+3 pts</p>
             </div>
             <div className="rounded-xl bg-white/[0.03] p-2 border border-white/[0.06]">
-              <p className="text-[#9C8F87] text-[11px]">❤️ Hype Wall</p>
-              <p className="font-mono font-bold text-[#E8552E] mt-0.5">+1 pt</p>
+              <p className="text-[#9C8F87] text-[11px]">❤️ React</p>
+              <p className="font-sans font-bold tabular-nums text-[#E8552E] mt-0.5">+1 pt</p>
             </div>
           </div>
 

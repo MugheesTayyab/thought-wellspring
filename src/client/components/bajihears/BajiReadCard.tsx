@@ -1,5 +1,5 @@
 import { ArchetypeDefinition, BAJI_READ_COST, TraitBreakdown } from "@/client/lib/bajiRead";
-import { Share2, Check, Copy, Eye, Heart, Sparkles, Flame, ShieldAlert } from "lucide-react";
+import { Share2, Check, Copy, Eye, Heart, Sparkles, Flame, Clock } from "lucide-react";
 import { triggerHaptic } from "@/client/lib/haptics";
 
 export interface BajiReadCardProps {
@@ -38,7 +38,7 @@ export function BajiReadCard({
     <article
       role="article"
       aria-label={`Your Baji Read result: ${archetype.name}`}
-      className="relative w-full max-w-md rounded-3xl border border-white/10 bg-gradient-to-b from-[#1c1511] via-[#140e0b] to-[#0d0906] p-5 sm:p-7 backdrop-blur-2xl shadow-2xl animate-[slideUp_0.3s_ease-out] overflow-hidden"
+      className="relative w-full max-w-md rounded-3xl border border-white/12 bg-gradient-to-b from-[#1c1511] via-[#140e0b] to-[#0d0906] p-5 sm:p-7 backdrop-blur-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] animate-[slideUp_0.3s_ease-out] overflow-hidden"
     >
       {/* Top subtle glow matching archetype color */}
       <div
@@ -49,20 +49,16 @@ export function BajiReadCard({
         aria-hidden
       />
 
-      {/* Header Eyebrow: Archetype Tag + Match Confidence */}
+      {/* Header Bar: Polished Read Time + Match Confidence Badge */}
       <div className="flex items-center justify-between gap-2 text-xs">
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/10 bg-white/[0.04] text-[#F5EFE9]">
-          <Eye className="size-3 text-[#E8552E]" />
-          <span className="font-mono text-[11px] font-bold tracking-wide">
-            BAJI PSYCH-READ
-          </span>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04] text-[#9C8F87] text-[11px] font-medium font-sans">
+          <Clock className="size-3 text-[#E8552E]" />
+          <span>2 min read</span>
         </div>
 
-        <div className="flex items-center gap-1.5 text-xs text-[#9C8F87]">
-          <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-mono font-semibold text-emerald-400">
-            {matchAccuracy}% Match
-          </span>
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-amber-500/25 bg-amber-500/10 text-amber-300 text-[11px] font-semibold font-sans tabular-nums">
+          <Sparkles className="size-3 text-amber-400" />
+          <span>{matchAccuracy}% Personality Match</span>
         </div>
       </div>
 
@@ -82,16 +78,23 @@ export function BajiReadCard({
           {archetype.tagline}
         </p>
 
-        {/* Vibe Signature Pill */}
+        {/* Polished Individual Insight Badges */}
         {vibeSignature && (
-          <div className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-[11px] font-mono text-[#F5EFE9]/90 shadow-sm">
-            <Flame className="size-3 text-[#E8552E] shrink-0" />
-            <span>{vibeSignature}</span>
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
+            {vibeSignature.split("•").map((trait, idx) => (
+              <span
+                key={idx}
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium font-sans text-[#F5EFE9]/90 shadow-sm"
+              >
+                <span className="size-1 rounded-full bg-[#E8552E]" aria-hidden="true" />
+                {trait.trim()}
+              </span>
+            ))}
           </div>
         )}
 
         {/* Hook Line Quote */}
-        <p className="mt-3 font-quote text-sm sm:text-base text-[#F5EFE9]/90 italic px-2 leading-relaxed">
+        <p className="mt-3.5 font-quote text-sm sm:text-base text-[#F5EFE9]/90 italic px-2 leading-relaxed">
           &ldquo;{archetype.hookLine}&rdquo;
         </p>
       </div>
@@ -104,7 +107,7 @@ export function BajiReadCard({
         <p>{archetype.fullParagraph}</p>
       </div>
 
-      {/* "How Others Secretly Perceive You" — Key Relatable Hook */}
+      {/* How Others Secretly Perceive You */}
       <div className="mt-5 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 text-left">
         <div className="flex items-center gap-2 text-xs font-bold text-[#F5EFE9] mb-1.5">
           <Eye className="size-3.5 text-sky-400 shrink-0" />
@@ -115,7 +118,7 @@ export function BajiReadCard({
         </p>
       </div>
 
-      {/* "Your Secret Vulnerability" */}
+      {/* Secret Vulnerability */}
       <div className="mt-3 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 text-left">
         <div className="flex items-center gap-2 text-xs font-bold text-[#F5EFE9] mb-1.5">
           <Heart className="size-3.5 text-rose-400 shrink-0" />
@@ -150,7 +153,7 @@ export function BajiReadCard({
           <div>
             <div className="flex justify-between text-[11px] mb-1">
               <span className="text-[#9C8F87]">Empathy Radar</span>
-              <span className="font-mono text-[#F5EFE9]">{resolvedTraits.empathy}%</span>
+              <span className="font-sans font-bold tabular-nums text-[#F5EFE9]">{resolvedTraits.empathy}%</span>
             </div>
             <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
               <div
@@ -163,7 +166,7 @@ export function BajiReadCard({
           <div>
             <div className="flex justify-between text-[11px] mb-1">
               <span className="text-[#9C8F87]">Intuition / Perception</span>
-              <span className="font-mono text-[#F5EFE9]">{resolvedTraits.intuition}%</span>
+              <span className="font-sans font-bold tabular-nums text-[#F5EFE9]">{resolvedTraits.intuition}%</span>
             </div>
             <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
               <div
@@ -176,7 +179,7 @@ export function BajiReadCard({
           <div>
             <div className="flex justify-between text-[11px] mb-1">
               <span className="text-[#9C8F87]">Chaos / Main Character Energy</span>
-              <span className="font-mono text-[#F5EFE9]">{resolvedTraits.chaos}%</span>
+              <span className="font-sans font-bold tabular-nums text-[#F5EFE9]">{resolvedTraits.chaos}%</span>
             </div>
             <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
               <div
@@ -189,7 +192,7 @@ export function BajiReadCard({
           <div>
             <div className="flex justify-between text-[11px] mb-1">
               <span className="text-[#9C8F87]">Emotional Depth</span>
-              <span className="font-mono text-[#F5EFE9]">{resolvedTraits.depth}%</span>
+              <span className="font-sans font-bold tabular-nums text-[#F5EFE9]">{resolvedTraits.depth}%</span>
             </div>
             <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
               <div
@@ -205,9 +208,9 @@ export function BajiReadCard({
       <div className="mt-5">
         {bonusUnlocked ? (
           <div className="rounded-2xl border border-[#E8552E]/40 bg-[#E8552E]/10 p-4 animate-[fadeIn_0.2s_ease-out]">
-            <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-[#E8552E]">
+            <div className="flex items-center gap-1.5 font-sans text-xs font-bold text-[#E8552E]">
               <Flame className="size-3.5 fill-current" />
-              <span>Baji's rawest deeper cut:</span>
+              <span>Baji&apos;s deepest cut:</span>
             </div>
             <p className="mt-1.5 font-quote text-xs sm:text-sm text-[#F5EFE9] italic leading-relaxed">
               &ldquo;{archetype.bonusLine}&rdquo;
@@ -218,12 +221,12 @@ export function BajiReadCard({
             <div className="flex items-center justify-between">
               <span className="font-sans text-xs font-bold text-[#F5EFE9] flex items-center gap-1.5">
                 <Flame className="size-3.5 text-[#E8552E]" />
-                <span>Unlock Baji&apos;s deepest cut</span>
+                <span>Unlock deeper insight</span>
               </span>
-              <span className="font-mono text-xs text-[#E8552E] font-bold">{totalWarmth} 🔥</span>
+              <span className="font-sans font-bold tabular-nums text-xs text-[#E8552E]">{totalWarmth} pts</span>
             </div>
             <p className="font-sans text-xs text-[#9C8F87] leading-relaxed">
-              Spend 30 Warmth to unlock the most brutally accurate line Baji has on you.
+              Spend 30 points to unlock the deepest observation Baji has on you.
             </p>
             <button
               type="button"
@@ -233,7 +236,7 @@ export function BajiReadCard({
               }}
               className="w-full py-2.5 rounded-xl bg-[#E8552E] text-white font-semibold text-xs shadow-md hover:opacity-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <span>Reveal deeper cut (30 🔥)</span>
+              <span>Reveal deeper insight (30 pts)</span>
             </button>
           </div>
         ) : (
@@ -241,14 +244,14 @@ export function BajiReadCard({
             <div className="flex items-center justify-between text-xs font-semibold text-[#F5EFE9]">
               <span className="flex items-center gap-1.5">
                 <Flame className="size-3.5 text-[#E8552E]" />
-                <span>Deeper cut locked</span>
+                <span>Deeper insight locked</span>
               </span>
-              <span className="font-mono text-xs text-[#9C8F87]">
-                {totalWarmth} / {BAJI_READ_COST} 🔥
+              <span className="font-sans font-bold tabular-nums text-xs text-[#9C8F87]">
+                {totalWarmth} / {BAJI_READ_COST} pts
               </span>
             </div>
             <p className="font-sans text-xs text-[#9C8F87]">
-              React on the Wall to reach {BAJI_READ_COST} Warmth and reveal your deeper cut.
+              React on the Wall to reach {BAJI_READ_COST} points and reveal your deeper insight.
             </p>
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
               <div

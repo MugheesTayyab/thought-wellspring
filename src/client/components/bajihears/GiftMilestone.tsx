@@ -33,11 +33,11 @@ export const GiftMilestoneModal: React.FC<GiftMilestoneModalProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-[fadeIn_0.15s_ease-out]"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-[fadeIn_0.15s_ease-out]"
       onClick={onClaim}
     >
       <div
-        className="w-full max-w-[270px] rounded-3xl border border-white/10 bg-[#17110D]/90 p-4 text-center shadow-2xl backdrop-blur-2xl font-sans text-[#F5EFE9] animate-[scaleUp_0.18s_ease-out]"
+        className="w-full max-w-[270px] rounded-3xl border border-white/12 bg-gradient-to-b from-[#1f1712]/95 via-[#17110D]/95 to-[#100b08]/98 p-4 text-center shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] backdrop-blur-2xl font-sans text-[#F5EFE9] animate-[scaleUp_0.18s_ease-out]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Subtle Icon Badge */}

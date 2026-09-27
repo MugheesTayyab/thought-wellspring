@@ -81,18 +81,18 @@ export function PublicProfileModal({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-[fadeIn_0.15s_ease-out]"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-[fadeIn_0.15s_ease-out]"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-[360px] rounded-3xl border border-white/10 bg-[#17110D]/95 p-5 text-[#F5EFE9] shadow-2xl backdrop-blur-2xl max-h-[88vh] overflow-y-auto no-scrollbar animate-[scaleUp_0.18s_ease-out]"
+        className="w-full max-w-[360px] rounded-3xl border border-white/12 bg-gradient-to-b from-[#1f1712]/95 via-[#17110D]/95 to-[#100b08]/98 p-5 text-[#F5EFE9] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] backdrop-blur-2xl max-h-[88vh] overflow-y-auto no-scrollbar animate-[scaleUp_0.18s_ease-out]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header */}
         <div className="flex items-center justify-between pb-3 border-b border-white/10">
           <div className="flex items-center gap-1.5 text-xs text-[#9C8F87]">
             <Flame className="size-3 text-[#E8552E]" />
-            <span className="font-mono text-[11px] font-bold uppercase tracking-wider">
+            <span className="font-sans text-[11px] font-semibold uppercase tracking-wider">
               Public Corner
             </span>
           </div>

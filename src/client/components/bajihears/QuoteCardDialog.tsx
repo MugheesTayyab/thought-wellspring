@@ -101,8 +101,8 @@ export function QuoteCardDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-[fadeIn_0.15s_ease-out]">
-      <div className="bg-[#17110D]/90 border-white/10 shadow-2xl backdrop-blur-2xl text-[#F5EFE9] w-full max-w-[320px] rounded-3xl border p-4 animate-[scaleUp_0.18s_ease-out]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-[fadeIn_0.15s_ease-out]">
+      <div className="w-full max-w-[320px] rounded-3xl border border-white/12 bg-gradient-to-b from-[#1f1712]/95 via-[#17110D]/95 to-[#100b08]/98 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] backdrop-blur-2xl text-[#F5EFE9] p-4 animate-[scaleUp_0.18s_ease-out]">
         <div className="flex items-center justify-between">
           <p className="font-sans text-xs font-semibold text-[#F5EFE9]">Share to your story</p>
           <button

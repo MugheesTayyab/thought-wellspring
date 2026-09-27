@@ -64,11 +64,11 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-[fadeIn_0.15s_ease-out]"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-[fadeIn_0.15s_ease-out]"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-[340px] rounded-3xl border border-white/12 bg-gradient-to-b from-[#1f1712] via-[#17110D] to-[#120d0a] p-5 text-foreground shadow-2xl backdrop-blur-2xl animate-[scaleUp_0.2s_ease-out] overflow-hidden"
+        className="relative w-full max-w-[340px] rounded-3xl border border-white/12 bg-gradient-to-b from-[#1f1712]/95 via-[#17110D]/95 to-[#100b08]/98 p-5 text-foreground shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] backdrop-blur-2xl animate-[scaleUp_0.2s_ease-out] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Ambient Top Glow */}
@@ -92,25 +92,27 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
           <X className="size-4" />
         </button>
 
-        {/* Eyebrow Pill */}
-        <div className="flex justify-center mb-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full border border-white/10 bg-white/[0.04] text-[10px] font-mono font-bold tracking-wider uppercase text-[#E8552E]">
-            {isDuel ? <Swords className="size-2.5" /> : <Eye className="size-2.5" />}
-            {isDuel ? "DUEL ARENA" : "PSYCHOLOGICAL READ"}
-          </span>
-        </div>
+        {/* Eyebrow Pill: Only for Read modal, Duel Arena badge removed */}
+        {!isDuel && (
+          <div className="flex justify-center mb-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full border border-white/10 bg-white/[0.04] text-[10px] font-sans font-semibold tracking-wider uppercase text-[#E8552E]">
+              <Eye className="size-2.5" />
+              2 MIN READ · PERSONALITY INSIGHT
+            </span>
+          </div>
+        )}
 
         {/* Header Icon + Title */}
         <div className="text-center">
           <h2 className="text-base sm:text-lg font-bold text-[#F5EFE9] tracking-tight font-display">
             {isDuel
-              ? "Today's Spicy Dilemma ⚔️"
-              : "What do people secretly think of your personality? 👀"}
+              ? "Today's Dilemma"
+              : "What do people secretly think of your personality?"}
           </h2>
           <p className="text-xs text-[#9C8F87] mt-1 leading-relaxed font-sans px-1">
             {isDuel
               ? "Vote on controversial dilemmas and see where everyone stands."
-              : "Ever wonder what people whisper when you walk away? Baji doesn't need a fake 20-question quiz. Your secret likes, midnight tea-spills, and silent double-taps decode your exact archetype, revealing how people secretly perceive a personality like yours."}
+              : "Ever wonder what people whisper when you walk away? Your secret likes, midnight confessions, and silent double-taps reveal your archetype and social perception."}
           </p>
         </div>
 
@@ -121,7 +123,7 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
             <div className="filter blur-[2px] select-none opacity-60 space-y-2 text-xs pointer-events-none">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-[#F5EFE9]">The 3AM Overthinker 🌙</span>
-                <span className="text-[10px] text-emerald-400 font-mono">96% Match</span>
+                <span className="text-[10px] text-amber-300 font-sans font-bold">96% Match</span>
               </div>
               <div className="rounded-lg bg-white/[0.04] p-1.5 border border-white/5 space-y-1">
                 <div className="flex items-center gap-1.5 text-[10px] text-sky-400 font-semibold">
@@ -138,35 +140,37 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
               </div>
             </div>
 
-            {/* Glowing Lock Overlay */}
+            {/* Restrained Lock Overlay (No Flashing/Pulse) */}
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/55 backdrop-blur-[2px] p-2 text-center">
-              <div className="flex size-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-500/20 to-[#E8552E]/30 border border-[#E8552E]/60 text-[#E8552E] shadow-[0_0_16px_rgba(232,85,46,0.35)] mb-1 animate-pulse">
+              <div className="flex size-9 items-center justify-center rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 mb-1">
                 <Lock className="size-4" />
               </div>
-              <span className="text-xs font-bold text-[#F5EFE9]">
+              <span className="text-xs font-bold text-white">
                 {needed > 0
-                  ? `${needed} more ${needed === 1 ? "confession like" : "confession likes"} on Wall`
-                  : "Ready to decode!"}
+                  ? `Read ${needed} more ${needed === 1 ? "confession" : "confessions"} to unlock`
+                  : "Ready to decode"}
               </span>
               <span className="text-[10px] text-[#9C8F87] mt-0.5">
-                Unlocks your personality + how people see you
+                Unlocks your personality archetype
               </span>
             </div>
           </div>
         )}
 
-        {/* Progress Tracker */}
+        {/* Actionable Progress Tracker (Specific instruction + clean white counter) */}
         <div className="my-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3 text-left">
-          <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
-            <span className="text-[#9C8F87] font-sans">Unlock Progress</span>
-            <span className="font-mono text-[#E8552E] font-bold">
-              {currentActions} / {targetActions}
+          <div className="flex items-center justify-between text-xs mb-1.5">
+            <span className="text-[#F5EFE9] font-medium font-sans">
+              {isDuel ? "Vote in 3 duels to unlock" : "Read 5 posts to unlock"}
+            </span>
+            <span className="font-sans font-bold tabular-nums text-white text-xs">
+              {currentActions} of {targetActions} completed
             </span>
           </div>
 
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-amber-500 to-[#E8552E] transition-all duration-500 shadow-[0_0_8px_rgba(232,85,46,0.5)]"
+              className="h-full rounded-full bg-gradient-to-r from-amber-500 to-[#E8552E] transition-all duration-500"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -190,13 +194,14 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
             <ArrowRight className="size-3.5" />
           </button>
 
+          {/* Restrained Instant Unlock (subtle static highlight, no flashing/shimmer) */}
           <button
             type="button"
             onClick={handleInstantUnlock}
-            className="w-full rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-center py-2.5 text-xs font-semibold text-[#F5EFE9] transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-98"
+            className="w-full rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 text-center py-2.5 text-xs font-medium text-[#F5EFE9] transition-colors flex items-center justify-center gap-1.5 cursor-pointer active:scale-98"
           >
-            <Zap className="size-3.5 text-amber-400 fill-amber-400" />
-            <span>Instant Unlock & Open {isDuel ? "Duel" : "Read"} ⚡</span>
+            <Zap className="size-3.5 text-amber-400" />
+            <span>Instant Unlock {isDuel ? "Duel" : "Read"}</span>
           </button>
         </div>
       </div>

@@ -51,12 +51,12 @@ export const PushPermissionSheet: React.FC<PushPermissionSheetProps> = ({ isOpen
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-[fadeIn_0.15s_ease-out]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-[fadeIn_0.15s_ease-out]">
       {/* Click backdrop to dismiss */}
       <div className="absolute inset-0" onClick={handleDismiss} />
 
       {/* Modal Content */}
-      <div className="relative z-10 w-full max-w-[290px] rounded-3xl border border-white/10 bg-[#17110D]/90 p-4 text-center shadow-2xl backdrop-blur-2xl text-[#F5EFE9] font-sans animate-[scaleUp_0.18s_ease-out]">
+      <div className="relative z-10 w-full max-w-[290px] rounded-3xl border border-white/12 bg-gradient-to-b from-[#1f1712]/95 via-[#17110D]/95 to-[#100b08]/98 p-4 text-center shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] backdrop-blur-2xl text-[#F5EFE9] font-sans animate-[scaleUp_0.18s_ease-out]">
         <div className="mx-auto mb-2.5 flex size-9 items-center justify-center rounded-xl bg-[#E8552E]/10 border border-[#E8552E]/25 text-[#E8552E]">
           <Bell className="size-4" />
         </div>
