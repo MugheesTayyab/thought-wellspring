@@ -67,7 +67,7 @@ function ReadPage() {
     }
 
     const cached = readBajiReadCache();
-    if (cached && Date.now() - cached.computedAt < CACHE_TTL_MS) {
+    if (cached && cached.result?.unlocked && Date.now() - cached.computedAt < CACHE_TTL_MS) {
       setResult(cached.result);
       setBonusUnlocked(!!cached.bonusUnlocked);
       return;

@@ -214,6 +214,8 @@ export function computeBajiRead(
   const reactionCount = Object.keys(myReactions).length;
   const echoCount = myEchoes.length;
   const duelCount = Object.keys(answeredDuels).length;
+  const totalActions = reactionCount + echoCount + duelCount;
+
   let isTabForceUnlocked = false;
   if (typeof window !== "undefined") {
     try {

@@ -4,6 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Compass, Swords, Lock, ArrowRight, Zap, X, Sparkles, Heart, Eye } from "lucide-react";
 import { triggerHaptic } from "@/client/lib/haptics";
 import { getOrCreateIdentity } from "@/client/lib/identity";
+import { clearBajiReadCache } from "@/client/lib/bajiRead";
 
 interface LockedTabModalProps {
   type: "read" | "duel" | null;
@@ -48,6 +49,7 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
     } else {
       id.tabsUnlocked.read = true;
       id.totalActions = Math.max(id.totalActions ?? 0, 5);
+      clearBajiReadCache();
     }
     try {
       localStorage.setItem("baji:identity", JSON.stringify(id));
