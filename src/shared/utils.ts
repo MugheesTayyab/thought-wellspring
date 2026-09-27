@@ -20,7 +20,10 @@ export function generateShareCode(postId: string): string {
 }
 
 export function buildShareUrl(postId: string): string {
-  return `https://bajihears.com/c/${generateShareCode(postId)}`;
+  if (typeof window !== "undefined" && window.location.origin) {
+    return `${window.location.origin}/?unsaid=${postId}`;
+  }
+  return `https://bajihears.mugheestayyab4.workers.dev/?unsaid=${postId}`;
 }
 
 export function relativeTime(ts: number, from = Date.now()): string {

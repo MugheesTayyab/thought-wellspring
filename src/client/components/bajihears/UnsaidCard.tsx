@@ -2,14 +2,12 @@ import { useRef, useState, useEffect } from "react";
 import {
   Copy,
   Check,
-  Flag,
   Flame,
   Heart,
   HeartHandshake,
   Instagram,
   MessageCircle,
   CloudRain,
-  Crown,
   Gift,
   MoreHorizontal,
   Clock,
@@ -29,10 +27,8 @@ import {
   relativeTime,
   stripHandle,
   getInstagramUrl,
-  getTier,
 } from "@/shared/utils";
 import { REACTIONS } from "@/shared/constants/reactions";
-import { presetByKey } from "@/shared/constants/presets";
 import type { ReactionKey, Unsaid } from "@/shared/types/unsaid";
 
 const REACTION_ICON = {
@@ -42,7 +38,8 @@ const REACTION_ICON = {
   hug: HeartHandshake,
 } as const;
 
-const BURST_EMOJIS = ["❤️", "✨", "🔥", "🫂", "💖", "💅"];
+const BURST_EMOJIS = ["⚡", "✨", "🔥", "📜", "✒️", "💥"];
+const WINNER_BURST_EMOJIS = ["📜", "⚡", "🔥", "💥", "⚡", "✨", "📜"];
 
 const QUICK_VIBES = [
   "Real spill 💅",
@@ -97,8 +94,8 @@ export function UnsaidCard({
   const [showRxPicker, setShowRxPicker] = useState(false);
 
   const [hearthSpark, setHearthSpark] = useState(false);
+  const [winnerCelebrated, setWinnerCelebrated] = useState(false);
   const lastTap = useRef(0);
-  const preset = presetByKey(unsaid.preset);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -139,14 +136,33 @@ export function UnsaidCard({
     const res = vetoPost(unsaid.id, identity.deviceToken);
     if (res.success) {
       setIsVetoed(true);
-      setVetoFeedback(res.underReview ? "Flagged for review" : "Thanks for keeping the wall safe");
+      setVetoFeedback(res.underReview ? "Flagged for review" : "Filed in moderation log");
     } else {
       setVetoFeedback(res.reason ?? "Unable to flag");
     }
     window.setTimeout(() => setVetoFeedback(null), 3000);
   };
 
+  const handleWinnerCrown = (key: ReactionKey = "heart") => {
+    triggerHaptic("celebration");
+    setWinnerCelebrated(true);
+    setBurst(true);
+    setHearthSpark(true);
+    setBounced(key);
+    window.setTimeout(() => setBounced(null), 300);
+    window.setTimeout(() => setWinnerCelebrated(false), 2800);
+    window.setTimeout(() => {
+      setBurst(false);
+      setHearthSpark(false);
+    }, 1200);
+    onReact(unsaid.id, key);
+  };
+
   const react = (key: ReactionKey) => {
+    if (isWinner) {
+      handleWinnerCrown(key);
+      return;
+    }
     triggerHaptic("impactLight");
     setBounced(key);
     window.setTimeout(() => setBounced(null), 220);
@@ -155,11 +171,14 @@ export function UnsaidCard({
     onReact(unsaid.id, key);
   };
 
-  // Instagram-style double tap anywhere on the card = multi-emoji floating burst + hearth embers.
   const onCardPointerUp = () => {
     const t = Date.now();
     if (t - lastTap.current < 320) {
       lastTap.current = 0;
+      if (isWinner) {
+        handleWinnerCrown("heart");
+        return;
+      }
       triggerHaptic("celebration");
       if (!mine.includes("heart")) onReact(unsaid.id, "heart");
       setBurst(true);
@@ -173,19 +192,10 @@ export function UnsaidCard({
     lastTap.current = t;
   };
 
-  // Candlelight Spotlight tracking on hover / touch move
-  const onPointerMove = (e: React.PointerEvent<HTMLElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    e.currentTarget.style.setProperty("--candle-x", `${x.toFixed(1)}%`);
-    e.currentTarget.style.setProperty("--candle-y", `${y.toFixed(1)}%`);
-  };
-
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(
-        `"${unsaid.text}"\n— ${unsaid.handle ?? "anonymous"}, BajiHears`,
+        `"${unsaid.text}"\n[CASE FILE #${unsaid.id.slice(-4).toUpperCase()} — ${unsaid.handle ? `@${stripHandle(unsaid.handle)}` : "ANONYMOUS"}]`,
       );
       triggerHaptic("selection");
       setCopied(true);
@@ -195,49 +205,37 @@ export function UnsaidCard({
     }
   };
 
-  const isOwnPost = Boolean(
-    unsaid.handle && myHandle && stripHandle(unsaid.handle) === stripHandle(myHandle),
-  );
-  const tier = getTier(totalWarmth);
-  let auraStyle: React.CSSProperties | undefined = undefined;
-  let crownIcon = false;
-  if (isOwnPost) {
-    if (tier.key === "Flicker") {
-      auraStyle = { textShadow: "0 0 8px rgba(255,133,51,0.7)" };
-    } else if (tier.key === "Glow") {
-      auraStyle = { textShadow: "0 0 14px rgba(168,85,247,0.85)" };
-    } else if (tier.key === "Blaze") {
-      auraStyle = { textShadow: "0 0 16px rgba(255,59,48,0.95)" };
-    } else if (tier.key === "Bonfire") {
-      auraStyle = { textShadow: "0 0 22px rgba(251,191,36,1)" };
-      crownIcon = true;
-    }
-  }
+  const caseId = unsaid.id.slice(-4).toUpperCase();
 
   return (
     <article
       onPointerUp={onCardPointerUp}
-      onPointerMove={onPointerMove}
       className={cn(
-        "relative rounded-2xl sm:rounded-3xl transition-all duration-200 select-none p-5 sm:p-6 overflow-hidden candlelight-card",
+        "relative rounded-sm border-2 select-none p-4 sm:p-5 overflow-hidden transition-all duration-150 font-sans",
         isWinner
-          ? "border-t-2 border-[#E8552E] bg-gradient-to-b from-[#1e1510] to-[#17110D] border-x border-b border-white/[0.06] shadow-[0_12px_36px_-10px_rgba(232,85,46,0.22)]"
-          : "bg-[#17110D]",
+          ? "border-[#C42B2B] bg-[#E6DCCB] text-[#111111] shadow-[6px_6px_0px_#C42B2B]"
+          : "border-[#111111] bg-[#ECE5D8] text-[#111111] shadow-[4px_4px_0px_#111111]",
         isVetoed && "opacity-40 pointer-events-none",
       )}
     >
-      {/* Real Floating Ember Hearth Burst on Reaction or Double-Tap */}
+      {/* Real Floating Ember Burst on Reaction or Double-Tap */}
       {hearthSpark && <HearthBurst />}
-      {/* Multi-Emoji Floating Burst on Double-Tap */}
+
+      {/* Confirmed Vote Banner Toast */}
+      {winnerCelebrated && (
+        <div className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1 bg-[#C42B2B] text-white font-mono text-[11px] font-bold uppercase tracking-wider shadow-[3px_3px_0px_#111111] border border-[#111111]">
+          <span>[ VERDICT RECORDED: +3 WARMTH ]</span>
+        </div>
+      )}
+
+      {/* Floating Stencil Burst Particles */}
       {burst && (
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center gap-3 overflow-hidden">
-          {BURST_EMOJIS.map((emoji, idx) => (
+          {(isWinner ? WINNER_BURST_EMOJIS : BURST_EMOJIS).map((emoji, idx) => (
             <span
               key={idx}
-              className="float-up-particle text-3xl drop-shadow-md"
-              style={{
-                animationDelay: `${idx * 0.08}s`,
-              }}
+              className="float-up-particle text-3xl select-none"
+              style={{ animationDelay: `${idx * 0.08}s` }}
             >
               {emoji}
             </span>
@@ -245,128 +243,115 @@ export function UnsaidCard({
         </div>
       )}
 
-      {/* Ambient glow reserved strictly for Winner card */}
+      {/* RAW RED INK RUBBER STAMP FOR CYCLE LAUREATE (No crowns, pure evidence classification) */}
       {isWinner && (
-        <div
-          className="pointer-events-none absolute -top-12 -right-12 size-40 rounded-full opacity-20 blur-3xl"
-          style={{
-            background: "radial-gradient(circle, #E8552E 0%, transparent 70%)",
-          }}
-          aria-hidden
-        />
-      )}
-
-      {/* Quote: The Hero */}
-      <p
-        className={cn(
-          "font-quote font-normal leading-[1.65] text-[#F5EFE9] tracking-normal select-text",
-          isWinner ? "text-[21px] sm:text-[24px] leading-[1.6]" : "text-[18px] sm:text-[20px]",
-        )}
-      >
-        {unsaid.text}
-      </p>
-
-      {/* Small muted status caption if Winner */}
-      {isWinner && (
-        <div className="mt-2.5 text-xs text-[#9C8F87] flex items-center gap-1.5 font-sans">
-          <RevealCountdown className="text-[#9C8F87]" />
+        <div className="pointer-events-none absolute top-3 right-3 z-10 rotate-[-3.5deg] border-2 border-[#C42B2B] bg-[#E6DCCB]/90 px-2.5 py-1 text-[#C42B2B] font-mono font-bold text-[11px] sm:text-[12px] uppercase tracking-wider leading-none shadow-[1px_1px_0px_#C42B2B]">
+          <div>[ EXHIBIT A ]</div>
+          <div className="text-[10px] text-[#C42B2B]/90 mt-0.5">CYCLE LAUREATE</div>
         </div>
       )}
 
-      {/* Pending status caption */}
-      {unsaid.status === "pending" && (
-        <div className="mt-2 text-xs text-amber-400/80 flex items-center gap-1.5 font-sans">
-          <Clock className="size-3 animate-spin" />
-          <span>warming up — visible to others shortly</span>
+      {/* Technical Docket Header Bar */}
+      <div className="border-b border-[#D6CDBF] pb-2.5 mb-3 flex items-center justify-between font-mono text-[11px] text-[#645E55]">
+        <div className="flex items-center gap-2">
+          <span className="bg-[#111111] text-[#ECE5D8] px-1.5 py-0.5 font-bold tracking-tight">
+            CASE #{caseId}
+          </span>
+          <span className="hidden sm:inline text-[#888175]">DOCKET RECORD</span>
         </div>
-      )}
 
-      {/* Metadata Row: Handle, Time, and Category */}
-      <div className="mt-4 flex items-center justify-between gap-3 text-xs font-sans">
-        <div className="flex items-center gap-2.5 text-[#9C8F87]">
+        <div className="flex items-center gap-2">
+          {isWinner ? (
+            <RevealCountdown className="text-[#C42B2B] font-bold text-[11px]" prefix="EXPIRATION: " />
+          ) : (
+            <span className="text-[#645E55]">{relativeTime(unsaid.createdAt)}</span>
+          )}
+        </div>
+      </div>
+
+      {/* Quote Confession: Bold, Upright, High-Impact Sans (NO Italics, NO Serif) */}
+      <div className="my-2">
+        <p className="font-quote font-bold text-[19px] sm:text-[22px] leading-[1.38] text-[#111111] tracking-tight select-text">
+          {unsaid.text}
+        </p>
+      </div>
+
+      {/* Structured Field Data Matrix (Replaces Middle Dots & Soft Badges) */}
+      <div className="mt-4 border border-[#D6CDBF] bg-[#E4DACB] p-2.5 font-mono text-[11px] text-[#332E27] grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[#777065] font-bold">DEPOSITED BY:</span>
           {unsaid.handle ? (
             <a
               href={getInstagramUrl(unsaid.handle)!}
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              style={auraStyle}
-              className="inline-flex items-center gap-1 text-[13px] font-medium text-[#9C8F87] hover:text-[#F5EFE9] transition-colors"
-              title={`Visit Instagram @${stripHandle(unsaid.handle)}`}
+              className="inline-flex items-center gap-1 text-[#111111] underline hover:bg-[#111111] hover:text-[#ECE5D8] px-1 transition-colors"
             >
-              {crownIcon && <span className="text-[10px]">👑</span>}
-              <Instagram className="size-3 opacity-70 shrink-0" aria-hidden />
+              <Instagram className="size-3 shrink-0" aria-hidden />
               <span>@{stripHandle(unsaid.handle)}</span>
             </a>
           ) : (
-            <span className="text-[13px] font-medium text-[#9C8F87]">
-              anonymous
-            </span>
+            <span className="text-[#111111] font-bold">[ ANONYMOUS ]</span>
           )}
-          <span className="text-[12px] text-[#9C8F87]/60">
-            {relativeTime(unsaid.createdAt)}
-          </span>
         </div>
 
-        <span className="border border-white/10 text-[#9C8F87] rounded-full px-2.5 py-0.5 text-[11px] font-normal bg-transparent">
-          #{unsaid.category.toLowerCase().replace(/\s+/g, "")}
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[#777065] font-bold">CLASSIFICATION:</span>
+          <span className="text-[#111111] font-bold uppercase">
+            #{unsaid.category.toLowerCase().replace(/\s+/g, "")}
+          </span>
+        </div>
       </div>
 
       {copied && (
-        <p className="text-[#E8552E] mt-2 text-center text-xs font-semibold animate-fade-in font-sans">
-          Copied to clipboard
+        <p className="text-[#C42B2B] mt-2 font-mono text-xs font-bold animate-fade-in text-center">
+          [ COPIED TO CLIPBOARD ]
         </p>
       )}
 
       {vetoFeedback && (
-        <p className="text-amber-400 mt-2 text-center text-xs font-semibold animate-fade-in flex items-center justify-center gap-1 font-sans">
+        <p className="text-[#C42B2B] mt-2 font-mono text-xs font-bold animate-fade-in flex items-center justify-center gap-1">
           <ShieldAlert className="size-3.5" />
-          <span>{vetoFeedback}</span>
+          <span>[ {vetoFeedback.toUpperCase()} ]</span>
         </p>
       )}
 
-      {/* Bottom Action Row: Reactions, Echo, Share, and Overflow Menu */}
-      <div className="mt-4 flex items-center justify-between border-t border-white/[0.05] pt-3 text-xs font-sans">
-        {/* Left: Reaction Cluster with Primary Heart */}
-        <div className="flex items-center gap-1">
+      {/* Action Row: Sharp Rectangular Evidence Tickets */}
+      <div className="mt-4 border-t border-[#D6CDBF] pt-3 flex items-center justify-between flex-wrap gap-2 font-mono text-xs">
+        {/* Voting / Reaction Ticket */}
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
-            aria-label="Heart reaction"
             onClick={() => react("heart")}
+            aria-label="Cast verdict vote"
             className={cn(
-              "flex items-center gap-1.5 py-1 px-2.5 rounded-full border transition-all text-xs active:scale-95 cursor-pointer",
+              "flex items-center gap-1.5 px-3 py-1.5 border border-[#111111] font-bold transition-all cursor-pointer active:translate-x-[1px] active:translate-y-[1px]",
               mine.includes("heart")
-                ? "border-[#E8552E]/60 bg-[#E8552E]/10 text-[#E8552E] font-semibold"
-                : "border-transparent text-[#9C8F87] hover:text-[#F5EFE9] hover:bg-white/[0.04]",
+                ? "bg-[#C42B2B] text-white shadow-[2px_2px_0px_#111111]"
+                : "bg-[#F7F3EB] text-[#111111] hover:bg-[#111111] hover:text-[#ECE5D8] shadow-[2px_2px_0px_#111111]",
             )}
           >
-            <Heart
-              className={cn("size-3.5", mine.includes("heart") && "fill-current text-[#E8552E]")}
-            />
-            <span className="tabular-nums font-mono text-xs">{compactCount(unsaid.reactions.heart)}</span>
+            <Heart className={cn("size-3.5", mine.includes("heart") && "fill-current")} />
+            <span>{isWinner ? "CROWN VERDICT" : "VERDICT"}</span>
+            <span className="bg-[#111111] text-[#ECE5D8] px-1 py-0.2 text-[10px] ml-0.5">
+              {compactCount(unsaid.reactions.heart)}
+            </span>
           </button>
 
-          {/* User's custom non-heart reaction indicator if active */}
-          {mine.some((k) => k !== "heart") && (
-            <span className="text-xs px-1 select-none animate-fade-in" title="Your reaction">
-              {mine.includes("fire") ? "🔥" : mine.includes("hug") ? "🤝" : "🌧️"}
-            </span>
-          )}
-
-          {/* Quiet Reaction Picker Trigger */}
+          {/* Additional Quick Picker */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setShowRxPicker((v) => !v)}
-              aria-label="More reactions"
-              className="p-1 text-[#9C8F87]/60 hover:text-[#F5EFE9] transition-colors rounded-full hover:bg-white/[0.04] cursor-pointer"
+              aria-label="More verdict marks"
+              className="p-1.5 border border-[#111111] bg-[#F7F3EB] hover:bg-[#111111] hover:text-[#ECE5D8] transition-colors cursor-pointer shadow-[2px_2px_0px_#111111]"
             >
               <SmilePlus className="size-3.5" />
             </button>
 
             {showRxPicker && (
-              <div className="absolute bottom-full left-0 mb-2 z-30 flex items-center gap-1 rounded-full border border-white/10 bg-[#1c1511]/98 px-2 py-1 shadow-2xl backdrop-blur-xl animate-[slideUp_0.15s_ease-out]">
+              <div className="absolute bottom-full left-0 mb-2 z-30 flex items-center gap-1 border-2 border-[#111111] bg-[#ECE5D8] p-1.5 shadow-[4px_4px_0px_#111111]">
                 {REACTIONS.map((rx) => {
                   const Icon = REACTION_ICON[rx.key];
                   const active = mine.includes(rx.key);
@@ -380,8 +365,8 @@ export function UnsaidCard({
                       }}
                       title={rx.label}
                       className={cn(
-                        "p-1.5 rounded-full transition-all hover:scale-110 cursor-pointer",
-                        active ? "text-[#E8552E] bg-white/10" : "text-[#9C8F87] hover:text-[#F5EFE9]",
+                        "p-1.5 border border-[#111111] transition-all cursor-pointer",
+                        active ? "bg-[#C42B2B] text-white" : "bg-[#F7F3EB] text-[#111111] hover:bg-[#111111] hover:text-[#ECE5D8]",
                       )}
                     >
                       <Icon className="size-3.5" />
@@ -393,9 +378,8 @@ export function UnsaidCard({
           </div>
         </div>
 
-        {/* Right: Actions Row (Echo, Share, Overflow Menu) */}
-        <div className="flex items-center gap-3">
-          {/* Echo */}
+        {/* Right Action Tickets: Echo, Share, Options */}
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => {
@@ -403,52 +387,49 @@ export function UnsaidCard({
               else setEchoOpen((v) => !v);
             }}
             className={cn(
-              "flex items-center gap-1.5 text-[#9C8F87] hover:text-[#F5EFE9] transition-colors font-sans text-xs font-medium cursor-pointer",
-              echoed && "text-[#E8552E] font-semibold",
+              "flex items-center gap-1.5 px-2.5 py-1.5 border border-[#111111] transition-all cursor-pointer font-bold shadow-[2px_2px_0px_#111111]",
+              echoed
+                ? "bg-[#111111] text-[#ECE5D8]"
+                : "bg-[#F7F3EB] text-[#111111] hover:bg-[#111111] hover:text-[#ECE5D8]",
             )}
           >
-            <MessageCircle className="size-3.5 shrink-0" />
-            <span>
-              {unsaid.echoes.length > 0
-                ? `${unsaid.echoes.length} ${unsaid.echoes.length === 1 ? "Echo" : "Echoes"}`
-                : "Echo"}
-            </span>
+            <MessageCircle className="size-3.5" />
+            <span>ECHOES ({unsaid.echoes.length})</span>
           </button>
 
-          {/* Share */}
           <button
             type="button"
             onClick={() => onShare(unsaid)}
-            className="flex items-center gap-1.5 text-[#9C8F87] hover:text-[#F5EFE9] transition-colors font-sans text-xs font-medium cursor-pointer"
-            title="Share Story Card"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 border border-[#111111] bg-[#F7F3EB] text-[#111111] hover:bg-[#111111] hover:text-[#ECE5D8] transition-all cursor-pointer font-bold shadow-[2px_2px_0px_#111111]"
+            title="Export Evidence Card"
           >
             <Share2 className="size-3.5" />
-            <span className="hidden sm:inline">Share</span>
+            <span className="hidden sm:inline">EXHIBIT</span>
           </button>
 
-          {/* Three-Dot Overflow Menu */}
+          {/* Three-Dot Option Menu */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
-              aria-label="More options"
-              className="p-1 text-[#9C8F87] hover:text-[#F5EFE9] transition-colors rounded-full hover:bg-white/[0.04] cursor-pointer"
+              aria-label="Docket options"
+              className="p-1.5 border border-[#111111] bg-[#F7F3EB] hover:bg-[#111111] hover:text-[#ECE5D8] transition-colors cursor-pointer shadow-[2px_2px_0px_#111111]"
             >
-              <MoreHorizontal className="size-4" />
+              <MoreHorizontal className="size-3.5" />
             </button>
 
             {menuOpen && (
-              <div className="absolute bottom-full right-0 mb-2 z-30 w-44 overflow-hidden rounded-2xl border border-white/10 bg-[#1c1511]/98 py-1.5 shadow-2xl backdrop-blur-2xl animate-[slideUp_0.15s_ease-out] font-sans">
+              <div className="absolute bottom-full right-0 mb-2 z-30 w-48 border-2 border-[#111111] bg-[#ECE5D8] p-1 shadow-[4px_4px_0px_#111111] font-mono text-xs">
                 <button
                   type="button"
                   onClick={() => {
                     setMenuOpen(false);
                     copy();
                   }}
-                  className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-xs text-[#F5EFE9]/90 hover:bg-white/[0.08] transition-colors cursor-pointer"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left font-bold text-[#111111] hover:bg-[#111111] hover:text-[#ECE5D8] transition-colors cursor-pointer"
                 >
-                  <Copy className="size-3.5 text-[#9C8F87]" />
-                  <span>Copy text</span>
+                  <Copy className="size-3.5" />
+                  <span>COPY EVIDENCE</span>
                 </button>
 
                 <button
@@ -457,10 +438,10 @@ export function UnsaidCard({
                     setMenuOpen(false);
                     setGiftConfirmOpen(true);
                   }}
-                  className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-xs text-[#F5EFE9]/90 hover:bg-white/[0.08] transition-colors cursor-pointer"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left font-bold text-[#111111] hover:bg-[#111111] hover:text-[#ECE5D8] transition-colors cursor-pointer border-t border-[#D6CDBF]"
                 >
-                  <Gift className="size-3.5 text-amber-400" />
-                  <span>Send 10 warmth</span>
+                  <Gift className="size-3.5 text-[#C42B2B]" />
+                  <span>TRANSFER 10 WARMTH</span>
                 </button>
 
                 <button
@@ -469,10 +450,10 @@ export function UnsaidCard({
                     setMenuOpen(false);
                     handleVeto();
                   }}
-                  className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-xs text-[#F5EFE9]/90 hover:bg-white/[0.08] hover:text-amber-400 transition-colors cursor-pointer"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left font-bold text-[#C42B2B] hover:bg-[#C42B2B] hover:text-white transition-colors cursor-pointer border-t border-[#D6CDBF]"
                 >
-                  <ShieldAlert className="size-3.5 text-[#9C8F87]" />
-                  <span>Something feels off</span>
+                  <ShieldAlert className="size-3.5" />
+                  <span>FLAG EVIDENCE</span>
                 </button>
               </div>
             )}
@@ -480,50 +461,30 @@ export function UnsaidCard({
         </div>
       </div>
 
-      {/* Echo List */}
+      {/* Echo List Foldout */}
       {openEchoes && unsaid.echoes.length > 0 && (
-        <ul className="border-border/70 relative z-10 mt-3 space-y-2 border-l-2 pl-3">
+        <div className="mt-3 border-t border-dashed border-[#D6CDBF] pt-2.5 space-y-2 font-mono text-xs">
+          <div className="text-[10px] text-[#777065] font-bold uppercase tracking-wider">
+            [ RECORDED ECHO LOGS ]
+          </div>
           {unsaid.echoes.map((echo) => (
-            <li
+            <div
               key={echo.id}
-              className={cn(
-                "text-foreground/90 font-vibe text-xs sm:text-sm leading-snug flex items-center flex-wrap gap-1",
-                echo.id.startsWith("pending-") && "opacity-70 animate-pulse"
-              )}
+              className="border border-[#D6CDBF] bg-[#E4DACB] p-2 flex items-center justify-between text-[#111111]"
             >
               <span>{echo.text}</span>
-              {echo.id.startsWith("pending-") && (
-                <span className="inline-flex items-center gap-0.5 text-[10px] text-primary/80">
-                  <Clock className="size-2.5" />
-                  <span>sending…</span>
-                </span>
-              )}
-              {echo.handle ? (
-                <a
-                  href={getInstagramUrl(echo.handle)!}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="ml-2 inline-flex items-center gap-1 font-semibold text-primary hover:underline text-[11px]"
-                  title={`Visit Instagram @${stripHandle(echo.handle)}`}
-                >
-                  <Instagram className="size-2.5 text-primary shrink-0" aria-hidden />
-                  <span>@{stripHandle(echo.handle)}</span>
-                </a>
-              ) : (
-                <span className="text-muted-foreground ml-2 text-[11px] font-semibold">
-                  @anonymous
-                </span>
-              )}
-            </li>
+              <span className="text-[10px] font-bold text-[#645E55]">
+                {echo.handle ? `@${stripHandle(echo.handle)}` : "@anonymous"}
+              </span>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
 
-      {/* Interactive + Echo Back Form with Quick Vibe Stickers */}
+      {/* Interactive Echo Input Form */}
       {echoOpen && !echoed && (
         <form
-          className="relative z-10 mt-3 space-y-2.5 animate-fade-in"
+          className="mt-3 border-t border-dashed border-[#D6CDBF] pt-2.5 space-y-2 font-mono text-xs"
           onSubmit={(e) => {
             e.preventDefault();
             const text = echoText.trim();
@@ -534,14 +495,13 @@ export function UnsaidCard({
             setOpenEchoes(true);
           }}
         >
-          {/* Quick-Reply Vibe Stickers */}
-          <div className="flex flex-wrap gap-1.5 pt-1">
+          <div className="flex flex-wrap gap-1">
             {QUICK_VIBES.map((vibe) => (
               <button
                 key={vibe}
                 type="button"
                 onClick={() => setEchoText(vibe)}
-                className="bg-white/5 border-white/10 hover:border-primary/50 hover:bg-white/10 text-foreground/80 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all"
+                className="border border-[#111111] bg-[#F7F3EB] hover:bg-[#111111] hover:text-[#ECE5D8] px-2 py-0.5 text-[10px] font-bold"
               >
                 {vibe}
               </button>
@@ -552,71 +512,43 @@ export function UnsaidCard({
             <input
               value={echoText}
               onChange={(e) => setEchoText(e.target.value.slice(0, 200))}
-              placeholder="Spill your thoughts..."
-              className="bg-secondary/60 border-border placeholder:text-muted-foreground/70 focus:ring-ring w-full rounded-full border px-4 py-2 text-xs sm:text-sm font-vibe outline-none focus:ring-2"
+              placeholder="Record echo statement..."
+              className="w-full border border-[#111111] bg-[#F7F3EB] px-3 py-1.5 text-xs text-[#111111] outline-none placeholder:text-[#888175]"
             />
             <button
               type="submit"
-              className="bg-brand-gradient text-primary-foreground rounded-full px-5 py-2 text-xs sm:text-sm font-bold shadow-md hover:opacity-95 transition-opacity"
+              className="border border-[#111111] bg-[#111111] text-[#ECE5D8] px-4 py-1.5 font-bold uppercase hover:bg-[#C42B2B] transition-colors"
             >
-              Echo
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setEchoAnon(true)}
-              className={cn(
-                "min-h-10 rounded-xl border px-3 text-xs font-semibold transition-all",
-                echoAnon
-                  ? "border-primary bg-primary/15 text-foreground shadow-xs"
-                  : "border-border bg-secondary/40 text-muted-foreground",
-              )}
-            >
-              Anonymous
-            </button>
-            <button
-              type="button"
-              onClick={() => myHandle && setEchoAnon(false)}
-              disabled={!myHandle}
-              className={cn(
-                "min-h-10 rounded-xl border px-3 text-xs font-semibold transition-all",
-                !echoAnon
-                  ? "border-primary bg-primary/15 text-foreground shadow-xs"
-                  : "border-border bg-secondary/40 text-muted-foreground",
-                !myHandle && "opacity-50",
-              )}
-            >
-              {myHandle ? `As @${myHandle}` : "Post as @handle"}
+              SUBMIT
             </button>
           </div>
         </form>
       )}
+
       {/* Gift Confirmation Modal */}
       {giftConfirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-[fadeIn_0.15s_ease-out]">
-          <div className="w-full max-w-[280px] rounded-3xl border border-white/10 bg-[#17110D]/90 p-4 text-center shadow-2xl backdrop-blur-2xl text-foreground font-sans animate-[scaleUp_0.18s_ease-out]">
-            <div className="mx-auto mb-2.5 flex size-10 items-center justify-center rounded-2xl bg-[#E8552E]/10 border border-[#E8552E]/25 text-[#E8552E]">
-              <Gift className="size-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs">
+          <div className="w-full max-w-[300px] border-2 border-[#111111] bg-[#ECE5D8] p-4 text-center shadow-[6px_6px_0px_#111111] text-[#111111] font-mono">
+            <div className="mx-auto mb-2 flex size-9 items-center justify-center border border-[#111111] bg-[#C42B2B] text-white">
+              <Gift className="size-4" />
             </div>
-            <h4 className="text-sm font-bold text-[#F5EFE9]">Send 10 warmth?</h4>
-            <p className="text-[11px] text-[#9C8F87] mt-0.5">Spread quiet appreciation to this author.</p>
-            <div className="mt-3.5 flex items-center justify-end gap-2">
+            <h4 className="text-xs font-bold uppercase">TRANSFER 10 WARMTH?</h4>
+            <p className="text-[11px] text-[#645E55] mt-1">Direct transfer to case deposition.</p>
+            <div className="mt-4 flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setGiftConfirmOpen(false)}
-                className="w-full rounded-xl border border-white/10 py-1.5 text-xs font-medium text-[#9C8F87] hover:text-[#F5EFE9] hover:bg-white/[0.04] cursor-pointer"
+                className="w-full border border-[#111111] bg-[#F7F3EB] py-1.5 text-xs font-bold uppercase hover:bg-[#111111] hover:text-[#ECE5D8]"
               >
-                Cancel
+                CANCEL
               </button>
               <button
                 type="button"
                 onClick={handleSendGift}
                 disabled={totalWarmth < 10}
-                className="w-full rounded-xl bg-[#E8552E] py-1.5 text-xs font-bold text-white shadow-md transition hover:opacity-95 disabled:opacity-40 cursor-pointer"
+                className="w-full border border-[#111111] bg-[#C42B2B] text-white py-1.5 text-xs font-bold uppercase hover:bg-[#111111] disabled:opacity-40"
               >
-                {totalWarmth < 10 ? "Need 10🔥" : "Send 10🔥"}
+                CONFIRM
               </button>
             </div>
           </div>

@@ -24,6 +24,7 @@ function isOriginAllowed(origin: string): boolean {
   return (
     origin === "https://bajihears.com" ||
     origin.endsWith(".pages.dev") ||
+    origin.endsWith(".workers.dev") ||
     origin === "http://localhost:3000" ||
     origin === "http://localhost:5173"
   );

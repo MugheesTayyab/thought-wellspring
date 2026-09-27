@@ -8,6 +8,7 @@ import {
   readAnsweredDuels,
   readMyPostCategories,
   readHandle,
+  readUnsaids,
 } from "@/client/lib/local-storage";
 import {
   computeBajiRead,
@@ -77,8 +78,17 @@ function ReadPage() {
     const duels = readAnsweredDuels();
     const postCats = readMyPostCategories();
     const handle = readHandle();
+    const postsCatalog = readUnsaids();
 
-    const freshResult = computeBajiRead(reactions, echoes, duels, postCats, totalWarmth, handle);
+    const freshResult = computeBajiRead(
+      reactions,
+      echoes,
+      duels,
+      postCats,
+      totalWarmth,
+      handle,
+      postsCatalog,
+    );
 
     setResult(freshResult);
     writeBajiReadCache({
@@ -106,7 +116,11 @@ function ReadPage() {
   const handleCopy = () => {
     if (!result.unlocked) return;
     const arch = getArchetype(result.archetype);
-    const text = `My Baji Read says I'm: ${arch.name} ${arch.emoji}\n\n"${arch.hookLine}"\n\nFind your type → bajihears.com`;
+    const appUrl =
+      typeof window !== "undefined" && window.location.origin
+        ? `${window.location.origin}/read`
+        : "https://bajihears.mugheestayyab4.workers.dev/read";
+    const text = `My Baji Read says I'm: ${arch.name} ${arch.emoji}\n\n"${arch.hookLine}"\n\nFind your type → ${appUrl}`;
 
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(text);
@@ -160,6 +174,10 @@ function ReadPage() {
             onCopy={handleCopy}
             onShare={() => setShareOpen(true)}
             copied={copied}
+            matchAccuracy={result.matchAccuracy}
+            traits={result.traits}
+            vibeSignature={result.vibeSignature}
+            evidenceSummary={result.evidenceSummary}
           />
         ) : (
           <BajiReadLockedCard

@@ -39,10 +39,11 @@
   --color-ember: var(--ember);
   --color-flame: var(--flame);
   --color-warn: var(--warn);
-  --font-display: "Outfit", "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-display: "Syne", "Outfit", sans-serif;
   --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
   --font-vibe: "Plus Jakarta Sans", system-ui, sans-serif;
-  --font-quote: "Playfair Display", Georgia, serif;
+  --font-quote: "Syne", "Outfit", system-ui, sans-serif;
+  --font-mono: "Courier Prime", "Space Mono", monospace;
 }
 
 :root {

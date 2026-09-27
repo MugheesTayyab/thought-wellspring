@@ -115,7 +115,7 @@ export function BajiReadShareDialog({ archetype, open, onClose }: BajiReadShareD
     // Footer Watermark
     ctx.font = '700 30px "Outfit", system-ui, sans-serif';
     ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-    ctx.fillText("bajihears.com", W / 2, H - 90);
+    ctx.fillText("BajiHears", W / 2, H - 90);
 
     setDataUrl(canvas.toDataURL("image/png"));
   }, [open, archetype, presetKey]);
