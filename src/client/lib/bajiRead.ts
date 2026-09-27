@@ -39,9 +39,9 @@ export const ARCHETYPES: ArchetypeDefinition[] = [
     tagline: "Brain louder than the group chat",
     hookLine: "3am, phone brightness on lowest, replaying a 5-second conversation from 2021.",
     fullParagraph:
-      "You don't just feel things — you analyze them in 4K resolution with director's commentary. You notice when someone's reply time drops by 3 minutes, you read between lines that aren't even there, and your emotional antenna is tuned to frequencies nobody else can hear. Your Spotify playlists are unmatched because they carry memories you haven't even made yet.",
+      "You don't just feel things; you analyze them in 4K resolution with director's commentary. You notice when someone's reply time drops by 3 minutes, you read between lines that aren't even there, and your emotional antenna is tuned to frequencies nobody else can hear. Your Spotify playlists are unmatched because they carry memories you haven't even made yet.",
     howOthersSeeYou:
-      "What people secretly think of your personality: People find you mysteriously put-together and observant. They assume you have an icy filter because you don't talk constantly, but secretly they wonder why you never let people all the way in — while your closest friends know you care 10x more than anyone else in the room.",
+      "What people secretly think of your personality: People find you mysteriously put-together and observant. They assume you have an icy filter because you don't talk constantly, but secretly they wonder why you never let people all the way in, while your closest friends know you care 10x more than anyone else in the room.",
     secretVulnerability:
       "You drafted an apology four times for something that wasn't your fault, decided sending it was 'too dramatic', and ended up crying in the shower instead.",
     bonusLine:
@@ -57,7 +57,7 @@ export const ARCHETYPES: ArchetypeDefinition[] = [
     tagline: "Tough exterior, crying at voice notes",
     hookLine: "Acts like a bodyguard for her friends, but secretly needs a forehead kiss and 12 hours of sleep.",
     fullParagraph:
-      "You are the ultimate paradox: protective older sister energy on the outside, fragile marshmallow on the inside. You'll publicly fight someone who disrespects your best friend, but you'll silently replay a harsh tone from your family for three consecutive days. You feel other people's pain before they even finish articulating it. That's not a weakness — it's rare gold.",
+      "You are the ultimate paradox: protective older sister energy on the outside, fragile marshmallow on the inside. You'll publicly fight someone who disrespects your best friend, but you'll silently replay a harsh tone from your family for three consecutive days. You feel other people's pain before they even finish articulating it. That's not a weakness: it's rare gold.",
     howOthersSeeYou:
       "What people secretly think of your personality: Everyone views you as their safe sanctuary. You're the one friend they call when their life falls apart at midnight because you never judge, you never make it about yourself, and your hugs feel like home. But people sometimes take your gentleness for granted because you forgive before they even apologize.",
     secretVulnerability:
@@ -75,7 +75,7 @@ export const ARCHETYPES: ArchetypeDefinition[] = [
     tagline: "Says what everyone else was whispering",
     hookLine: "It's giving unhinged 3pm impulsive thought and zero regrets fr.",
     fullParagraph:
-      "You don't play chess with life; you kick the board over and make everyone laugh while doing it. You have zero patience for fake politeness, you spill the freshest tea with surgical precision, and you make every mundane gathering feel like an HBO drama finale. People talk about being authentic — you literally don't know how to be anything else.",
+      "You don't play chess with life; you kick the board over and make everyone laugh while doing it. You have zero patience for fake politeness, you spill the freshest tea with surgical precision, and you make every mundane gathering feel like an HBO drama finale. People talk about being authentic; you literally don't know how to be anything else.",
     howOthersSeeYou:
       "What people secretly think of your personality: Magnetic, hilarious, and slightly intimidating. People admire that you say the quiet part out loud without flinching. When you walk into a room, the energy shifts immediately to your frequency. They secretly envy your confidence, but wonder if you ever let your guard down.",
     secretVulnerability:
@@ -93,7 +93,7 @@ export const ARCHETYPES: ArchetypeDefinition[] = [
     tagline: "Reads the room in 2 seconds, speaks in poetry",
     hookLine: "Noticed the shift in someone's voice before they even finished the greeting.",
     fullParagraph:
-      "You are the master of silent observation. You don't need to be the center of attention because you're too busy cataloging everyone's micro-expressions and unsaid intentions. When people talk, you listen to what they're leaving out. You're fiercely selective about your inner circle, and if someone loses your trust, you don't yell — you just evaporate from their life.",
+      "You are the master of silent observation. You don't need to be the center of attention because you're too busy cataloging everyone's micro-expressions and unsaid intentions. When people talk, you listen to what they're leaving out. You're fiercely selective about your inner circle, and if someone loses your trust, you don't yell: you just evaporate from their life.",
     howOthersSeeYou:
       "What people secretly think of your personality: Deeply enigmatic, calm, and composed. People feel like you see right through their facades (which you do), and your rare compliments carry the weight of a gold medal. They secretly want your approval more than anyone else's.",
     secretVulnerability:

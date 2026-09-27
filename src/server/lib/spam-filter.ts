@@ -31,7 +31,7 @@ export function checkServerSpam(text: string): ServerFilterResult {
 
   const words = trimmed.split(/\s+/);
   if (words.length < MIN_WORDS) {
-    return { passed: false, reason: "Too short — submission must contain at least 3 words." };
+    return { passed: false, reason: "Too short: submission must contain at least 3 words." };
   }
 
   for (const pattern of BLOCKED_PATTERNS) {
@@ -50,7 +50,7 @@ export function checkServerSpam(text: string): ServerFilterResult {
   }
   const maxRepeat = Math.max(...Object.values(wordCounts));
   if (maxRepeat / words.length > MAX_IDENTICAL_WORDS_RATIO) {
-    return { passed: false, reason: "Too repetitive — share authentic text." };
+    return { passed: false, reason: "Too repetitive: share authentic text." };
   }
 
   return { passed: true };

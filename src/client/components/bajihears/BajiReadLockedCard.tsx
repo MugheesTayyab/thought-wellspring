@@ -38,7 +38,7 @@ export function BajiReadLockedCard({ totalActions, actionsNeeded }: BajiReadLock
       {/* Eyebrow */}
       <div className="flex justify-center mb-3">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04] text-[10px] font-mono font-bold tracking-wider uppercase text-[#E8552E]">
-          <Sparkles className="size-3" />
+          <Eye className="size-3" />
           <span>PSYCHOLOGICAL VIBE DECODER</span>
         </span>
       </div>
@@ -48,7 +48,7 @@ export function BajiReadLockedCard({ totalActions, actionsNeeded }: BajiReadLock
         What do people secretly think of your personality? 👀
       </h2>
       <p className="mt-2 text-xs sm:text-sm text-[#9C8F87] leading-relaxed font-sans px-2">
-        Ever wonder what people whisper when you walk away? Baji doesn't need a fake 20-question quiz. Your secret likes, midnight tea-spills, and silent double-taps decode your exact archetype — and reveal <strong className="text-[#F5EFE9]">how people secretly perceive a personality like yours</strong>.
+        Ever wonder what people whisper when you walk away? Baji doesn't need a fake 20-question quiz. Your secret likes, midnight tea-spills, and silent double-taps decode your exact archetype, revealing <strong className="text-[#F5EFE9]">how people secretly perceive a personality like yours</strong>.
       </p>
 
       {/* Frosted Sneak Peek of the Archetype Card */}

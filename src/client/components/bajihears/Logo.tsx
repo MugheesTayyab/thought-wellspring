@@ -16,7 +16,7 @@ export function Logo({ size = 34, className }: { size?: number; className?: stri
         src={imgSrc}
         width={size}
         height={size}
-        alt="BajiHears mascot — girl with listening horn"
+        alt="BajiHears mascot with listening horn"
         className="w-full h-full object-cover transition-opacity duration-200"
         onError={() => {
           if (imgSrc !== "/favicon.png") {

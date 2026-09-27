@@ -52,7 +52,7 @@ export function BajiReadCard({
       {/* Header Eyebrow: Archetype Tag + Match Confidence */}
       <div className="flex items-center justify-between gap-2 text-xs">
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/10 bg-white/[0.04] text-[#F5EFE9]">
-          <Sparkles className="size-3 text-[#E8552E]" />
+          <Eye className="size-3 text-[#E8552E]" />
           <span className="font-mono text-[11px] font-bold tracking-wide">
             BAJI PSYCH-READ
           </span>
@@ -85,7 +85,7 @@ export function BajiReadCard({
         {/* Vibe Signature Pill */}
         {vibeSignature && (
           <div className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-[11px] font-mono text-[#F5EFE9]/90 shadow-sm">
-            <Sparkles className="size-3 text-[#E8552E] shrink-0" />
+            <Flame className="size-3 text-[#E8552E] shrink-0" />
             <span>{vibeSignature}</span>
           </div>
         )}
@@ -130,7 +130,7 @@ export function BajiReadCard({
       {evidenceSummary && (
         <div className="mt-3 rounded-2xl border border-[#E8552E]/20 bg-[#E8552E]/[0.04] p-3 text-left">
           <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#E8552E] mb-1">
-            <Sparkles className="size-3 shrink-0" />
+            <Flame className="size-3 shrink-0" />
             <span>Telemetry Verification</span>
           </div>
           <p className="font-sans text-[11px] text-[#9C8F87] leading-relaxed">

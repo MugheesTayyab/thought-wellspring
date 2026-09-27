@@ -41,7 +41,7 @@ const REGULARS: RegularMember[] = [
     handle: "jhalli_07",
     seed: "jhalli07",
     streakDays: 9,
-    badge: "Week One ✨",
+    badge: "Week One ⚡",
     bio: "hopeless romantic & tea lover",
     isOnline: true,
   },

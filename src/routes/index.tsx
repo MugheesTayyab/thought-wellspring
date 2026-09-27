@@ -42,13 +42,13 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "BajiHears — say the unsaid" },
+      { title: "BajiHears | Say the unsaid" },
       {
         name: "description",
         content:
           "The Wall: anonymous Unsaids, one per cycle. Read what people never got to say, react, echo, and share the ones that hit.",
       },
-      { property: "og:title", content: "BajiHears — say the unsaid" },
+      { property: "og:title", content: "BajiHears | Say the unsaid" },
       {
         property: "og:description",
         content:
@@ -194,7 +194,7 @@ function Home() {
           </div>
         </header>
 
-        <h1 className="sr-only">BajiHears — The Wall of Unsaids</h1>
+        <h1 className="sr-only">BajiHears: The Wall of Unsaids</h1>
 
         <div className="wall-3d mt-2 sm:mt-3 space-y-3.5 sm:space-y-5">
           {/* Living Late-Night Pulse */}

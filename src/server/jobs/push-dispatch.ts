@@ -85,7 +85,7 @@ export async function dispatchWinnerPushNotification(
       : "A new confession won the community crown.";
 
     const messageData = JSON.stringify({
-      title: payload.hook || "The new winner is in ✨",
+      title: payload.hook || "The new winner is in 👑",
       body: `"${truncatedExcerpt}"`,
       url: `/?winner=${payload.winnerId}`,
       winnerId: payload.winnerId,

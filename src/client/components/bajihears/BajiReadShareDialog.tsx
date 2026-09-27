@@ -136,7 +136,7 @@ export function BajiReadShareDialog({ archetype, open, onClose }: BajiReadShareD
         await navigator.share({
           files: [file],
           title: `My Baji Read: ${archetype.name}`,
-          text: `My Baji Read is ${archetype.name} ${archetype.emoji} — "${archetype.hookLine}"`,
+          text: `My Baji Read is ${archetype.name} ${archetype.emoji}: "${archetype.hookLine}"`,
         });
         return;
       }

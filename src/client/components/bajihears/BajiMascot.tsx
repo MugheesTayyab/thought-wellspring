@@ -7,11 +7,11 @@ type BajiTopic = "about" | "why" | "comfort" | "tea" | "default";
 
 const BAJI_KNOWLEDGE: Record<BajiTopic, string> = {
   about:
-    "Baji is that quiet elder sister who sits with you on the terrace at 2 AM with a cup of adrak chai. She hears everything you can't tell your family, your friends, or your notes app — without judgment.",
+    "Baji is that quiet elder sister who sits with you on the terrace at 2 AM with a cup of adrak chai. She hears everything you can't tell your family, your friends, or your notes app, without judgment.",
   why: "Because the heaviest things in life are often the ones left unsaid. Baji gives them a quiet wall to land on, where thousands can feel them without needing to know your name.",
   comfort:
     "Breathe, bachay. The chapter you're crying over right now won't even be mentioned in your favorite story a few years from today. Drink some water and be gentle with your heart.",
-  tea: "Spilling tea isn't about drama here — it's about sharing the unspoken truths that make us human. What's sitting heavy on your mind today?",
+  tea: "Spilling tea isn't about drama here: it's about sharing the unspoken truths that make us human. What's sitting heavy on your mind today?",
   default:
     "Baji hears you, meri jaan. Sometimes just saying it out loud to the universe is half the healing. What else is on your mind?",
 };
@@ -142,7 +142,6 @@ export const BajiMascot: React.FC = () => {
           <span className="hidden sm:inline font-vibe text-[11px] font-bold tracking-tight text-white/90 group-hover:text-primary transition-colors">
             Ask Baji
           </span>
-          <Sparkles className="size-3 text-primary shrink-0" />
         </button>
       </div>
 

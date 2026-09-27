@@ -9,13 +9,13 @@ import { useDuel } from "@/client/hooks/use-duel";
 export const Route = createFileRoute("/duel")({
   head: () => ({
     meta: [
-      { title: "The Duel — Which One Is You? | BajiHears" },
+      { title: "The Duel: Which One Is You? | BajiHears" },
       {
         name: "description",
         content:
           "Live community confession duels. Choose which confession speaks to your soul and earn Warmth Points.",
       },
-      { property: "og:title", content: "The Duel — BajiHears" },
+      { property: "og:title", content: "The Duel | BajiHears" },
       {
         property: "og:description",
         content: "Which confession speaks to your soul? Vote and see what others felt.",

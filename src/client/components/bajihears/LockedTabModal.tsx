@@ -95,7 +95,7 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
         {/* Eyebrow Pill */}
         <div className="flex justify-center mb-2">
           <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full border border-white/10 bg-white/[0.04] text-[10px] font-mono font-bold tracking-wider uppercase text-[#E8552E]">
-            <Sparkles className="size-2.5" />
+            {isDuel ? <Swords className="size-2.5" /> : <Eye className="size-2.5" />}
             {isDuel ? "DUEL ARENA" : "PSYCHOLOGICAL READ"}
           </span>
         </div>
@@ -110,7 +110,7 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
           <p className="text-xs text-[#9C8F87] mt-1 leading-relaxed font-sans px-1">
             {isDuel
               ? "Vote on controversial dilemmas and see where everyone stands."
-              : "Ever wonder what people whisper when you walk away? Baji doesn't need a fake 20-question quiz. Your secret likes, midnight tea-spills, and silent double-taps decode your exact archetype — and reveal how people secretly perceive a personality like yours."}
+              : "Ever wonder what people whisper when you walk away? Baji doesn't need a fake 20-question quiz. Your secret likes, midnight tea-spills, and silent double-taps decode your exact archetype, revealing how people secretly perceive a personality like yours."}
           </p>
         </div>
 

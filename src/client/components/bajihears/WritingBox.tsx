@@ -58,16 +58,20 @@ export function WritingBox({
 
   if (locked) {
     return (
-      <section className="bg-[#17110D] border border-white/[0.08] rounded-2xl sm:rounded-3xl p-5 text-center">
-        <p className="text-[#E8552E] text-xs font-semibold">
-          Your tea is on the wall ☕
+      <section className="bg-gradient-to-b from-[#1f1510] to-[#140e0a] border border-[#E8552E]/30 rounded-2xl sm:rounded-3xl p-5 text-center shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs font-mono font-semibold mb-2">
+          <span>👑 Competing for Today's Crown</span>
+        </div>
+        <p className="font-quote text-lg sm:text-xl font-bold text-[#F5EFE9]">
+          Your confession is live on the wall
         </p>
-        <p className="font-quote mt-2 text-xl font-bold text-[#F5EFE9]">
-          Next drop unlocks in {formatCountdown(unlockAt! - now)}
+        <p className="text-[#E8552E] font-mono text-xs font-medium mt-1">
+          Next confession drop unlocks in {formatCountdown(unlockAt! - now)}
         </p>
-        <p className="text-[#9C8F87] mt-1.5 text-xs max-w-xs mx-auto">
-          One confession per cycle keeps the tea real. Come back daily to build your 10-day streak — Baji follows active regulars back! 👑
-        </p>
+        <div className="mt-3 pt-3 border-t border-white/[0.08] text-[#9C8F87] text-xs max-w-xs mx-auto space-y-1">
+          <p>Top confession of each 12 hour cycle is pinned & featured on <strong className="text-[#F5EFE9]">@bajihears</strong>.</p>
+          <p className="text-amber-400/90 font-medium">Daily visits build your 10 day streak: Baji follows active regulars back.</p>
+        </div>
       </section>
     );
   }
@@ -247,7 +251,13 @@ export function WritingBox({
         </div>
       )}
 
-      <div className="mt-3">
+      {open && (
+        <div className="mt-2.5 flex items-center justify-center gap-1.5 text-[11px] text-[#9C8F87]">
+          <span>👑 Top whisper of each cycle is featured on @bajihears</span>
+        </div>
+      )}
+
+      <div className="mt-2.5">
         <button
           type="button"
           disabled={!valid || sending}

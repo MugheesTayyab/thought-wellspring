@@ -9,7 +9,7 @@ import { useAuth } from "@/client/stores/auth-context";
 export const Route = createFileRoute("/auth/callback")({
   head: () => ({
     meta: [
-      { title: "Authenticating — BajiHears" },
+      { title: "Authenticating | BajiHears" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),

@@ -62,7 +62,7 @@ describe("Phase 7: Web Push Native WebCrypto Engine", () => {
     };
 
     const payloadText = JSON.stringify({
-      title: "The new winner is in ✨",
+      title: "The new winner is in 👑",
       body: "Winner post excerpt...",
       url: "/",
     });

@@ -28,12 +28,12 @@ import { WarmthOrb } from "@/client/components/bajihears/WarmthOrb";
 export const Route = createFileRoute("/read")({
   head: () => ({
     meta: [
-      { title: "Your Baji Read — BajiHears" },
+      { title: "Your Baji Read | BajiHears" },
       {
         name: "description",
         content: "BajiHears figured out your type from what you do here. Zero questions asked.",
       },
-      { property: "og:title", content: "Your Baji Read — BajiHears" },
+      { property: "og:title", content: "Your Baji Read | BajiHears" },
       {
         property: "og:description",
         content: "No quiz, no 20 questions. What your picks and vibes say about your type.",
@@ -155,7 +155,6 @@ function ReadPage() {
 
         <h1 className="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
           <span>Baji Read</span>
-          <span className="text-xs text-primary">✨</span>
         </h1>
 
         <WarmthOrb totalWarmth={totalWarmth} mini onClick={openWarmthSheet} />

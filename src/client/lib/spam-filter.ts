@@ -31,7 +31,7 @@ export function checkSpam(text: string): FilterResult {
 
   const words = trimmed.split(/\s+/);
   if (words.length < MIN_WORDS) {
-    return { passed: false, reason: "Too short — spill at least a few words." };
+    return { passed: false, reason: "Too short: spill at least a few words." };
   }
 
   for (const pattern of BLOCKED_PATTERNS) {

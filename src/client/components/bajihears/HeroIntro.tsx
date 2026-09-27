@@ -23,7 +23,7 @@ export const HeroIntro: React.FC = () => {
     return (
       <div className="flex items-center justify-between rounded-2xl border border-white/[0.06] bg-[#17110D] px-4 py-2.5 text-xs text-[#9C8F87]">
         <span className="font-sans text-xs">
-          Spill the tea — purely anonymous & quiet
+          Spill the unsaid. 100% anonymous, zero footprints.
         </span>
         <button
           type="button"

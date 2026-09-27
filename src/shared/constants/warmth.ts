@@ -102,7 +102,7 @@ export const STORE_ITEMS: StoreItem[] = [
   {
     id: "deep_read",
     name: "Deeper Baji Read",
-    description: "Unlock the bonus line in your Baji Read — the one that hits harder.",
+    description: "Unlock the bonus line in your Baji Read: the one that hits harder.",
     cost: 30,
     category: "feature",
     icon: "🔮",
@@ -132,7 +132,7 @@ export const STORE_ITEMS: StoreItem[] = [
     description: "Your post is nominated for this week's Instagram feature (@bajihears).",
     cost: 100,
     category: "social",
-    icon: "✨",
+    icon: "👑",
     action: "spotlight_nomination",
   },
   {

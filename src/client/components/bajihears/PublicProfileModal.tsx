@@ -91,7 +91,7 @@ export function PublicProfileModal({
         {/* Top Header */}
         <div className="flex items-center justify-between pb-3 border-b border-white/10">
           <div className="flex items-center gap-1.5 text-xs text-[#9C8F87]">
-            <Sparkles className="size-3 text-[#E8552E]" />
+            <Flame className="size-3 text-[#E8552E]" />
             <span className="font-mono text-[11px] font-bold uppercase tracking-wider">
               Public Corner
             </span>
@@ -172,7 +172,7 @@ export function PublicProfileModal({
             >
               <Gift className="size-3.5" />
               <span>
-                {gifted ? "10 Warmth Gifted! ✨" : "Send 10 Warmth to @author 🔥"}
+                {gifted ? "10 Warmth Gifted! 🔥" : "Send 10 Warmth to @author 🔥"}
               </span>
             </button>
 

@@ -44,7 +44,7 @@ const REACTION_ICON = {
   hug: HeartHandshake,
 } as const;
 
-const BURST_EMOJIS = ["❤️", "✨", "🔥", "🫂", "💖", "💅"];
+const BURST_EMOJIS = ["❤️", "☕", "🔥", "🫂", "💖", "💅"];
 
 const QUICK_VIBES = [
   "Real spill 💅",
@@ -239,7 +239,7 @@ export function UnsaidCard({
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(
-        `"${unsaid.text}"\n— ${unsaid.handle ?? "anonymous"}, BajiHears`,
+        `"${unsaid.text}"\nBy ${unsaid.handle ? `@${unsaid.handle}` : "anonymous"} • BajiHears`,
       );
       triggerHaptic("selection");
       setCopied(true);
@@ -321,23 +321,26 @@ export function UnsaidCard({
           />
         )}
 
-        {/* 3D Winner Card Header featuring Sachiko Signature Typeface */}
+        {/* Crowned Winner Header (Responsive, zero-collision layout) */}
         {isWinner && (
-          <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-white/10 relative z-10">
-            <div className="flex items-center gap-2.5">
-              <span className="font-script text-3xl sm:text-4xl text-[#E8552E] select-none tracking-wide drop-shadow-[0_2px_12px_rgba(232,85,46,0.35)]">
-                Laureate
+          <div className="flex items-center justify-between flex-wrap gap-2.5 pb-3 mb-3 border-b border-white/10 relative z-10">
+            <div className="flex items-center gap-2">
+              <span className="flex size-7 items-center justify-center rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs shadow-[0_0_12px_rgba(245,158,11,0.25)] shrink-0">
+                👑
               </span>
               <div className="flex flex-col">
-                <span className="font-mono text-[9px] uppercase tracking-widest text-[#F5EFE9] font-bold">
-                  HALL OF FAME
+                <span className="font-mono text-[10px] uppercase tracking-wider text-amber-300 font-bold leading-tight">
+                  CYCLE CHAMPION
                 </span>
-                <span className="text-[10px] text-[#9C8F87] font-sans">
-                  CYCLE WINNER
+                <span className="text-[10px] text-[#9C8F87] font-sans leading-tight">
+                  Featured on @bajihears
                 </span>
               </div>
             </div>
-            <RevealCountdown className="text-xs text-[#E8552E] font-mono font-bold" />
+            <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-mono text-[#F5EFE9] shrink-0">
+              <Instagram className="size-3 text-[#E8552E] shrink-0" />
+              <RevealCountdown prefix="Drop in " className="text-[#E8552E] font-medium" />
+            </div>
           </div>
         )}
 
@@ -374,7 +377,7 @@ export function UnsaidCard({
         {unsaid.status === "pending" && (
           <div className="mt-2 text-xs text-amber-400/80 flex items-center gap-1.5 font-sans">
             <Clock className="size-3 animate-spin" />
-            <span>warming up — visible to others shortly</span>
+            <span>warming up: visible to others shortly</span>
           </div>
         )}
 

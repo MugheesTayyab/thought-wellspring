@@ -35,13 +35,13 @@ import {
 export const Route = createFileRoute("/corner")({
   head: () => ({
     meta: [
-      { title: "Your Corner — BajiHears" },
+      { title: "Your Corner | BajiHears" },
       {
         name: "description",
         content:
           "Your personal haven on BajiHears: view your posted thoughts, reactions received, liked whispers, and manage your profile.",
       },
-      { property: "og:title", content: "Your Corner — BajiHears" },
+      { property: "og:title", content: "Your Corner | BajiHears" },
       {
         property: "og:description",
         content: "View your posted thoughts, reactions received, and liked whispers on BajiHears.",
@@ -205,7 +205,7 @@ function CornerPage() {
             )}
           </div>
           <p className="text-[#9C8F87] text-xs font-sans mt-0.5">
-            {user ? "Cloud linked & synchronized" : "Local guest — sign in to sync across devices"}
+            {user ? "Cloud linked and synchronized" : "Local guest: sign in to sync across devices"}
           </p>
         </div>
       </div>
@@ -465,7 +465,7 @@ function CornerPage() {
                       </div>
                     ) : (
                       <p className="mt-2.5 text-[11px] text-[#9C8F87] italic font-sans">
-                        No echoes yet — your tea is steeping on the wall.
+                        No echoes yet. Your tea is steeping on the wall.
                       </p>
                     )}
                   </article>
