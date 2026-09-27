@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
-import { Settings2, Share2, X, LogIn, LogOut, CheckCircle2 } from "lucide-react";
+import { Settings2, Share2, X, LogIn, LogOut, CheckCircle2, MessageCircle } from "lucide-react";
 import { CornerAvatar } from "./CornerAvatar";
 import { useAuth } from "@/client/stores/auth-context";
 
@@ -141,10 +141,10 @@ export function CornerMenu({ seed }: { seed: string }) {
               <Link
                 to="/corner"
                 onClick={() => setOpen(false)}
-                className="mt-2 flex w-full items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs font-semibold text-[#F5EFE9] transition hover:bg-white/[0.07] cursor-pointer"
+                className="mt-2 flex w-full items-center gap-2.5 rounded-xl border border-[#E8552E]/30 bg-[#E8552E]/10 px-3.5 py-2.5 text-xs font-semibold text-[#F5EFE9] transition hover:bg-[#E8552E]/20 cursor-pointer"
               >
-                <Settings2 className="text-[#E8552E] size-3.5" aria-hidden />
-                <span>Adjust your Corner</span>
+                <MessageCircle className="text-[#E8552E] size-3.5" aria-hidden />
+                <span>My Whispers & Corner</span>
               </Link>
 
               {user && (

@@ -92,3 +92,18 @@ export const apiFetchPostById = createServerFn({ method: "GET" })
     const { handleFetchPostById } = await import("@/server/handlers/wall");
     return handleFetchPostById(data);
   });
+
+export const apiFetchUserActivity = createServerFn({ method: "GET" })
+  .validator((data: { profileId?: string | null; deviceToken: string }) => data)
+  .handler(async ({ data }) => {
+    const { handleFetchUserActivity } = await import("@/server/handlers/wall");
+    return handleFetchUserActivity(data);
+  });
+
+export const apiFetchPublicProfile = createServerFn({ method: "GET" })
+  .validator((data: { identifier: string }) => data)
+  .handler(async ({ data }) => {
+    const { handleFetchPublicProfile } = await import("@/server/handlers/wall");
+    return handleFetchPublicProfile(data);
+  });
+

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { RevealCountdown } from "./RevealCountdown";
 import { HearthBurst } from "./HearthBurst";
+import { PublicProfileModal } from "./PublicProfileModal";
 import { triggerHaptic } from "@/client/lib/haptics";
 import { useWarmth } from "@/client/stores/warmth-context";
 import { getOrCreateIdentity } from "@/client/lib/identity";
@@ -95,10 +96,60 @@ export function UnsaidCard({
   const [isVetoed, setIsVetoed] = useState(false);
   const [vetoFeedback, setVetoFeedback] = useState<string | null>(null);
   const [showRxPicker, setShowRxPicker] = useState(false);
+  const [profileModalId, setProfileModalId] = useState<string | null>(null);
 
   const [hearthSpark, setHearthSpark] = useState(false);
   const lastTap = useRef(0);
   const preset = presetByKey(unsaid.preset);
+
+  // Smooth, slow 3D scroll physics for the winner card
+  const cardRef = useRef<HTMLElement | null>(null);
+  const currentTilt = useRef({ rx: 0, ry: 0, tz: 0 });
+  const targetTilt = useRef({ rx: 0, ry: 0, tz: 0 });
+
+  useEffect(() => {
+    if (!isWinner || typeof window === "undefined") return;
+
+    let animId: number;
+
+    const onScroll = () => {
+      if (!cardRef.current) return;
+      const rect = cardRef.current.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const centerY = rect.top + rect.height / 2;
+      const dist = (centerY - vh / 2) / (vh / 2);
+      const clamped = Math.max(-1.4, Math.min(1.4, dist));
+
+      // Very slow and graceful 3D rotation with subtle lift
+      targetTilt.current = {
+        rx: -clamped * 4.2,
+        ry: Math.sin(clamped * Math.PI) * 2.2,
+        tz: Math.max(0, (1 - Math.abs(clamped)) * 14),
+      };
+    };
+
+    const loop = () => {
+      const lerp = 0.08;
+      currentTilt.current.rx += (targetTilt.current.rx - currentTilt.current.rx) * lerp;
+      currentTilt.current.ry += (targetTilt.current.ry - currentTilt.current.ry) * lerp;
+      currentTilt.current.tz += (targetTilt.current.tz - currentTilt.current.tz) * lerp;
+
+      if (cardRef.current) {
+        const { rx, ry, tz } = currentTilt.current;
+        cardRef.current.style.transform = `perspective(1000px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) translateZ(${tz.toFixed(1)}px)`;
+      }
+      animId = requestAnimationFrame(loop);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    animId = requestAnimationFrame(loop);
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(animId);
+    };
+  }, [isWinner]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -215,103 +266,149 @@ export function UnsaidCard({
   }
 
   return (
-    <article
-      onPointerUp={onCardPointerUp}
-      onPointerMove={onPointerMove}
-      className={cn(
-        "relative rounded-2xl sm:rounded-3xl transition-all duration-200 select-none p-5 sm:p-6 overflow-hidden candlelight-card",
-        isWinner
-          ? "border-t-2 border-[#E8552E] bg-gradient-to-b from-[#1e1510] to-[#17110D] border-x border-b border-white/[0.06] shadow-[0_12px_36px_-10px_rgba(232,85,46,0.22)]"
-          : "bg-[#17110D]",
-        isVetoed && "opacity-40 pointer-events-none",
-      )}
-    >
-      {/* Real Floating Ember Hearth Burst on Reaction or Double-Tap */}
-      {hearthSpark && <HearthBurst />}
-      {/* Multi-Emoji Floating Burst on Double-Tap */}
-      {burst && (
-        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center gap-3 overflow-hidden">
-          {BURST_EMOJIS.map((emoji, idx) => (
-            <span
-              key={idx}
-              className="float-up-particle text-3xl drop-shadow-md"
-              style={{
-                animationDelay: `${idx * 0.08}s`,
-              }}
-            >
-              {emoji}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* Ambient glow reserved strictly for Winner card */}
-      {isWinner && (
-        <div
-          className="pointer-events-none absolute -top-12 -right-12 size-40 rounded-full opacity-20 blur-3xl"
-          style={{
-            background: "radial-gradient(circle, #E8552E 0%, transparent 70%)",
-          }}
-          aria-hidden
-        />
-      )}
-
-      {/* Quote: The Hero */}
-      <p
+    <>
+      <article
+        ref={cardRef}
+        onPointerUp={onCardPointerUp}
+        onPointerMove={onPointerMove}
+        style={
+          isWinner
+            ? {
+                transformStyle: "preserve-3d",
+                willChange: "transform",
+                transition: "box-shadow 0.3s ease",
+              }
+            : undefined
+        }
         className={cn(
-          "font-quote font-normal leading-[1.65] text-[#F5EFE9] tracking-normal select-text",
-          isWinner ? "text-[21px] sm:text-[24px] leading-[1.6]" : "text-[18px] sm:text-[20px]",
+          "relative rounded-2xl sm:rounded-3xl transition-all duration-200 select-none p-5 sm:p-6 overflow-hidden candlelight-card",
+          isWinner
+            ? "border-t-2 border-[#E8552E] bg-gradient-to-b from-[#1e1510] to-[#17110D] border-x border-b border-white/[0.06] shadow-[0_16px_40px_-10px_rgba(232,85,46,0.25)]"
+            : "bg-[#17110D]",
+          isVetoed && "opacity-40 pointer-events-none",
         )}
       >
-        {unsaid.text}
-      </p>
+        {/* Real Floating Ember Hearth Burst on Reaction or Double-Tap */}
+        {hearthSpark && <HearthBurst />}
+        {/* Multi-Emoji Floating Burst on Double-Tap */}
+        {burst && (
+          <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center gap-3 overflow-hidden">
+            {BURST_EMOJIS.map((emoji, idx) => (
+              <span
+                key={idx}
+                className="float-up-particle text-3xl drop-shadow-md"
+                style={{
+                  animationDelay: `${idx * 0.08}s`,
+                }}
+              >
+                {emoji}
+              </span>
+            ))}
+          </div>
+        )}
 
-      {/* Small muted status caption if Winner */}
-      {isWinner && (
-        <div className="mt-2.5 text-xs text-[#9C8F87] flex items-center gap-1.5 font-sans">
-          <RevealCountdown className="text-[#9C8F87]" />
-        </div>
-      )}
+        {/* Ambient glow reserved strictly for Winner card */}
+        {isWinner && (
+          <div
+            className="pointer-events-none absolute -top-12 -right-12 size-40 rounded-full opacity-20 blur-3xl"
+            style={{
+              background: "radial-gradient(circle, #E8552E 0%, transparent 70%)",
+            }}
+            aria-hidden
+          />
+        )}
 
-      {/* Pending status caption */}
-      {unsaid.status === "pending" && (
-        <div className="mt-2 text-xs text-amber-400/80 flex items-center gap-1.5 font-sans">
-          <Clock className="size-3 animate-spin" />
-          <span>warming up — visible to others shortly</span>
-        </div>
-      )}
+        {/* 3D Winner Card Header featuring Sachiko Signature Typeface */}
+        {isWinner && (
+          <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-white/10 relative z-10">
+            <div className="flex items-center gap-2.5">
+              <span className="font-script text-3xl sm:text-4xl text-[#E8552E] select-none tracking-wide drop-shadow-[0_2px_12px_rgba(232,85,46,0.35)]">
+                Laureate
+              </span>
+              <div className="flex flex-col">
+                <span className="font-mono text-[9px] uppercase tracking-widest text-[#F5EFE9] font-bold">
+                  HALL OF FAME
+                </span>
+                <span className="text-[10px] text-[#9C8F87] font-sans">
+                  CYCLE WINNER
+                </span>
+              </div>
+            </div>
+            <RevealCountdown className="text-xs text-[#E8552E] font-mono font-bold" />
+          </div>
+        )}
 
-      {/* Metadata Row: Handle, Time, and Category */}
-      <div className="mt-4 flex items-center justify-between gap-3 text-xs font-sans">
-        <div className="flex items-center gap-2.5 text-[#9C8F87]">
-          {unsaid.handle ? (
-            <a
-              href={getInstagramUrl(unsaid.handle)!}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              style={auraStyle}
-              className="inline-flex items-center gap-1 text-[13px] font-medium text-[#9C8F87] hover:text-[#F5EFE9] transition-colors"
-              title={`Visit Instagram @${stripHandle(unsaid.handle)}`}
-            >
-              {crownIcon && <span className="text-[10px]">👑</span>}
-              <Instagram className="size-3 opacity-70 shrink-0" aria-hidden />
-              <span>@{stripHandle(unsaid.handle)}</span>
-            </a>
-          ) : (
-            <span className="text-[13px] font-medium text-[#9C8F87]">
-              anonymous
-            </span>
+        {/* Quote: The Hero */}
+        <p
+          className={cn(
+            "font-quote font-normal leading-[1.65] text-[#F5EFE9] tracking-normal select-text",
+            isWinner ? "text-[21px] sm:text-[24px] leading-[1.6]" : "text-[18px] sm:text-[20px]",
           )}
-          <span className="text-[12px] text-[#9C8F87]/60">
-            {relativeTime(unsaid.createdAt)}
+        >
+          {unsaid.text}
+        </p>
+
+        {/* Small muted status caption if Winner without header */}
+        {isWinner && !hero && (
+          <div className="mt-2.5 text-xs text-[#9C8F87] flex items-center gap-1.5 font-sans">
+            <RevealCountdown className="text-[#9C8F87]" />
+          </div>
+        )}
+
+        {/* Pending status caption */}
+        {unsaid.status === "pending" && (
+          <div className="mt-2 text-xs text-amber-400/80 flex items-center gap-1.5 font-sans">
+            <Clock className="size-3 animate-spin" />
+            <span>warming up — visible to others shortly</span>
+          </div>
+        )}
+
+        {/* Metadata Row: Handle, Time, and Category */}
+        <div className="mt-4 flex items-center justify-between gap-3 text-xs font-sans">
+          <div className="flex items-center gap-2.5 text-[#9C8F87]">
+            {unsaid.handle ? (
+              <div className="inline-flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setProfileModalId(unsaid.profileId || unsaid.handle);
+                  }}
+                  style={auraStyle}
+                  className="inline-flex items-center gap-1 text-[13px] font-medium text-[#9C8F87] hover:text-[#E8552E] transition-colors cursor-pointer group"
+                  title={`Open @${stripHandle(unsaid.handle)}'s Public Corner`}
+                >
+                  {crownIcon && <span className="text-[10px]">👑</span>}
+                  <span className="group-hover:underline">@{stripHandle(unsaid.handle)}</span>
+                </button>
+
+                {getInstagramUrl(unsaid.handle) && (
+                  <a
+                    href={getInstagramUrl(unsaid.handle)!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-[#9C8F87] hover:text-pink-400 transition-colors p-0.5"
+                    title="Open Instagram"
+                  >
+                    <Instagram className="size-3 opacity-70 hover:opacity-100" aria-hidden />
+                  </a>
+                )}
+              </div>
+            ) : (
+              <span className="text-[12px] font-mono text-[#9C8F87]/80">
+                anonymous
+              </span>
+            )}
+            <span className="text-[12px] text-[#9C8F87]/60">
+              {relativeTime(unsaid.createdAt)}
+            </span>
+          </div>
+
+          <span className="border border-white/10 text-[#9C8F87] rounded-full px-2.5 py-0.5 text-[11px] font-normal bg-transparent">
+            #{unsaid.category.toLowerCase().replace(/\s+/g, "")}
           </span>
         </div>
-
-        <span className="border border-white/10 text-[#9C8F87] rounded-full px-2.5 py-0.5 text-[11px] font-normal bg-transparent">
-          #{unsaid.category.toLowerCase().replace(/\s+/g, "")}
-        </span>
-      </div>
 
       {copied && (
         <p className="text-[#E8552E] mt-2 text-center text-xs font-semibold animate-fade-in font-sans">
@@ -623,5 +720,13 @@ export function UnsaidCard({
         </div>
       )}
     </article>
+
+    {/* Public Profile View Modal */}
+    <PublicProfileModal
+      identifier={profileModalId}
+      isOpen={Boolean(profileModalId)}
+      onClose={() => setProfileModalId(null)}
+    />
+  </>
   );
 }

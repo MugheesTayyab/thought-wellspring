@@ -97,3 +97,27 @@ export async function handleFetchPostById(
     return { post };
   });
 }
+
+export async function handleFetchUserActivity(data: {
+  profileId?: string | null;
+  deviceToken: string;
+}) {
+  return wrapServerFn(async () => {
+    const env = getServerEnv();
+    const { fetchUserThoughtsActivity } = await import("@/server/db/unsaids");
+    const res = await fetchUserThoughtsActivity(env, data);
+    if (res.error) throw new Error(res.error.message);
+    return res.data;
+  });
+}
+
+export async function handleFetchPublicProfile(data: { identifier: string }) {
+  return wrapServerFn(async () => {
+    const env = getServerEnv();
+    const { fetchPublicProfileWithPosts } = await import("@/server/db/unsaids");
+    const res = await fetchPublicProfileWithPosts(env, data.identifier);
+    if (res.error) throw new Error(res.error.message);
+    return res.data;
+  });
+}
+

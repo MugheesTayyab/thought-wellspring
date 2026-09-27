@@ -18,6 +18,7 @@ import { ScrollMascot } from "@/client/components/bajihears/ScrollMascot";
 import { PushPermissionSheet } from "@/client/components/bajihears/PushPermissionSheet";
 import { shouldShowPushPrompt } from "@/client/lib/notifications";
 import { useWarmth } from "@/client/stores/warmth-context";
+import { useAuth } from "@/client/stores/auth-context";
 import { useWall } from "@/client/hooks/use-wall";
 import { useWinner } from "@/client/hooks/use-winner";
 import { triggerHaptic } from "@/client/lib/haptics";
@@ -58,6 +59,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const { user } = useAuth();
   const { totalWarmth, awardWarmth, openWarmthSheet, isFlashingOrb } = useWarmth();
   const {
     posts,
@@ -230,6 +232,7 @@ function Home() {
                 handle: postHandle,
                 category,
                 preset,
+                profileId: user?.id ?? null,
               });
               const ts = Date.now();
               writeLastSubmit(ts);

@@ -391,6 +391,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       category: Category;
       preset?: string;
       handle?: string | null;
+      profileId?: string | null;
     }) => {
       if (!deviceToken) throw new Error("No device identity available");
       setSubmitError(null);
@@ -400,6 +401,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
         deviceToken: string;
         preset?: string;
         handle?: string | null;
+        profileId?: string | null;
       } = {
         text: input.text,
         category: input.category,
@@ -411,6 +413,9 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       }
       if (input.handle !== undefined) {
         postPayload.handle = input.handle;
+      }
+      if (input.profileId !== undefined) {
+        postPayload.profileId = input.profileId;
       }
 
       const res = await apiSubmitPost({ data: postPayload });
@@ -432,6 +437,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       category: Category;
       preset?: string;
       handle?: string | null;
+      profileId?: string | null;
     }) => {
       return await submitMutation.mutateAsync(input);
     },

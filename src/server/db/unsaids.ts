@@ -58,7 +58,7 @@ export async function fetchPublishedFeed(
     let query = client
       .from("unsaids")
       .select(
-        "id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until"
+        "id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, profile_id"
       )
       .eq("status", "published");
 
@@ -421,3 +421,259 @@ export async function markWinner(
     return { success: false, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
   }
 }
+
+export interface UserThoughtItem {
+  id: string;
+  text: string;
+  category: Category;
+  preset: string;
+  handle: string | null;
+  status: string;
+  createdAt: number;
+  reactions: { heart: number; sad: number; fire: number; hug: number };
+  totalLikes: number;
+  echoCount: number;
+  echoes: Array<{ id: string; text: string; handle: string | null; createdAt: number }>;
+}
+
+export interface UserThoughtsActivityResult {
+  posts: UserThoughtItem[];
+  totalLikesReceived: number;
+  totalPosts: number;
+  likedPosts: Unsaid[];
+}
+
+/**
+ * Fetch all thoughts posted by a user (by profileId and/or deviceToken),
+ * including reactions received, total likes, and comments.
+ */
+export async function fetchUserThoughtsActivity(
+  env: DatabaseEnv | undefined,
+  params: { profileId?: string | null; deviceToken?: string | null }
+): Promise<{ data: UserThoughtsActivityResult | null; error: { code: string; message: string } | null }> {
+  try {
+    const client = getSupabaseAdminClient(env);
+    const { profileId, deviceToken } = params;
+
+    let query = client.from("unsaids").select("*");
+
+    if (profileId && deviceToken) {
+      query = query.or(`profile_id.eq.${profileId},device_token.eq.${deviceToken}`);
+    } else if (profileId) {
+      query = query.eq("profile_id", profileId);
+    } else if (deviceToken) {
+      query = query.eq("device_token", deviceToken);
+    } else {
+      return { data: { posts: [], totalLikesReceived: 0, totalPosts: 0, likedPosts: [] }, error: null };
+    }
+
+    query = query.order("created_at", { ascending: false });
+    const { data: rawPosts, error: postErr } = await query;
+
+    if (postErr) {
+      return { data: null, error: { code: postErr.code, message: postErr.message } };
+    }
+
+    let totalLikesReceived = 0;
+    const postIds = (rawPosts || []).map((p: any) => p.id);
+
+    // Fetch echoes for all user posts in bulk
+    let echoesByPost: Record<string, Array<{ id: string; text: string; handle: string | null; createdAt: number }>> = {};
+    if (postIds.length > 0) {
+      const { data: rawEchoes } = await client
+        .from("echoes")
+        .select("id, unsaid_id, text, handle, created_at")
+        .in("unsaid_id", postIds)
+        .order("created_at", { ascending: true });
+
+      if (rawEchoes) {
+        rawEchoes.forEach((e: any) => {
+          if (!echoesByPost[e.unsaid_id]) echoesByPost[e.unsaid_id] = [];
+          echoesByPost[e.unsaid_id]!.push({
+            id: e.id,
+            text: e.text,
+            handle: e.handle ?? null,
+            createdAt: new Date(e.created_at).getTime(),
+          });
+        });
+      }
+    }
+
+    const posts: UserThoughtItem[] = (rawPosts || []).map((row: any) => {
+      const rx = row.reactions || { heart: 0, sad: 0, fire: 0, hug: 0 };
+      const totalLikes = (rx.heart || 0) + (rx.fire || 0) + (rx.hug || 0) + (rx.sad || 0);
+      totalLikesReceived += totalLikes;
+      const parsedTime = row.created_at ? new Date(row.created_at).getTime() : Date.now();
+      const echoes = echoesByPost[row.id] || [];
+
+      return {
+        id: row.id,
+        text: row.text,
+        category: row.category as Category,
+        preset: row.preset || "midnight-static",
+        handle: row.handle ?? null,
+        status: row.status || "published",
+        createdAt: parsedTime,
+        reactions: rx,
+        totalLikes,
+        echoCount: echoes.length,
+        echoes,
+      };
+    });
+
+    // Also fetch posts this user/device has reacted to
+    let likedPosts: Unsaid[] = [];
+    if (deviceToken) {
+      const { data: myRx } = await client
+        .from("reactions")
+        .select("unsaid_id")
+        .eq("device_token", deviceToken)
+        .order("created_at", { ascending: false })
+        .limit(25);
+
+      if (myRx && myRx.length > 0) {
+        const likedIds = Array.from(new Set(myRx.map((r: any) => r.unsaid_id)));
+        const { data: likedData } = await client
+          .from("unsaids")
+          .select("id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, profile_id")
+          .in("id", likedIds)
+          .eq("status", "published");
+
+        if (likedData) {
+          likedPosts = likedData.map(mapRowToUnsaid);
+        }
+      }
+    }
+
+    return {
+      data: {
+        posts,
+        totalLikesReceived,
+        totalPosts: posts.length,
+        likedPosts,
+      },
+      error: null,
+    };
+  } catch (err: any) {
+    return { data: null, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
+  }
+}
+
+/**
+ * Fetch public profile information and their published thoughts
+ */
+export async function fetchPublicProfileWithPosts(
+  env: DatabaseEnv | undefined,
+  identifier: string
+): Promise<{
+  data: {
+    profile: {
+      id: string;
+      handle: string;
+      avatarSeed: number;
+      memberSince: string;
+      visitStreak: number;
+      warmthTotal: number;
+      totalActions: number;
+    } | null;
+    posts: Unsaid[];
+    totalLikesReceived: number;
+  } | null;
+  error: { code: string; message: string } | null;
+}> {
+  try {
+    const client = getSupabaseAdminClient(env);
+    const cleanId = identifier.trim().replace(/^@+/, "");
+
+    // Check if UUID
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
+
+    let query = client.from("profiles").select("id, handle, avatar_seed, member_since, visit_streak, warmth_total, total_actions");
+    if (isUuid) {
+      query = query.eq("id", cleanId);
+    } else {
+      query = query.ilike("handle", cleanId);
+    }
+
+    const { data: profileRow, error: pErr } = await query.maybeSingle();
+
+    if (pErr) {
+      return { data: null, error: { code: pErr.code, message: pErr.message } };
+    }
+
+    if (!profileRow) {
+      // If no registered profile found, check if there are posts by this handle
+      const { data: handlePosts } = await client
+        .from("unsaids")
+        .select("id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, profile_id")
+        .ilike("handle", cleanId)
+        .eq("status", "published")
+        .order("created_at", { ascending: false });
+
+      if (!handlePosts || handlePosts.length === 0) {
+        return { data: null, error: { code: "NOT_FOUND", message: "Profile not found" } };
+      }
+
+      let totalLikesReceived = 0;
+      const posts = handlePosts.map((r: any) => {
+        const u = mapRowToUnsaid(r);
+        const rx = u.reactions;
+        totalLikesReceived += (rx.heart || 0) + (rx.fire || 0) + (rx.hug || 0) + (rx.sad || 0);
+        return u;
+      });
+
+      return {
+        data: {
+          profile: {
+            id: cleanId,
+            handle: cleanId,
+            avatarSeed: 42,
+            memberSince: new Date().toISOString().split("T")[0]!,
+            visitStreak: 1,
+            warmthTotal: 50,
+            totalActions: posts.length,
+          },
+          posts,
+          totalLikesReceived,
+        },
+        error: null,
+      };
+    }
+
+    // Found registered profile; fetch their published posts
+    const { data: postsData } = await client
+      .from("unsaids")
+      .select("id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, profile_id")
+      .or(`profile_id.eq.${profileRow.id},handle.ilike.${profileRow.handle}`)
+      .eq("status", "published")
+      .order("created_at", { ascending: false });
+
+    let totalLikesReceived = 0;
+    const posts = (postsData || []).map((r: any) => {
+      const u = mapRowToUnsaid(r);
+      const rx = u.reactions;
+      totalLikesReceived += (rx.heart || 0) + (rx.fire || 0) + (rx.hug || 0) + (rx.sad || 0);
+      return u;
+    });
+
+    return {
+      data: {
+        profile: {
+          id: profileRow.id,
+          handle: profileRow.handle,
+          avatarSeed: profileRow.avatar_seed ?? 1,
+          memberSince: profileRow.member_since ? String(profileRow.member_since) : new Date().toISOString().split("T")[0]!,
+          visitStreak: profileRow.visit_streak ?? 0,
+          warmthTotal: profileRow.warmth_total ?? 0,
+          totalActions: profileRow.total_actions ?? 0,
+        },
+        posts,
+        totalLikesReceived,
+      },
+      error: null,
+    };
+  } catch (err: any) {
+    return { data: null, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
+  }
+}
+

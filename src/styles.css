@@ -43,6 +43,19 @@
   --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
   --font-vibe: "Plus Jakarta Sans", system-ui, sans-serif;
   --font-quote: "Playfair Display", Georgia, serif;
+  --font-script: "Sachiko", cursive;
+}
+
+@font-face {
+  font-family: "Sachiko";
+  src: url("/fonts/sachiko.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-script {
+  font-family: "Sachiko", cursive;
 }
 
 :root {
