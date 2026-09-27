@@ -14,6 +14,7 @@ import { FeedWritingPrompt } from "@/client/components/bajihears/FeedWritingProm
 import { HeroIntro } from "@/client/components/bajihears/HeroIntro";
 import { NightPresence } from "@/client/components/bajihears/NightPresence";
 import { BajiIntroSplash } from "@/client/components/bajihears/BajiIntroSplash";
+import { ScrollMascot } from "@/client/components/bajihears/ScrollMascot";
 import { PushPermissionSheet } from "@/client/components/bajihears/PushPermissionSheet";
 import { shouldShowPushPrompt } from "@/client/lib/notifications";
 import { useWarmth } from "@/client/stores/warmth-context";
@@ -364,6 +365,9 @@ function Home() {
           <ArrowUp className="size-4" />
         </button>
       )}
+
+      {/* Scroll-scrubbed Baji Mascot — peeks from right edge */}
+      <ScrollMascot />
 
       {/* 3-Second Smooth Intro Splash on First Load */}
       <BajiIntroSplash />
