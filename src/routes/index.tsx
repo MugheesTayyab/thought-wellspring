@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUp } from "lucide-react";
 import { UnsaidCard } from "@/client/components/bajihears/UnsaidCard";
+import { sortPostsByPsychologicalIntrigue } from "@/shared/lib/psychological-ranking";
 import { FeedSkeleton } from "@/client/components/bajihears/FeedSkeleton";
 import { WritingBox } from "@/client/components/bajihears/WritingBox";
 import { QuoteCardDialog } from "@/client/components/bajihears/QuoteCardDialog";
@@ -159,7 +160,15 @@ function Home() {
     }
   };
 
-  const visiblePosts = posts.filter((u) => !hiddenIds.includes(u.id));
+  const [feedSort, setFeedSort] = useState<"spicy" | "latest">("spicy");
+
+  const visiblePosts = useMemo(() => {
+    const unhidden = posts.filter((u) => !hiddenIds.includes(u.id));
+    if (feedSort === "spicy") {
+      return sortPostsByPsychologicalIntrigue(unhidden);
+    }
+    return unhidden;
+  }, [posts, hiddenIds, feedSort]);
 
   return (
     <div className="relative min-h-screen">
@@ -245,8 +254,50 @@ function Home() {
             }}
           />
 
-          {/* Category Filter Pills */}
-          <div className="pt-1">
+          {/* Feed Sort & Psychological Ranking Filter */}
+          <div className="pt-2">
+            <div className="flex items-center justify-between gap-2 px-1 mb-2.5 font-vibe">
+              <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-2xl border border-white/8">
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic("selection");
+                    setFeedSort("spicy");
+                  }}
+                  className={cn(
+                    "px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer",
+                    feedSort === "spicy"
+                      ? "bg-[#E8552E] text-white shadow-[0_0_12px_rgba(232,85,46,0.35)]"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <span>🔥</span>
+                  <span>Spicy Secrets</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic("selection");
+                    setFeedSort("latest");
+                  }}
+                  className={cn(
+                    "px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer",
+                    feedSort === "latest"
+                      ? "bg-[#E8552E] text-white shadow-[0_0_12px_rgba(232,85,46,0.35)]"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <span>⚡</span>
+                  <span>Latest</span>
+                </button>
+              </div>
+
+              <span className="text-[11px] text-[#9C8F87] font-sans">
+                {feedSort === "spicy" ? "Most addictive first" : "Chronological"}
+              </span>
+            </div>
+
+            {/* Category Filter Pills */}
             <div className="flex items-center justify-between gap-3 px-1 mb-2 font-vibe">
               <span className="text-muted-foreground/70 text-[11px] font-bold tracking-wider uppercase">
                 Filter by vibe
@@ -326,6 +377,7 @@ function Home() {
             <Fragment key={u.id}>
               <UnsaidCard
                 unsaid={u}
+                intrigueBadge={index === 0 && feedSort === "spicy" ? "🔥 Most Whispered Secret" : undefined}
                 mine={myReactions[u.id] ?? []}
                 echoed={myEchoedIds.includes(u.id)}
                 reported={myReports.includes(u.id)}

@@ -6,6 +6,7 @@ import { CATEGORIES } from "@/shared/constants/categories";
 import { LOCKOUT_MS, MAX_LEN, MIN_LEN } from "@/shared/constants/cycle";
 import { PRESETS } from "@/shared/constants/presets";
 import { triggerHaptic } from "@/client/lib/haptics";
+import { detectProfanity } from "@/shared/lib/profanity";
 
 type Props = {
   lastSubmitAt: number | null;
@@ -73,7 +74,11 @@ export function WritingBox({
 
   const open = focused || text.length > 0;
   const cleanIg = stripHandle(igHandle);
-  const valid = text.trim().length >= MIN_LEN && (anonymous || cleanIg.length >= 2);
+  const profanityCheck = useMemo(() => detectProfanity(text), [text]);
+  const valid =
+    text.trim().length >= MIN_LEN &&
+    !profanityCheck.hasProfanity &&
+    (anonymous || cleanIg.length >= 2);
 
   // SVG circular progress calculation
   const ringCircumference = 44; // 2 * PI * 7 ≈ 43.98
@@ -226,6 +231,13 @@ export function WritingBox({
               </button>
             ))}
           </div>
+        </div>
+      )}
+
+      {profanityCheck.hasProfanity && (
+        <div className="mt-3 rounded-2xl border border-rose-500/40 bg-rose-500/10 p-3 text-center text-xs text-rose-300 font-medium flex items-center justify-center gap-2 animate-[pulse_2s_infinite]">
+          <span className="text-sm">⚠️</span>
+          <span>Baji keeps it warm & honest, not dirty. Inappropriate words (like f-words, s-words) are not allowed.</span>
         </div>
       )}
 

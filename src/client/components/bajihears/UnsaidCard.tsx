@@ -24,6 +24,7 @@ import { triggerHaptic } from "@/client/lib/haptics";
 import { useWarmth } from "@/client/stores/warmth-context";
 import { getOrCreateIdentity } from "@/client/lib/identity";
 import { vetoPost } from "@/client/lib/local-storage";
+import { detectProfanity } from "@/shared/lib/profanity";
 import {
   cn,
   compactCount,
@@ -62,6 +63,7 @@ type Props = {
   hero?: boolean;
   isWinner?: boolean;
   hook?: string;
+  intrigueBadge?: string;
   onReact: (id: string, key: ReactionKey) => void;
   onEcho: (id: string, text: string, echoHandle: string | null) => void;
   onReport: (id: string) => void;
@@ -77,6 +79,7 @@ export function UnsaidCard({
   hero = false,
   isWinner = false,
   hook,
+  intrigueBadge,
   onReact,
   onEcho,
   onReport,
@@ -335,6 +338,18 @@ export function UnsaidCard({
               </div>
             </div>
             <RevealCountdown className="text-xs text-[#E8552E] font-mono font-bold" />
+          </div>
+        )}
+
+        {/* High Intrigue / Psychological Voyeurism Badge */}
+        {intrigueBadge && !isWinner && (
+          <div className="flex items-center justify-between gap-2 mb-3 pb-2.5 border-b border-white/[0.08]">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-[#fa541c]/40 bg-[#fa541c]/15 text-[10px] font-mono font-bold tracking-wider uppercase text-[#fa541c] shadow-[0_0_10px_rgba(250,84,28,0.25)] animate-pulse">
+              <span>{intrigueBadge}</span>
+            </span>
+            <span className="text-[10px] text-[#9C8F87] font-sans">
+              People can&apos;t look away 👀
+            </span>
           </div>
         )}
 
@@ -645,20 +660,34 @@ export function UnsaidCard({
             ))}
           </div>
 
-          <div className="flex gap-2">
-            <input
-              value={echoText}
-              onChange={(e) => setEchoText(e.target.value.slice(0, 200))}
-              placeholder="Spill your thoughts..."
-              className="bg-secondary/60 border-border placeholder:text-muted-foreground/70 focus:ring-ring w-full rounded-full border px-4 py-2 text-xs sm:text-sm font-vibe outline-none focus:ring-2"
-            />
-            <button
-              type="submit"
-              className="bg-brand-gradient text-primary-foreground rounded-full px-5 py-2 text-xs sm:text-sm font-bold shadow-md hover:opacity-95 transition-opacity"
-            >
-              Echo
-            </button>
-          </div>
+          {(() => {
+            const profanity = detectProfanity(echoText);
+            const hasBadWords = profanity.hasProfanity;
+            return (
+              <>
+                {hasBadWords && (
+                  <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-3 py-1.5 text-center text-[11px] text-rose-300 font-medium">
+                    ⚠️ Inappropriate words (like f-words, s-words) are not allowed.
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <input
+                    value={echoText}
+                    onChange={(e) => setEchoText(e.target.value.slice(0, 200))}
+                    placeholder="Spill your thoughts..."
+                    className="bg-secondary/60 border-border placeholder:text-muted-foreground/70 focus:ring-ring w-full rounded-full border px-4 py-2 text-xs sm:text-sm font-vibe outline-none focus:ring-2"
+                  />
+                  <button
+                    type="submit"
+                    disabled={hasBadWords || echoText.trim().length < 2}
+                    className="bg-brand-gradient text-primary-foreground rounded-full px-5 py-2 text-xs sm:text-sm font-bold shadow-md hover:opacity-95 transition-opacity disabled:opacity-40"
+                  >
+                    Echo
+                  </button>
+                </div>
+              </>
+            );
+          })()}
 
           <div className="grid grid-cols-2 gap-2">
             <button

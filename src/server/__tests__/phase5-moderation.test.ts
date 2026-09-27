@@ -70,6 +70,18 @@ describe("Phase 5: Moderation Engine Verification", () => {
       expect(hard.blocked).toBe(true);
       expect(hard.violationType).toBe("SCRIPT_INJECTION");
     });
+
+    it("blocks English f-words and s-words", () => {
+      const fInput = "I hate this, what the fuck";
+      const hardF = checkHardFilters(normalizeText(fInput));
+      expect(hardF.blocked).toBe(true);
+      expect(hardF.violationType).toBe("PROFANITY_ABUSE");
+
+      const sInput = "This is total bullshit and shit";
+      const hardS = checkHardFilters(normalizeText(sInput));
+      expect(hardS.blocked).toBe(true);
+      expect(hardS.violationType).toBe("PROFANITY_ABUSE");
+    });
   });
 
   describe("Suite 3: Soft Filters (Tier 2 Auto-Quarantine)", () => {

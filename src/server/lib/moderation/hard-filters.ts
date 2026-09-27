@@ -1,8 +1,9 @@
 import { NormalizedTextPayload } from './normalize';
+import { detectProfanity } from '@/shared/lib/profanity';
 
 export interface HardFilterResult {
   blocked: boolean;
-  violationType?: 'PHONE_NUMBER' | 'URL_LINK' | 'SCRIPT_INJECTION' | 'SEVERE_EXPLOIT';
+  violationType?: 'PHONE_NUMBER' | 'URL_LINK' | 'SCRIPT_INJECTION' | 'SEVERE_EXPLOIT' | 'PROFANITY_ABUSE';
   details?: string;
 }
 
@@ -22,6 +23,16 @@ const PHONETIC_DIGIT_MAP: Record<string, string> = {
 
 export function checkHardFilters(payload: NormalizedTextPayload): HardFilterResult {
   const { normalized, compact } = payload;
+
+  // 0. Profanity, Bad Words & Vulgarity Filter (F-words, S-words, slurs, abusive speech)
+  const profanityResult = detectProfanity(payload.original) || detectProfanity(normalized);
+  if (profanityResult.hasProfanity) {
+    return {
+      blocked: true,
+      violationType: 'PROFANITY_ABUSE',
+      details: profanityResult.message || 'Baji keeps it warm & honest, not dirty. Inappropriate words are strictly forbidden.',
+    };
+  }
 
   // 1. Script Injection & HTML Abuse (Tested against original and normalized)
   const scriptRegex = /<(?:\/)?(?:script|style|iframe|object|embed|svg|img|link|meta)\b[^>]*>/i;
