@@ -12,6 +12,7 @@ import { BottomNav } from "@/client/components/bajihears/BottomNav";
 import { CommunityRegulars } from "@/client/components/bajihears/CommunityRegulars";
 import { FeedWritingPrompt } from "@/client/components/bajihears/FeedWritingPrompt";
 import { HeroIntro } from "@/client/components/bajihears/HeroIntro";
+import { NightPresence } from "@/client/components/bajihears/NightPresence";
 import { BajiIntroSplash } from "@/client/components/bajihears/BajiIntroSplash";
 import { PushPermissionSheet } from "@/client/components/bajihears/PushPermissionSheet";
 import { shouldShowPushPrompt } from "@/client/lib/notifications";
@@ -183,7 +184,10 @@ function Home() {
 
         <h1 className="sr-only">BajiHears — The Wall of Unsaids</h1>
 
-        <div className="wall-3d mt-3 sm:mt-4 space-y-4 sm:space-y-6">
+        <div className="wall-3d mt-2 sm:mt-3 space-y-3.5 sm:space-y-5">
+          {/* Living Late-Night Pulse */}
+          <NightPresence />
+
           {/* 5-Second Comprehension Hero Banner */}
           <HeroIntro />
 

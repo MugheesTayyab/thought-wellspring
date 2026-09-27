@@ -18,6 +18,7 @@ import {
   SmilePlus,
 } from "lucide-react";
 import { RevealCountdown } from "./RevealCountdown";
+import { HearthBurst } from "./HearthBurst";
 import { triggerHaptic } from "@/client/lib/haptics";
 import { useWarmth } from "@/client/stores/warmth-context";
 import { getOrCreateIdentity } from "@/client/lib/identity";
@@ -95,6 +96,7 @@ export function UnsaidCard({
   const [vetoFeedback, setVetoFeedback] = useState<string | null>(null);
   const [showRxPicker, setShowRxPicker] = useState(false);
 
+  const [hearthSpark, setHearthSpark] = useState(false);
   const lastTap = useRef(0);
   const preset = presetByKey(unsaid.preset);
 
@@ -148,10 +150,12 @@ export function UnsaidCard({
     triggerHaptic("impactLight");
     setBounced(key);
     window.setTimeout(() => setBounced(null), 220);
+    setHearthSpark(true);
+    window.setTimeout(() => setHearthSpark(false), 950);
     onReact(unsaid.id, key);
   };
 
-  // Instagram-style double tap anywhere on the card = multi-emoji floating burst.
+  // Instagram-style double tap anywhere on the card = multi-emoji floating burst + hearth embers.
   const onCardPointerUp = () => {
     const t = Date.now();
     if (t - lastTap.current < 320) {
@@ -159,10 +163,23 @@ export function UnsaidCard({
       triggerHaptic("celebration");
       if (!mine.includes("heart")) onReact(unsaid.id, "heart");
       setBurst(true);
-      window.setTimeout(() => setBurst(false), 900);
+      setHearthSpark(true);
+      window.setTimeout(() => {
+        setBurst(false);
+        setHearthSpark(false);
+      }, 950);
       return;
     }
     lastTap.current = t;
+  };
+
+  // Candlelight Spotlight tracking on hover / touch move
+  const onPointerMove = (e: React.PointerEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    e.currentTarget.style.setProperty("--candle-x", `${x.toFixed(1)}%`);
+    e.currentTarget.style.setProperty("--candle-y", `${y.toFixed(1)}%`);
   };
 
   const copy = async () => {
@@ -200,14 +217,17 @@ export function UnsaidCard({
   return (
     <article
       onPointerUp={onCardPointerUp}
+      onPointerMove={onPointerMove}
       className={cn(
-        "relative rounded-2xl sm:rounded-3xl transition-all duration-200 select-none p-5 sm:p-6",
+        "relative rounded-2xl sm:rounded-3xl transition-all duration-200 select-none p-5 sm:p-6 overflow-hidden candlelight-card",
         isWinner
           ? "border-t-2 border-[#E8552E] bg-gradient-to-b from-[#1e1510] to-[#17110D] border-x border-b border-white/[0.06] shadow-[0_12px_36px_-10px_rgba(232,85,46,0.22)]"
           : "bg-[#17110D]",
         isVetoed && "opacity-40 pointer-events-none",
       )}
     >
+      {/* Real Floating Ember Hearth Burst on Reaction or Double-Tap */}
+      {hearthSpark && <HearthBurst />}
       {/* Multi-Emoji Floating Burst on Double-Tap */}
       {burst && (
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center gap-3 overflow-hidden">
