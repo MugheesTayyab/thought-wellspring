@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "@tanstack/react-router";
 import { Compass, Swords, Lock, ArrowRight, Zap, X, Sparkles, Heart, Eye } from "lucide-react";
 import { triggerHaptic } from "@/client/lib/haptics";
 import { getOrCreateIdentity } from "@/client/lib/identity";
@@ -15,6 +16,8 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
   onClose,
   onUnlocked,
 }) => {
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (!type || typeof document === "undefined") return;
     document.body.style.overflow = "hidden";
@@ -48,9 +51,11 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
     }
     try {
       localStorage.setItem("baji:identity", JSON.stringify(id));
+      sessionStorage.setItem("baji:read-visited", "1");
     } catch {}
     if (onUnlocked) onUnlocked();
     onClose();
+    navigate({ to: isDuel ? "/duel" : "/read" });
   };
 
   return createPortal(
@@ -186,10 +191,10 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
           <button
             type="button"
             onClick={handleInstantUnlock}
-            className="w-full text-center py-1.5 text-[11px] font-medium text-[#9C8F87]/60 hover:text-[#E8552E] transition flex items-center justify-center gap-1 cursor-pointer"
+            className="w-full rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-center py-2.5 text-xs font-semibold text-[#F5EFE9] transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-98"
           >
-            <Zap className="size-3" />
-            <span>Tester: Instant Unlock</span>
+            <Zap className="size-3.5 text-amber-400 fill-amber-400" />
+            <span>Instant Unlock & Open {isDuel ? "Duel" : "Read"} ⚡</span>
           </button>
         </div>
       </div>

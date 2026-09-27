@@ -48,8 +48,8 @@ export const BajiIntroSplash: React.FC<BajiIntroSplashProps> = ({ onComplete }) 
 
       <div className="relative z-10 flex flex-col items-center gap-4 text-center px-6">
         {/* Animated Brand Mascot Emblem */}
-        <div className="relative flex items-center justify-center shadow-[0_0_50px_rgba(250,84,28,0.5)]">
-          <Logo size={76} />
+        <div className="relative flex items-center justify-center rounded-full shadow-[0_0_45px_rgba(250,84,28,0.45)] p-0.5">
+          <Logo size={80} />
         </div>
 
         <div className="space-y-1.5 animate-fade-in">

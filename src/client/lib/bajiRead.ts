@@ -214,10 +214,21 @@ export function computeBajiRead(
   const reactionCount = Object.keys(myReactions).length;
   const echoCount = myEchoes.length;
   const duelCount = Object.keys(answeredDuels).length;
-  const totalActions = reactionCount + echoCount + duelCount;
+  let isTabForceUnlocked = false;
+  if (typeof window !== "undefined") {
+    try {
+      const raw = localStorage.getItem("baji:identity");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.tabsUnlocked?.read) {
+          isTabForceUnlocked = true;
+        }
+      }
+    } catch {}
+  }
 
-  // Unlock condition: 5 total actions OR 3 duels + 1 reaction
-  const isUnlocked = totalActions >= 5 || (duelCount >= 3 && reactionCount >= 1);
+  // Unlock condition: forced unlock OR 5 total actions OR 3 duels + 1 reaction
+  const isUnlocked = isTabForceUnlocked || totalActions >= 5 || (duelCount >= 3 && reactionCount >= 1);
 
   if (!isUnlocked) {
     return {

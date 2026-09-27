@@ -283,7 +283,7 @@ export function UnsaidCard({
         className={cn(
           "relative rounded-2xl sm:rounded-3xl transition-all duration-200 select-none p-5 sm:p-6 overflow-hidden candlelight-card",
           isWinner
-            ? "border-t-2 border-[#E8552E] bg-gradient-to-b from-[#1e1510] to-[#17110D] border-x border-b border-white/[0.06] shadow-[0_16px_40px_-10px_rgba(232,85,46,0.25)]"
+            ? "border-2 border-[#fa541c] ring-1 ring-[#fa541c]/60 bg-gradient-to-b from-[#221610] via-[#1c130e] to-[#140e0a] shadow-[0_0_35px_rgba(250,84,28,0.35),0_16px_45px_-8px_rgba(0,0,0,0.85)]"
             : "bg-[#17110D]",
           isVetoed && "opacity-40 pointer-events-none",
         )}
