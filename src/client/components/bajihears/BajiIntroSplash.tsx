@@ -56,8 +56,8 @@ export const BajiIntroSplash: React.FC<BajiIntroSplashProps> = ({ onComplete }) 
           <h1 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-brand-gradient drop-shadow-md">
             BajiHears
           </h1>
-          <p className="font-vibe text-xs sm:text-sm font-medium tracking-wide text-white/80">
-            Say what you couldn't say. 100% anonymous.
+          <p className="font-sans text-xs sm:text-sm font-medium tracking-wide text-[#9C8F87]">
+            Spill the tea. Baji won't tell.
           </p>
         </div>
 

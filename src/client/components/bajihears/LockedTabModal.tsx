@@ -31,10 +31,10 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
   const progressPercent = Math.min(100, Math.round((currentActions / targetActions) * 100));
 
   const isDuel = type === "duel";
-  const title = isDuel ? "The Duel is Locked" : "Baji Read is Locked";
+  const title = isDuel ? "The Duel unlocks in 3 actions" : "Baji Read unlocks after 5 reactions";
   const subtitle = isDuel
-    ? "Vote on provocative late-night dilemmas and see what percentage of people think like you."
-    : "Baji uncovers your psychological archetype from what you read and react to. No quizzes, no forms.";
+    ? "Vote on dilemmas or react on the Wall to join the community voting pool."
+    : "Baji decodes your psychological vibe from the confessions you react to. No forms, no quizzes.";
 
   const handleInstantUnlock = () => {
     triggerHaptic("success");
@@ -94,11 +94,8 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
 
         {/* Header Titles */}
         <div className="text-center">
-          <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-primary">
-            Feature Unlock
-          </span>
-          <h2 className="text-xl font-extrabold text-white mt-1 tracking-tight">{title}</h2>
-          <p className="text-xs text-white/70 mt-1.5 leading-relaxed font-vibe">
+          <h2 className="text-xl font-bold text-[#F5EFE9] mt-1 tracking-tight font-display">{title}</h2>
+          <p className="text-xs text-[#9C8F87] mt-1.5 leading-relaxed font-sans">
             {subtitle}
           </p>
         </div>
@@ -106,35 +103,35 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
         {/* Progress Tracker */}
         <div className="my-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
           <div className="flex items-center justify-between text-xs font-semibold mb-2">
-            <span className="text-white/80">Your Activity</span>
-            <span className="font-mono text-primary font-bold">
-              {currentActions} / {targetActions} Actions
+            <span className="text-[#9C8F87]">Your reactions & echoes</span>
+            <span className="font-mono text-[#E8552E] font-bold">
+              {currentActions} / {targetActions} completed
             </span>
           </div>
 
           <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-primary to-amber-500 transition-all duration-500 shadow-[0_0_10px_rgba(250,84,28,0.8)]"
+              className="h-full rounded-full bg-[#E8552E] transition-all duration-500 shadow-[0_0_10px_rgba(232,85,46,0.6)]"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
 
           {/* Quick Step Checklist */}
           <div className="mt-4 space-y-2 border-t border-white/8 pt-3 text-left">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-white/50">
-              How to complete actions:
+            <p className="text-[11px] font-semibold text-[#9C8F87]">
+              How to complete actions on the Wall:
             </p>
-            <div className="flex items-center gap-2 text-xs text-white/80">
-              <CheckCircle2 className="size-3.5 text-primary shrink-0" />
-              <span>Tap a reaction (Heart, Hug, Fire) on any post</span>
+            <div className="flex items-center gap-2 text-xs text-[#F5EFE9]/90">
+              <CheckCircle2 className="size-3.5 text-[#E8552E] shrink-0" />
+              <span>Tap ❤️ on 3-5 confessions on the Wall</span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-white/80">
-              <CheckCircle2 className="size-3.5 text-primary shrink-0" />
-              <span>Add an anonymous Echo / comment to a thought</span>
+            <div className="flex items-center gap-2 text-xs text-[#F5EFE9]/90">
+              <CheckCircle2 className="size-3.5 text-[#E8552E] shrink-0" />
+              <span>Drop an anonymous 💬 Echo reply</span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-white/80">
-              <CheckCircle2 className="size-3.5 text-primary shrink-0" />
-              <span>Post your own anonymous confession</span>
+            <div className="flex items-center gap-2 text-xs text-[#F5EFE9]/90">
+              <CheckCircle2 className="size-3.5 text-[#E8552E] shrink-0" />
+              <span>Spill your own anonymous tea</span>
             </div>
           </div>
         </div>

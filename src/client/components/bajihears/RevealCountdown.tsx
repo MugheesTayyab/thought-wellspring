@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
 import { cn, formatShortCountdown, nextRevealAt } from "@/shared/utils";
 
-/** Compact pill counting down to the next winner reveal (12h cycles). */
-export function RevealCountdown({ className }: { className?: string }) {
+export function RevealCountdown({
+  className,
+  prefix = "Posting to Instagram in ",
+}: {
+  className?: string;
+  prefix?: string;
+}) {
   const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
@@ -11,11 +16,15 @@ export function RevealCountdown({ className }: { className?: string }) {
     return () => window.clearInterval(id);
   }, []);
 
+  if (now === null) {
+    return <span className={className}>Posting to Instagram soon</span>;
+  }
+
+  const timeLeft = nextRevealAt(now) - now;
   return (
     <span className={className}>
-      {now === null
-        ? "Will be posting on Instagram soon"
-        : `Will be posting on Instagram in ${formatShortCountdown(nextRevealAt(now) - now)}`}
+      {prefix}
+      <span className="tabular-nums font-medium">{formatShortCountdown(timeLeft)}</span>
     </span>
   );
 }

@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Dices, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Dices, CheckCircle2, Award } from "lucide-react";
 import { CornerAvatar } from "@/client/components/bajihears/CornerAvatar";
-import { randomSeed, stripHandle } from "@/shared/utils";
+import { randomSeed, stripHandle, cn } from "@/shared/utils";
+import { STREAK_MILESTONES } from "@/shared/constants/identity";
 import { useAuth } from "@/client/stores/auth-context";
 import {
   readAvatarSeed,
@@ -128,6 +129,37 @@ function CornerPage() {
             Sign in with Google
           </button>
         )}
+      </section>
+
+      {/* Daily Streak & Baji Follow-back Milestones */}
+      <section className="border-border bg-card mt-4 rounded-2xl border p-4 font-sans">
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+              <Award className="size-4 text-[#E8552E]" />
+              <span>Daily Streaks & Rewards</span>
+            </h3>
+            <p className="text-muted-foreground text-xs mt-0.5">Post tea consistently to unlock exclusive perks.</p>
+          </div>
+          <span className="text-xs font-mono font-bold text-[#E8552E] bg-[#E8552E]/10 px-2 py-0.5 rounded-full">Perks</span>
+        </div>
+
+        <div className="mt-3 space-y-2">
+          {STREAK_MILESTONES.map((m) => (
+            <div
+              key={m.days}
+              className={cn(
+                "flex items-center justify-between p-2.5 rounded-xl border text-xs gap-2",
+                m.days === 10
+                  ? "border-[#E8552E]/40 bg-[#E8552E]/10 text-foreground font-medium"
+                  : "border-white/5 bg-white/[0.02] text-muted-foreground"
+              )}
+            >
+              <span className="font-semibold text-foreground shrink-0">{m.days} Days</span>
+              <span className="text-right text-[11px] text-[#9C8F87]">{m.reward}</span>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="border-border bg-card mt-4 flex items-center gap-4 rounded-2xl border p-4">

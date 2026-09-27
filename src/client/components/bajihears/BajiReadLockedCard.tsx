@@ -113,6 +113,24 @@ export function BajiReadLockedCard({ totalActions, actionsNeeded }: BajiReadLock
             <span className="font-mono text-[11px] font-bold text-primary">+1 each</span>
           </Link>
         </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            try {
+              const raw = localStorage.getItem("baji:identity");
+              const id = raw ? JSON.parse(raw) : {};
+              if (!id.tabsUnlocked) id.tabsUnlocked = {};
+              id.tabsUnlocked.read = true;
+              id.totalActions = Math.max(id.totalActions ?? 0, 5);
+              localStorage.setItem("baji:identity", JSON.stringify(id));
+              window.location.reload();
+            } catch {}
+          }}
+          className="w-full mt-3 text-center py-2 text-[11px] font-medium text-white/40 hover:text-primary transition flex items-center justify-center gap-1 cursor-pointer"
+        >
+          <span>⚡ Tester Mode: Unlock Instantly</span>
+        </button>
       </div>
     </div>
   );

@@ -57,23 +57,16 @@ export function WritingBox({
 
   if (locked) {
     return (
-      <section className="bg-hero-gradient border-primary/30 rounded-3xl border p-5 text-center">
-        <p className="text-primary text-[11px] tracking-widest uppercase font-bold">
-          Your confession is live 💬
+      <section className="bg-[#17110D] border border-white/[0.08] rounded-2xl sm:rounded-3xl p-5 text-center">
+        <p className="text-[#E8552E] text-xs font-semibold">
+          Your tea is on the wall ☕
         </p>
-        <p className="font-display mt-2 text-xl font-bold text-white">
-          Next post unlocks in {formatCountdown(unlockAt! - now)}
+        <p className="font-quote mt-2 text-xl font-bold text-[#F5EFE9]">
+          Next drop unlocks in {formatCountdown(unlockAt! - now)}
         </p>
-        <p className="text-muted-foreground mt-2 text-xs">
-          Each device gets 1 thoughtful post per cycle. Keep reading the feed below while you wait.
+        <p className="text-[#9C8F87] mt-1.5 text-xs max-w-xs mx-auto">
+          One confession per cycle keeps the tea real. Come back daily to build your 10-day streak — Baji follows active regulars back! 👑
         </p>
-        <button
-          type="button"
-          onClick={onUnlock}
-          className="text-muted-foreground/70 mt-3 text-[11px] underline"
-        >
-          (demo: reset the lock)
-        </button>
       </section>
     );
   }
@@ -94,7 +87,7 @@ export function WritingBox({
         : "var(--color-primary)";
 
   return (
-    <section className="bg-gradient-to-b from-white/[0.04] to-transparent bg-card border-white/10 shadow-soft hover:border-white/20 rounded-2xl sm:rounded-3xl border p-4 sm:p-5 transition-all">
+    <section className="bg-[#17110D] border border-white/[0.08] rounded-2xl sm:rounded-3xl p-4 sm:p-5 transition-all">
       <div>
         <div className="mb-2 flex flex-row gap-2">
           {PRESETS.map((p) => (
@@ -109,7 +102,7 @@ export function WritingBox({
               }}
               style={{ backgroundImage: `linear-gradient(135deg, ${p.from}, ${p.to})` }}
               className={cn(
-                "size-4 rounded-full border transition-all",
+                "size-4 rounded-full border transition-all cursor-pointer",
                 preset === p.key
                   ? "border-primary scale-110 ring-2 ring-primary/40"
                   : "border-white/20 opacity-70 hover:opacity-100",
@@ -117,7 +110,7 @@ export function WritingBox({
             />
           ))}
         </div>
-        <p className="text-muted-foreground/70 mb-2 text-[10px] tracking-wide font-medium">
+        <p className="text-[#9C8F87] mb-2 text-[10px] tracking-wide font-medium">
           {PRESETS.find((p) => p.key === preset)!.name}
         </p>
 
@@ -126,8 +119,8 @@ export function WritingBox({
           onFocus={() => setFocused(true)}
           onChange={(e) => setText(e.target.value.slice(0, MAX_LEN))}
           rows={2}
-          placeholder="What's something you've never said out loud? (100% anonymous)"
-          className="bg-white/[0.03] border-white/10 placeholder:text-muted-foreground/60 focus:border-primary/60 focus:ring-primary/20 w-full resize-none rounded-2xl border p-3.5 text-base leading-relaxed outline-none focus:ring-2 transition-all font-vibe"
+          placeholder="Spill the tea... something you couldn't say out loud."
+          className="bg-white/[0.03] border-white/10 placeholder:text-[#9C8F87]/60 focus:border-[#E8552E]/60 focus:ring-[#E8552E]/20 w-full resize-none rounded-2xl border p-3.5 text-sm sm:text-base leading-relaxed outline-none focus:ring-2 transition-all font-sans text-[#F5EFE9]"
         />
         <div
           className={cn(

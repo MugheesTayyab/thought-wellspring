@@ -248,9 +248,8 @@ export function UnsaidCard({
 
       {/* Small muted status caption if Winner */}
       {isWinner && (
-        <div className="mt-2 text-xs text-[#9C8F87] flex items-center gap-1.5 font-sans">
-          <span>Will be posting on Instagram in</span>
-          <RevealCountdown className="text-[#9C8F87] font-medium" />
+        <div className="mt-2.5 text-xs text-[#9C8F87] flex items-center gap-1.5 font-sans">
+          <RevealCountdown className="text-[#9C8F87]" />
         </div>
       )}
 
@@ -310,7 +309,7 @@ export function UnsaidCard({
       {/* Bottom Action Row: Reactions, Echo, Share, and Overflow Menu */}
       <div className="mt-4 flex items-center justify-between border-t border-white/[0.05] pt-3 text-xs font-sans">
         {/* Left: Reaction Cluster with Primary Heart */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <button
             type="button"
             aria-label="Heart reaction"
@@ -328,47 +327,11 @@ export function UnsaidCard({
             <span className="tabular-nums font-mono text-xs">{compactCount(unsaid.reactions.heart)}</span>
           </button>
 
-          {/* Secondary reactions if active */}
-          {(unsaid.reactions.hug > 0 || mine.includes("hug")) && (
-            <button
-              type="button"
-              onClick={() => react("hug")}
-              className={cn(
-                "flex items-center gap-1 py-1 px-2 rounded-full text-xs transition-colors cursor-pointer",
-                mine.includes("hug") ? "text-[#E8552E] font-semibold" : "text-[#9C8F87] hover:text-[#F5EFE9]",
-              )}
-            >
-              <HeartHandshake className="size-3" />
-              <span className="tabular-nums font-mono text-[11px]">{compactCount(unsaid.reactions.hug)}</span>
-            </button>
-          )}
-
-          {(unsaid.reactions.fire > 0 || mine.includes("fire")) && (
-            <button
-              type="button"
-              onClick={() => react("fire")}
-              className={cn(
-                "flex items-center gap-1 py-1 px-2 rounded-full text-xs transition-colors cursor-pointer",
-                mine.includes("fire") ? "text-[#E8552E] font-semibold" : "text-[#9C8F87] hover:text-[#F5EFE9]",
-              )}
-            >
-              <Flame className="size-3" />
-              <span className="tabular-nums font-mono text-[11px]">{compactCount(unsaid.reactions.fire)}</span>
-            </button>
-          )}
-
-          {(unsaid.reactions.sad > 0 || mine.includes("sad")) && (
-            <button
-              type="button"
-              onClick={() => react("sad")}
-              className={cn(
-                "flex items-center gap-1 py-1 px-2 rounded-full text-xs transition-colors cursor-pointer",
-                mine.includes("sad") ? "text-[#E8552E] font-semibold" : "text-[#9C8F87] hover:text-[#F5EFE9]",
-              )}
-            >
-              <CloudRain className="size-3" />
-              <span className="tabular-nums font-mono text-[11px]">{compactCount(unsaid.reactions.sad)}</span>
-            </button>
+          {/* User's custom non-heart reaction indicator if active */}
+          {mine.some((k) => k !== "heart") && (
+            <span className="text-xs px-1 select-none animate-fade-in" title="Your reaction">
+              {mine.includes("fire") ? "🔥" : mine.includes("hug") ? "🤝" : "🌧️"}
+            </span>
           )}
 
           {/* Quiet Reaction Picker Trigger */}

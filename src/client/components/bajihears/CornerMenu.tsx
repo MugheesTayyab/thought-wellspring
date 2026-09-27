@@ -89,8 +89,8 @@ export function CornerMenu({ seed }: { seed: string }) {
               {/* Google Sign In / Account Status */}
               {!user ? (
                 <div className="mt-4 rounded-2xl border border-primary/20 bg-primary/5 p-3 text-center">
-                  <p className="font-vibe text-xs text-muted-foreground mb-2.5">
-                    Save your streaks, unlocked tabs, and tea across all devices.
+                  <p className="font-sans text-xs text-foreground/80 mb-2.5 leading-snug">
+                    Sign in to secure your Corner and keep your streak safe. <span className="text-[#E8552E] font-semibold">Reach 10 days and Baji follows you back! 👑</span>
                   </p>
                   <button
                     type="button"

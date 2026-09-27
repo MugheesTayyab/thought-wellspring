@@ -7,6 +7,11 @@ export const STREAK_MILESTONES: StreakMilestone[] = [
     reward: "Unlock the 'Night Owl' sharing preset (exclusive dark purple)",
     label: "Week One",
   },
+  {
+    days: 10,
+    reward: "Baji follows your Instagram handle back! 👑",
+    label: "10-Day Devotion",
+  },
   { days: 14, reward: "+50 bonus Warmth, automatically awarded", label: "Fortnight" },
   {
     days: 30,
