@@ -46,12 +46,12 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
       <div className="absolute inset-0" onClick={onClose} />
 
       {/* Sheet Container */}
-      <div className="relative z-10 flex max-h-[88vh] w-full max-w-lg flex-col rounded-t-3xl border-t border-white/12 bg-[#17110D]/95 p-5 shadow-2xl backdrop-blur-2xl text-[#F5EFE9] overflow-hidden animate-[slideUp_0.3s_cubic-bezier(0.16,1,0.3,1)]">
+      <div className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col rounded-t-3xl border-t border-white/12 bg-[#17110D]/95 px-5 pt-3 pb-6 shadow-2xl backdrop-blur-2xl text-[#F5EFE9] overflow-hidden animate-[slideUp_0.3s_cubic-bezier(0.16,1,0.3,1)]">
         {/* Drag handle */}
-        <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-white/20" />
+        <div className="mx-auto mb-2.5 h-1.5 w-12 rounded-full bg-white/20" />
 
-        {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-white/10">
+        {/* Sticky Header */}
+        <div className="flex items-center justify-between pb-3 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-bold tracking-tight text-[#F5EFE9] font-display">
               Aura & Warmth
@@ -73,146 +73,147 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
           </button>
         </div>
 
-        {/* Unified Hero HUD (Minimal, high-contrast, beautiful) */}
-        <div className="mt-3 relative overflow-hidden rounded-2xl border border-[#E8552E]/30 bg-gradient-to-br from-[#E8552E]/10 via-[#1c130e] to-black/60 p-4">
-          <div className="flex items-baseline justify-between">
-            <div>
-              <span className="text-[10px] font-mono uppercase tracking-wider text-[#9C8F87] font-semibold">
-                Total Warmth
-              </span>
-              <div className="text-3xl font-extrabold font-mono text-[#E8552E] flex items-center gap-1.5 mt-0.5">
-                <span>{totalWarmth.toLocaleString()}</span>
-                <Flame className="size-5 text-[#E8552E]" />
-              </div>
-            </div>
-
-            <div className="text-right">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-[#9C8F87] font-semibold">
-                Daily Streak
-              </span>
-              <div className="text-xl font-bold font-mono text-amber-400 flex items-center justify-end gap-1 mt-0.5">
-                <Zap className="size-4 text-amber-400 fill-amber-400" />
-                <span>{streakCount} {streakCount === 1 ? "Day" : "Days"}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Tier Progress */}
-          {nextTier ? (
-            <div className="mt-3 pt-3 border-t border-white/[0.08] space-y-1.5">
-              <div className="flex justify-between text-xs text-[#9C8F87]">
-                <span>
-                  Rank: <strong className="text-[#F5EFE9]">{currentTier.name}</strong>
+        {/* Scrollable Body: HUD, Earn Strip, Tabs & Details */}
+        <div className="flex-1 overflow-y-auto pr-0.5 space-y-3.5 pt-3 font-sans">
+          {/* Unified Hero HUD */}
+          <div className="relative overflow-hidden rounded-2xl border border-[#E8552E]/30 bg-gradient-to-br from-[#E8552E]/10 via-[#1c130e] to-black/60 p-4 shadow-sm">
+            <div className="flex items-baseline justify-between">
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#9C8F87] font-semibold">
+                  Total Warmth
                 </span>
-                <span>
-                  Next: <strong className="text-[#F5EFE9]">{nextTier.name}</strong> ({remaining} pts left)
-                </span>
+                <div className="text-3xl font-extrabold font-mono text-[#E8552E] flex items-center gap-1.5 mt-0.5">
+                  <span>{totalWarmth.toLocaleString()}</span>
+                  <Flame className="size-5 text-[#E8552E]" />
+                </div>
               </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-                <div
-                  className="h-full transition-all duration-500 rounded-full shadow-[0_0_8px_rgba(232,85,46,0.6)]"
-                  style={{
-                    width: `${progressPct}%`,
-                    backgroundColor: currentTier.colorCss,
-                  }}
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="mt-3 pt-3 border-t border-white/[0.08] text-xs font-semibold text-amber-400">
-              👑 Maximum Tier Reached: Bonfire Legend
-            </div>
-          )}
 
-          {/* Deep Retention: 10-Day Streak Visual Roadmap */}
-          <div className="mt-3 pt-3 border-t border-white/[0.08]">
-            <div className="flex items-center justify-between text-[11px] mb-1.5">
-              <span className="text-[#9C8F87] font-medium">10 Day Streak Milestone</span>
-              <span className="font-mono text-amber-300 font-semibold">
-                {daysToFollow === 0 ? "Baji Follow Unlocked 👑" : `${daysToFollow} days to Baji follow`}
-              </span>
+              <div className="text-right">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#9C8F87] font-semibold">
+                  Daily Streak
+                </span>
+                <div className="text-xl font-bold font-mono text-amber-400 flex items-center justify-end gap-1 mt-0.5">
+                  <Zap className="size-4 text-amber-400 fill-amber-400" />
+                  <span>{streakCount} {streakCount === 1 ? "Day" : "Days"}</span>
+                </div>
+              </div>
             </div>
-            {/* 10-step micro bar */}
-            <div className="grid grid-cols-10 gap-1">
-              {Array.from({ length: 10 }).map((_, i) => {
-                const dayNum = i + 1;
-                const isCompleted = streakCount >= dayNum;
-                const isCurrent = streakCount === dayNum;
-                return (
+
+            {/* Tier Progress */}
+            {nextTier ? (
+              <div className="mt-3 pt-3 border-t border-white/[0.08] space-y-1.5">
+                <div className="flex justify-between text-xs text-[#9C8F87]">
+                  <span>
+                    Rank: <strong className="text-[#F5EFE9]">{currentTier.name}</strong>
+                  </span>
+                  <span>
+                    Next: <strong className="text-[#F5EFE9]">{nextTier.name}</strong> ({remaining} pts left)
+                  </span>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
                   <div
-                    key={dayNum}
-                    title={`Day ${dayNum}${dayNum === 10 ? ": Baji follows on Instagram" : ""}`}
-                    className={`h-2 rounded-full transition-all ${
-                      isCompleted
-                        ? "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.6)]"
-                        : isCurrent
-                          ? "bg-amber-400/60 ring-1 ring-amber-400"
-                          : "bg-white/10"
-                    }`}
+                    className="h-full transition-all duration-500 rounded-full shadow-[0_0_8px_rgba(232,85,46,0.6)]"
+                    style={{
+                      width: `${progressPct}%`,
+                      backgroundColor: currentTier.colorCss,
+                    }}
                   />
-                );
-              })}
+                </div>
+              </div>
+            ) : (
+              <div className="mt-3 pt-3 border-t border-white/[0.08] text-xs font-semibold text-amber-400">
+                👑 Maximum Tier Reached: Bonfire Legend
+              </div>
+            )}
+
+            {/* Deep Retention: 10-Day Streak Visual Roadmap */}
+            <div className="mt-3 pt-3 border-t border-white/[0.08]">
+              <div className="flex items-center justify-between text-[11px] mb-2">
+                <span className="text-[#9C8F87] font-medium">10 Day Streak Milestone</span>
+                <span className="font-mono text-amber-300 font-semibold">
+                  {daysToFollow === 0 ? "Baji Follow Unlocked 👑" : `${daysToFollow} days to Baji follow`}
+                </span>
+              </div>
+              {/* 10-step micro bar */}
+              <div className="grid grid-cols-10 gap-1.5">
+                {Array.from({ length: 10 }).map((_, i) => {
+                  const dayNum = i + 1;
+                  const isCompleted = streakCount >= dayNum;
+                  const isCurrent = streakCount === dayNum;
+                  return (
+                    <div
+                      key={dayNum}
+                      title={`Day ${dayNum}${dayNum === 10 ? ": Baji follows on Instagram" : ""}`}
+                      className={`h-2.5 rounded-full transition-all ${
+                        isCompleted
+                          ? "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.6)]"
+                          : isCurrent
+                            ? "bg-amber-400/60 ring-1 ring-amber-400"
+                            : "bg-white/10"
+                      }`}
+                    />
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Minimal 1-row Earn Strip (Instant readability, zero paragraphs) */}
-        <div className="mt-2.5 grid grid-cols-3 gap-2 text-center text-xs">
-          <div className="rounded-xl bg-white/[0.03] p-2 border border-white/[0.06]">
-            <p className="text-[#9C8F87] text-[11px]">☕ Spill Tea</p>
-            <p className="font-mono font-bold text-[#E8552E] mt-0.5">+10 pts</p>
+          {/* Minimal 1-row Earn Strip (Instant readability, zero paragraphs) */}
+          <div className="grid grid-cols-3 gap-2 text-center text-xs">
+            <div className="rounded-xl bg-white/[0.03] p-2 border border-white/[0.06]">
+              <p className="text-[#9C8F87] text-[11px]">☕ Spill Tea</p>
+              <p className="font-mono font-bold text-[#E8552E] mt-0.5">+10 pts</p>
+            </div>
+            <div className="rounded-xl bg-white/[0.03] p-2 border border-white/[0.06]">
+              <p className="text-[#9C8F87] text-[11px]">💬 Leave Echo</p>
+              <p className="font-mono font-bold text-[#E8552E] mt-0.5">+3 pts</p>
+            </div>
+            <div className="rounded-xl bg-white/[0.03] p-2 border border-white/[0.06]">
+              <p className="text-[#9C8F87] text-[11px]">❤️ Hype Wall</p>
+              <p className="font-mono font-bold text-[#E8552E] mt-0.5">+1 pt</p>
+            </div>
           </div>
-          <div className="rounded-xl bg-white/[0.03] p-2 border border-white/[0.06]">
-            <p className="text-[#9C8F87] text-[11px]">💬 Leave Echo</p>
-            <p className="font-mono font-bold text-[#E8552E] mt-0.5">+3 pts</p>
-          </div>
-          <div className="rounded-xl bg-white/[0.03] p-2 border border-white/[0.06]">
-            <p className="text-[#9C8F87] text-[11px]">❤️ Hype Wall</p>
-            <p className="font-mono font-bold text-[#E8552E] mt-0.5">+1 pt</p>
-          </div>
-        </div>
 
-        {/* Clean Tabs (No AI stars, no dashes) */}
-        <div className="flex border-b border-white/10 my-3 font-sans text-xs">
-          <button
-            type="button"
-            onClick={() => setActiveTab("stats")}
-            className={`flex-1 pb-2.5 text-center font-semibold tracking-wide transition-colors cursor-pointer ${
-              activeTab === "stats"
-                ? "text-primary border-b-2 border-primary"
-                : "text-white/50 hover:text-white"
-            }`}
-          >
-            Activity & Limits
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("rewards")}
-            className={`flex-1 pb-2.5 text-center font-semibold tracking-wide transition-colors cursor-pointer ${
-              activeTab === "rewards"
-                ? "text-primary border-b-2 border-primary"
-                : "text-white/50 hover:text-white"
-            }`}
-          >
-            Perks & Gifts 🎁
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("leaderboard")}
-            className={`flex-1 pb-2.5 text-center font-semibold tracking-wide transition-colors cursor-pointer ${
-              activeTab === "leaderboard"
-                ? "text-primary border-b-2 border-primary"
-                : "text-white/50 hover:text-white"
-            }`}
-          >
-            Wall VIPs 👑
-          </button>
-        </div>
+          {/* Clean Tabs (No AI stars, no dashes) */}
+          <div className="flex border-b border-white/10 pt-1 font-sans text-xs">
+            <button
+              type="button"
+              onClick={() => setActiveTab("stats")}
+              className={`flex-1 pb-2.5 text-center font-semibold tracking-wide transition-colors cursor-pointer ${
+                activeTab === "stats"
+                  ? "text-primary border-b-2 border-primary"
+                  : "text-white/50 hover:text-white"
+              }`}
+            >
+              Activity & Limits
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("rewards")}
+              className={`flex-1 pb-2.5 text-center font-semibold tracking-wide transition-colors cursor-pointer ${
+                activeTab === "rewards"
+                  ? "text-primary border-b-2 border-primary"
+                  : "text-white/50 hover:text-white"
+              }`}
+            >
+              Perks & Gifts 🎁
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("leaderboard")}
+              className={`flex-1 pb-2.5 text-center font-semibold tracking-wide transition-colors cursor-pointer ${
+                activeTab === "leaderboard"
+                  ? "text-primary border-b-2 border-primary"
+                  : "text-white/50 hover:text-white"
+              }`}
+            >
+              Wall VIPs 👑
+            </button>
+          </div>
 
-        {/* Tab content area */}
-        <div className="flex-1 overflow-y-auto pr-1 space-y-3.5 py-1 font-sans">
+          {/* Tab contents */}
           {activeTab === "stats" && (
-            <>
+            <div className="space-y-3.5">
               {/* Daily Reaction Limit (Clean, minimal progress bar) */}
               <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 space-y-1.5">
                 <div className="flex justify-between text-xs">
@@ -265,7 +266,7 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
                   </div>
                 )}
               </div>
-            </>
+            </div>
           )}
 
           {activeTab === "rewards" && (
