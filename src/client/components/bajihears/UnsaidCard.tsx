@@ -14,6 +14,8 @@ import {
   MoreHorizontal,
   Clock,
   ShieldAlert,
+  Share2,
+  SmilePlus,
 } from "lucide-react";
 import { RevealCountdown } from "./RevealCountdown";
 import { triggerHaptic } from "@/client/lib/haptics";
@@ -91,6 +93,7 @@ export function UnsaidCard({
   const [isGifted, setIsGifted] = useState(false);
   const [isVetoed, setIsVetoed] = useState(false);
   const [vetoFeedback, setVetoFeedback] = useState<string | null>(null);
+  const [showRxPicker, setShowRxPicker] = useState(false);
 
   const lastTap = useRef(0);
   const preset = presetByKey(unsaid.preset);
@@ -198,31 +201,13 @@ export function UnsaidCard({
     <article
       onPointerUp={onCardPointerUp}
       className={cn(
-        "slide-in-card tilt-card relative overflow-hidden rounded-2xl sm:rounded-3xl transition-all duration-200 select-none",
+        "relative rounded-2xl sm:rounded-3xl transition-all duration-200 select-none p-5 sm:p-6",
         isWinner
-          ? "border-t-2 border-amber-400 bg-gradient-to-br from-amber-500/15 via-card/95 to-card/90 border-x border-b border-amber-400/40 shadow-[0_10px_35px_-10px_rgba(251,191,36,0.3)] p-4 sm:p-6"
-          : hero
-            ? "bg-hero-gradient border-primary/40 shadow-glow p-4 sm:p-6 hover:shadow-[0_20px_50px_-15px_rgba(249,115,22,0.3)]"
-            : "bg-gradient-to-br from-card via-card/95 to-card/90 border border-white/10 hover:border-primary/30 shadow-soft p-4 sm:p-5",
+          ? "border-t-2 border-[#E8552E] bg-gradient-to-b from-[#1e1510] to-[#17110D] border-x border-b border-white/[0.06] shadow-[0_12px_36px_-10px_rgba(232,85,46,0.22)]"
+          : "bg-[#17110D]",
+        isVetoed && "opacity-40 pointer-events-none",
       )}
     >
-      {/* Ambient background glow for Shade theme */}
-      <div
-        className="pointer-events-none absolute -top-12 -right-12 size-40 rounded-full opacity-35 blur-2xl"
-        style={{
-          background: `radial-gradient(circle, ${preset.from} 0%, ${preset.to} 100%)`,
-        }}
-        aria-hidden
-      />
-
-      {/* Decorative Quote Mark Watermark */}
-      <span
-        className="font-quote text-primary/8 pointer-events-none absolute -top-3 left-2 text-6xl sm:text-7xl select-none"
-        aria-hidden
-      >
-        “
-      </span>
-
       {/* Multi-Emoji Floating Burst on Double-Tap */}
       {burst && (
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center gap-3 overflow-hidden">
@@ -240,257 +225,222 @@ export function UnsaidCard({
         </div>
       )}
 
-      {/* Winner Pin Badge */}
+      {/* Ambient glow reserved strictly for Winner card */}
       {isWinner && (
-        <div className="relative z-10 mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-amber-400/20 pb-2.5">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 px-3 py-1 text-[10px] font-extrabold tracking-wider uppercase text-black shadow-[0_0_15px_rgba(251,191,36,0.4)]">
-            <Crown className="size-3 fill-current" aria-hidden /> Most Resonant Confession
-          </span>
-          <RevealCountdown className="text-amber-300 text-xs font-semibold tracking-wide" />
-        </div>
+        <div
+          className="pointer-events-none absolute -top-12 -right-12 size-40 rounded-full opacity-20 blur-3xl"
+          style={{
+            background: "radial-gradient(circle, #E8552E 0%, transparent 70%)",
+          }}
+          aria-hidden
+        />
       )}
 
-      {/* Pending Post Warming-Up Badge */}
-      {unsaid.status === "pending" && (
-        <div className="relative z-10 mb-3 flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-300">
-          <Clock className="size-3.5 animate-spin shrink-0" />
-          <span>Your confession is warming up — visible to others shortly</span>
-        </div>
-      )}
-
-      {/* Hero Badge */}
-      {hero && !isWinner && (
-        <div className="relative z-10 mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2.5">
-          <span className="bg-brand-gradient text-primary-foreground inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold tracking-wider uppercase shadow-xs">
-            <Flame className="size-3 fill-current" aria-hidden />
-            Featured Confession
-          </span>
-          <RevealCountdown className="text-primary/90 text-xs font-semibold tracking-wide" />
-        </div>
-      )}
-
-      {/* Main Quote Content */}
+      {/* Quote: The Hero */}
       <p
         className={cn(
-          "text-foreground text-balance relative z-10 font-vibe tracking-normal leading-relaxed text-foreground/95",
-          hero || isWinner
-            ? "font-display text-center text-lg sm:text-2xl font-bold tracking-tight"
-            : "text-[15px] sm:text-[16px] font-normal",
+          "font-quote font-normal leading-[1.65] text-[#F5EFE9] tracking-normal select-text",
+          isWinner ? "text-[21px] sm:text-[24px] leading-[1.6]" : "text-[18px] sm:text-[20px]",
         )}
       >
         {unsaid.text}
       </p>
 
-      {/* Post Metadata & Vibe Badges */}
-      <div
-        className={cn(
-          "relative z-10 mt-3 flex flex-wrap items-center gap-2 text-[11px] sm:text-xs font-vibe",
-          (hero || isWinner) && "justify-center",
-        )}
-      >
-        {unsaid.handle ? (
-          <a
-            href={getInstagramUrl(unsaid.handle)!}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            style={auraStyle}
-            className={cn(
-              "inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary hover:bg-primary/20 hover:border-primary/70 transition-all shadow-xs",
-              isOwnPost && tier.key !== "Ember" && "ring-1 ring-primary/40",
-            )}
-            title={`Visit Instagram @${stripHandle(unsaid.handle)}`}
-          >
-            {crownIcon && <span className="text-[10px]">👑</span>}
-            <Instagram className="size-3 text-primary shrink-0" aria-hidden />
-            <span>@{stripHandle(unsaid.handle)}</span>
-          </a>
-        ) : (
-          <span className="bg-white/5 border-white/10 font-medium text-foreground/80 rounded-full border px-2 py-0.5 text-[11px] shadow-xs">
-            @anonymous
+      {/* Small muted status caption if Winner */}
+      {isWinner && (
+        <div className="mt-2 text-xs text-[#9C8F87] flex items-center gap-1.5 font-sans">
+          <span>Will be posting on Instagram in</span>
+          <RevealCountdown className="text-[#9C8F87] font-medium" />
+        </div>
+      )}
+
+      {/* Pending status caption */}
+      {unsaid.status === "pending" && (
+        <div className="mt-2 text-xs text-amber-400/80 flex items-center gap-1.5 font-sans">
+          <Clock className="size-3 animate-spin" />
+          <span>warming up — visible to others shortly</span>
+        </div>
+      )}
+
+      {/* Metadata Row: Handle, Time, and Category */}
+      <div className="mt-4 flex items-center justify-between gap-3 text-xs font-sans">
+        <div className="flex items-center gap-2.5 text-[#9C8F87]">
+          {unsaid.handle ? (
+            <a
+              href={getInstagramUrl(unsaid.handle)!}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              style={auraStyle}
+              className="inline-flex items-center gap-1 text-[13px] font-medium text-[#9C8F87] hover:text-[#F5EFE9] transition-colors"
+              title={`Visit Instagram @${stripHandle(unsaid.handle)}`}
+            >
+              {crownIcon && <span className="text-[10px]">👑</span>}
+              <Instagram className="size-3 opacity-70 shrink-0" aria-hidden />
+              <span>@{stripHandle(unsaid.handle)}</span>
+            </a>
+          ) : (
+            <span className="text-[13px] font-medium text-[#9C8F87]">
+              anonymous
+            </span>
+          )}
+          <span className="text-[12px] text-[#9C8F87]/60">
+            {relativeTime(unsaid.createdAt)}
           </span>
-        )}
-        <span aria-hidden className="opacity-30">
-          ·
-        </span>
-        <span className="text-muted-foreground/75 text-[11px]">
-          {relativeTime(unsaid.createdAt)}
-        </span>
-        <span aria-hidden className="opacity-30">
-          ·
-        </span>
-        <span className="border-ember/30 bg-gradient-to-r from-ember/15 to-flame/15 text-ember rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase">
+        </div>
+
+        <span className="border border-white/10 text-[#9C8F87] rounded-full px-2.5 py-0.5 text-[11px] font-normal bg-transparent">
           #{unsaid.category.toLowerCase().replace(/\s+/g, "")}
         </span>
-        <span
-          aria-hidden
-          className="size-2 rounded-full shadow-xs"
-          style={{
-            backgroundImage: `linear-gradient(135deg, ${preset.from}, ${preset.to})`,
-          }}
-        />
-      </div>
-
-      {/* Row 1 — Tactile Reaction Chips */}
-      <div className="border-white/8 relative z-10 mt-3.5 grid grid-cols-4 gap-1.5 sm:gap-2 border-t pt-3">
-        {REACTIONS.map((rx) => {
-          const active = mine.includes(rx.key);
-          const Icon = REACTION_ICON[rx.key];
-          return (
-            <button
-              key={rx.key}
-              type="button"
-              aria-label={rx.label}
-              aria-pressed={active}
-              onClick={() => react(rx.key)}
-              className={cn(
-                "flex h-8 sm:h-9 min-w-0 items-center justify-center gap-1 sm:gap-1.5 rounded-full border text-[11px] sm:text-xs font-semibold tabular-nums transition-all duration-150 active:scale-95",
-                active
-                  ? "border-primary/60 bg-primary/15 text-primary shadow-[0_0_12px_rgba(250,84,28,0.2)]"
-                  : "border-white/8 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.06] hover:border-white/15 hover:text-foreground",
-              )}
-            >
-              <span
-                key={bounced === rx.key ? `bounce-${rx.key}` : `static-${rx.key}`}
-                className={cn(
-                  "inline-flex shrink-0 transition-transform",
-                  bounced === rx.key && "react-pop",
-                )}
-              >
-                <Icon
-                  className={cn("size-3.5", active && "text-primary fill-current")}
-                  aria-hidden
-                />
-              </span>
-              <span className="truncate">{compactCount(unsaid.reactions[rx.key])}</span>
-            </button>
-          );
-        })}
       </div>
 
       {copied && (
-        <p className="text-ember relative z-10 mt-2 text-center text-xs font-semibold animate-fade-in">
-          Copied vibe to clipboard ✨
+        <p className="text-[#E8552E] mt-2 text-center text-xs font-semibold animate-fade-in font-sans">
+          Copied to clipboard
         </p>
       )}
 
       {vetoFeedback && (
-        <p className="text-amber-400 relative z-10 mt-2 text-center text-xs font-semibold animate-fade-in flex items-center justify-center gap-1">
+        <p className="text-amber-400 mt-2 text-center text-xs font-semibold animate-fade-in flex items-center justify-center gap-1 font-sans">
           <ShieldAlert className="size-3.5" />
           <span>{vetoFeedback}</span>
         </p>
       )}
 
-      {/* Row 2 — Secondary Actions, Gift, & Overflow Menu */}
-      <div className="border-white/10 text-muted-foreground/80 relative z-10 mt-3.5 flex items-center justify-between border-t pt-3 text-xs font-vibe">
-        <div className="flex items-center gap-2 sm:gap-3">
+      {/* Bottom Action Row: Reactions, Echo, Share, and Overflow Menu */}
+      <div className="mt-4 flex items-center justify-between border-t border-white/[0.05] pt-3 text-xs font-sans">
+        {/* Left: Reaction Cluster with Primary Heart */}
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
-            onClick={() => {
-              if (unsaid.echoes.length > 0) {
-                setOpenEchoes((v) => !v);
-              } else {
-                setEchoOpen((v) => !v);
-              }
-            }}
+            aria-label="Heart reaction"
+            onClick={() => react("heart")}
             className={cn(
-              "flex min-h-[44px] items-center gap-1.5 transition-colors hover:text-foreground px-1 font-semibold",
-              echoed && "text-primary font-bold",
+              "flex items-center gap-1.5 py-1 px-2.5 rounded-full border transition-all text-xs active:scale-95 cursor-pointer",
+              mine.includes("heart")
+                ? "border-[#E8552E]/60 bg-[#E8552E]/10 text-[#E8552E] font-semibold"
+                : "border-transparent text-[#9C8F87] hover:text-[#F5EFE9] hover:bg-white/[0.04]",
             )}
           >
-            <MessageCircle className="size-4 shrink-0 text-primary/90" aria-hidden />
-            <span>
-              {unsaid.echoes.length > 0
-                ? `${unsaid.echoes.length} ${unsaid.echoes.length === 1 ? "Echo" : "Echoes"}`
-                : echoed
-                  ? "Echoed"
-                  : "Echo"}
-            </span>
+            <Heart
+              className={cn("size-3.5", mine.includes("heart") && "fill-current text-[#E8552E]")}
+            />
+            <span className="tabular-nums font-mono text-xs">{compactCount(unsaid.reactions.heart)}</span>
           </button>
 
-          {unsaid.echoes.length > 0 && !echoed && (
+          {/* Secondary reactions if active */}
+          {(unsaid.reactions.hug > 0 || mine.includes("hug")) && (
             <button
               type="button"
-              onClick={() => setEchoOpen((v) => !v)}
-              className="text-ember hover:text-primary min-h-[44px] text-[11px] font-semibold underline underline-offset-2 px-1"
+              onClick={() => react("hug")}
+              className={cn(
+                "flex items-center gap-1 py-1 px-2 rounded-full text-xs transition-colors cursor-pointer",
+                mine.includes("hug") ? "text-[#E8552E] font-semibold" : "text-[#9C8F87] hover:text-[#F5EFE9]",
+              )}
             >
-              + Echo
+              <HeartHandshake className="size-3" />
+              <span className="tabular-nums font-mono text-[11px]">{compactCount(unsaid.reactions.hug)}</span>
             </button>
           )}
-        </div>
 
-        <div className="flex items-center gap-1 sm:gap-2">
-          {/* Gift 10 Warmth Button */}
+          {(unsaid.reactions.fire > 0 || mine.includes("fire")) && (
+            <button
+              type="button"
+              onClick={() => react("fire")}
+              className={cn(
+                "flex items-center gap-1 py-1 px-2 rounded-full text-xs transition-colors cursor-pointer",
+                mine.includes("fire") ? "text-[#E8552E] font-semibold" : "text-[#9C8F87] hover:text-[#F5EFE9]",
+              )}
+            >
+              <Flame className="size-3" />
+              <span className="tabular-nums font-mono text-[11px]">{compactCount(unsaid.reactions.fire)}</span>
+            </button>
+          )}
+
+          {(unsaid.reactions.sad > 0 || mine.includes("sad")) && (
+            <button
+              type="button"
+              onClick={() => react("sad")}
+              className={cn(
+                "flex items-center gap-1 py-1 px-2 rounded-full text-xs transition-colors cursor-pointer",
+                mine.includes("sad") ? "text-[#E8552E] font-semibold" : "text-[#9C8F87] hover:text-[#F5EFE9]",
+              )}
+            >
+              <CloudRain className="size-3" />
+              <span className="tabular-nums font-mono text-[11px]">{compactCount(unsaid.reactions.sad)}</span>
+            </button>
+          )}
+
+          {/* Quiet Reaction Picker Trigger */}
           <div className="relative">
             <button
               type="button"
-              onClick={() => {
-                if (isGifted) return;
-                setGiftConfirmOpen((v) => !v);
-              }}
-              disabled={isGifted}
-              aria-label={isGifted ? "Gifted" : "Send 10 Warmth"}
-              title={isGifted ? "Gifted" : "Send 10 Warmth"}
-              className={cn(
-                "tap-44 grid min-h-[44px] min-w-9 place-items-center rounded-full transition-all",
-                isGifted ? "text-emerald-400 font-bold" : "hover:text-amber-400 hover:scale-105",
-              )}
+              onClick={() => setShowRxPicker((v) => !v)}
+              aria-label="More reactions"
+              className="p-1 text-[#9C8F87]/60 hover:text-[#F5EFE9] transition-colors rounded-full hover:bg-white/[0.04] cursor-pointer"
             >
-              {isGifted ? (
-                <Check className="size-4 text-emerald-400" />
-              ) : (
-                <Gift className="size-4 text-amber-400/90" />
-              )}
+              <SmilePlus className="size-3.5" />
             </button>
 
-            {/* Gift Confirmation Popover */}
-            {giftConfirmOpen && (
-              <div className="absolute bottom-full right-0 mb-2 z-30 w-48 rounded-2xl border border-primary/30 bg-[#191010] p-3 shadow-xl backdrop-blur-xl animate-[slideUp_0.2s_ease-out]">
-                <p className="text-xs font-semibold text-white">Send 10 Warmth to this post?</p>
-                <p className="text-[10px] text-white/60 mt-0.5">Spread quiet appreciation</p>
-                <div className="mt-2.5 flex justify-end gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => setGiftConfirmOpen(false)}
-                    className="rounded-lg px-2 py-1 text-[10px] text-white/60 hover:text-white"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSendGift}
-                    disabled={totalWarmth < 10}
-                    className="rounded-lg bg-primary px-2.5 py-1 text-[10px] font-bold text-white shadow-xs disabled:opacity-50"
-                  >
-                    Send (10🔥)
-                  </button>
-                </div>
+            {showRxPicker && (
+              <div className="absolute bottom-full left-0 mb-2 z-30 flex items-center gap-1 rounded-full border border-white/10 bg-[#1c1511]/98 px-2 py-1 shadow-2xl backdrop-blur-xl animate-[slideUp_0.15s_ease-out]">
+                {REACTIONS.map((rx) => {
+                  const Icon = REACTION_ICON[rx.key];
+                  const active = mine.includes(rx.key);
+                  return (
+                    <button
+                      key={rx.key}
+                      type="button"
+                      onClick={() => {
+                        react(rx.key);
+                        setShowRxPicker(false);
+                      }}
+                      title={rx.label}
+                      className={cn(
+                        "p-1.5 rounded-full transition-all hover:scale-110 cursor-pointer",
+                        active ? "text-[#E8552E] bg-white/10" : "text-[#9C8F87] hover:text-[#F5EFE9]",
+                      )}
+                    >
+                      <Icon className="size-3.5" />
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
+        </div>
 
+        {/* Right: Actions Row (Echo, Share, Overflow Menu) */}
+        <div className="flex items-center gap-3">
+          {/* Echo */}
           <button
             type="button"
-            onClick={copy}
-            aria-label={copied ? "Copied!" : "Copy text"}
-            title={copied ? "Copied!" : "Copy text"}
-            className="tap-44 spring-press hover:text-foreground grid min-h-[44px] min-w-9 place-items-center transition-colors"
-          >
-            {copied ? (
-              <Check className="size-4 text-emerald-400 animate-fade-in" aria-hidden />
-            ) : (
-              <Copy className="size-4" aria-hidden />
+            onClick={() => {
+              if (unsaid.echoes.length > 0) setOpenEchoes((v) => !v);
+              else setEchoOpen((v) => !v);
+            }}
+            className={cn(
+              "flex items-center gap-1.5 text-[#9C8F87] hover:text-[#F5EFE9] transition-colors font-sans text-xs font-medium cursor-pointer",
+              echoed && "text-[#E8552E] font-semibold",
             )}
+          >
+            <MessageCircle className="size-3.5 shrink-0" />
+            <span>
+              {unsaid.echoes.length > 0
+                ? `${unsaid.echoes.length} ${unsaid.echoes.length === 1 ? "Echo" : "Echoes"}`
+                : "Echo"}
+            </span>
           </button>
 
+          {/* Share */}
           <button
             type="button"
             onClick={() => onShare(unsaid)}
-            aria-label="Share to Story"
-            title="Share to Story"
-            className="tap-44 hover:text-primary hover:scale-110 grid min-h-[44px] min-w-9 place-items-center transition-all"
+            className="flex items-center gap-1.5 text-[#9C8F87] hover:text-[#F5EFE9] transition-colors font-sans text-xs font-medium cursor-pointer"
+            title="Share Story Card"
           >
-            <Instagram className="size-4 text-ember/90" aria-hidden />
+            <Share2 className="size-3.5" />
+            <span className="hidden sm:inline">Share</span>
           </button>
 
           {/* Three-Dot Overflow Menu */}
@@ -499,42 +449,47 @@ export function UnsaidCard({
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
               aria-label="More options"
-              className="tap-44 hover:text-foreground grid min-h-[44px] min-w-8 place-items-center transition-colors"
+              className="p-1 text-[#9C8F87] hover:text-[#F5EFE9] transition-colors rounded-full hover:bg-white/[0.04] cursor-pointer"
             >
               <MoreHorizontal className="size-4" />
             </button>
 
             {menuOpen && (
-              <div className="absolute bottom-full right-0 mb-2 z-30 w-44 overflow-hidden rounded-2xl border border-white/15 bg-[#170e0e]/95 py-1 shadow-2xl backdrop-blur-2xl animate-[slideUp_0.15s_ease-out]">
-                <button
-                  type="button"
-                  onClick={handleVeto}
-                  className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-xs text-white/80 hover:bg-white/10 hover:text-amber-400 transition-colors"
-                >
-                  <ShieldAlert className="size-3.5 text-amber-400" />
-                  <span>Something feels off</span>
-                </button>
+              <div className="absolute bottom-full right-0 mb-2 z-30 w-44 overflow-hidden rounded-2xl border border-white/10 bg-[#1c1511]/98 py-1.5 shadow-2xl backdrop-blur-2xl animate-[slideUp_0.15s_ease-out] font-sans">
                 <button
                   type="button"
                   onClick={() => {
                     setMenuOpen(false);
                     copy();
                   }}
-                  className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-xs text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+                  className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-xs text-[#F5EFE9]/90 hover:bg-white/[0.08] transition-colors cursor-pointer"
                 >
-                  <Copy className="size-3.5" />
+                  <Copy className="size-3.5 text-[#9C8F87]" />
                   <span>Copy text</span>
                 </button>
+
                 <button
                   type="button"
                   onClick={() => {
                     setMenuOpen(false);
-                    onShare(unsaid);
+                    setGiftConfirmOpen(true);
                   }}
-                  className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-xs text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+                  className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-xs text-[#F5EFE9]/90 hover:bg-white/[0.08] transition-colors cursor-pointer"
                 >
-                  <Instagram className="size-3.5 text-ember" />
-                  <span>Share story card</span>
+                  <Gift className="size-3.5 text-amber-400" />
+                  <span>Send 10 warmth</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    handleVeto();
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-xs text-[#F5EFE9]/90 hover:bg-white/[0.08] hover:text-amber-400 transition-colors cursor-pointer"
+                >
+                  <ShieldAlert className="size-3.5 text-[#9C8F87]" />
+                  <span>Something feels off</span>
                 </button>
               </div>
             )}
@@ -654,6 +609,35 @@ export function UnsaidCard({
             </button>
           </div>
         </form>
+      )}
+      {/* Gift Confirmation Modal */}
+      {giftConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-[fadeIn_0.15s_ease-out]">
+          <div className="w-full max-w-xs rounded-3xl border border-white/10 bg-[#17110D] p-5 shadow-2xl text-center text-foreground font-sans animate-[scaleUp_0.2s_ease-out]">
+            <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400">
+              <Gift className="size-6" />
+            </div>
+            <h4 className="text-sm font-bold text-white">Send 10 Warmth?</h4>
+            <p className="text-xs text-[#9C8F87] mt-1">Spread quiet appreciation to this anonymous author.</p>
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setGiftConfirmOpen(false)}
+                className="w-full rounded-xl border border-white/10 py-2 text-xs font-semibold text-white/70 hover:bg-white/[0.04] cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSendGift}
+                disabled={totalWarmth < 10}
+                className="w-full rounded-xl bg-[#E8552E] py-2 text-xs font-bold text-white shadow-md transition hover:opacity-95 disabled:opacity-50 cursor-pointer"
+              >
+                {totalWarmth < 10 ? "Need 10🔥" : "Send (10🔥)"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </article>
   );
