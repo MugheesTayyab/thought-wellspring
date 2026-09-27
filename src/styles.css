@@ -559,6 +559,53 @@
   --candle-opacity: 1;
 }
 
+/* Text Wrapping balance and pretty */
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
+}
+
+/* Minimal quick-settle like animation */
+@keyframes likeHeartSettle {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) translateZ(0);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.15) translateZ(0);
+  }
+  70% {
+    opacity: 0.95;
+    transform: scale(1) translateZ(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.05) translateZ(0);
+  }
+}
+
+.animate-like-heart-settle {
+  animation: likeHeartSettle 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Subtle floaty bob for the winner crown badge */
+@keyframes winnerBadgeFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-2px) rotate(1deg);
+  }
+}
+
+.winner-crown-bob {
+  animation: winnerBadgeFloat 3.2s ease-in-out infinite;
+}
+
 /* Accessible reduced-motion fallback (WCAG 2.2) */
 @media (prefers-reduced-motion: reduce) {
   *,

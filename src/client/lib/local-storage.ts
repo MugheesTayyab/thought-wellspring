@@ -74,6 +74,10 @@ export const writeMyReports = (v: string[]) => write(REPORT_KEY, v);
 export const readAvatarSeed = () => read<string | null>(AVATAR_KEY, null);
 export const writeAvatarSeed = (v: string) => write(AVATAR_KEY, v);
 
+const AVATAR_PHOTO_KEY = "bh:avatarPhoto";
+export const readAvatarPhoto = () => read<string | null>(AVATAR_PHOTO_KEY, null);
+export const writeAvatarPhoto = (v: string | null) => write(AVATAR_PHOTO_KEY, v);
+
 export const readHandle = () => read<string | null>(HANDLE_KEY, null);
 export const writeHandle = (v: string | null) => write(HANDLE_KEY, v);
 

@@ -10,11 +10,11 @@ import {
   MessageCircle,
   Settings2,
   ExternalLink,
-  Sparkles,
   Lock,
   Layers,
   Smile,
   RefreshCw,
+  Image as ImageIcon,
 } from "lucide-react";
 import { CornerAvatar } from "@/client/components/bajihears/CornerAvatar";
 import { PublicProfileModal } from "@/client/components/bajihears/PublicProfileModal";
@@ -27,8 +27,10 @@ import { triggerHaptic } from "@/client/lib/haptics";
 import type { Category, Unsaid } from "@/shared/types/unsaid";
 import {
   readAvatarSeed,
+  readAvatarPhoto,
   readHandle,
   writeAvatarSeed,
+  writeAvatarPhoto,
   writeHandle,
 } from "@/client/lib/local-storage";
 
@@ -91,6 +93,54 @@ function CornerPage() {
   const [email, setEmail] = useState("");
   const [notify, setNotify] = useState(true);
   const [saved, setSaved] = useState(false);
+  const [customPhoto, setCustomPhoto] = useState<string | null>(() => readAvatarPhoto());
+
+  const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxSize = 256;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxSize) {
+            height = Math.round((height * maxSize) / width);
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = Math.round((width * maxSize) / height);
+            height = maxSize;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+          setCustomPhoto(dataUrl);
+          writeAvatarPhoto(dataUrl);
+          triggerHaptic("selection");
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = () => {
+    triggerHaptic("selection");
+    setCustomPhoto(null);
+    writeAvatarPhoto(null);
+  };
 
   // Activity state
   const [activity, setActivity] = useState<UserActivityData | null>(null);
@@ -184,7 +234,7 @@ function CornerPage() {
       {/* Header Profile Identity Banner */}
       <div className="mt-5 flex items-center gap-4 bg-gradient-to-b from-[#1f1612] to-[#17110D] border border-white/[0.08] p-4 rounded-3xl shadow-lg">
         <div className="relative">
-          <CornerAvatar seed={seed} size={58} />
+          <CornerAvatar seed={seed} photoUrl={customPhoto} size={58} />
           {user && (
             <span
               className="absolute -bottom-1 -right-1 size-3.5 rounded-full bg-emerald-500 ring-2 ring-[#17110D]"
@@ -654,17 +704,40 @@ function CornerPage() {
 
           {/* Avatar Customization */}
           <div className="border border-white/[0.08] bg-[#17110D] flex items-center gap-4 rounded-2xl p-4 font-sans">
-            <CornerAvatar seed={seed} size={56} />
-            <div>
-              <p className="text-sm font-semibold text-[#F5EFE9]">Your anonymous avatar</p>
-              <button
-                type="button"
-                onClick={reroll}
-                className="text-[#E8552E] mt-1 inline-flex items-center gap-2 text-xs font-semibold cursor-pointer hover:underline"
-              >
-                <Dices className="size-3.5" aria-hidden />
-                Roll a new one
-              </button>
+            <CornerAvatar seed={seed} photoUrl={customPhoto} size={56} />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-[#F5EFE9]">
+                {customPhoto ? "Your gallery picture" : "Your anonymous avatar"}
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <label className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 hover:bg-white/15 px-2.5 py-1.5 text-xs font-semibold text-[#F5EFE9] cursor-pointer transition active:scale-95">
+                  <ImageIcon className="size-3.5 text-[#E8552E]" aria-hidden />
+                  <span>Choose from Gallery</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleGalleryUpload}
+                    className="hidden"
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={reroll}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 hover:bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-[#9C8F87] hover:text-[#F5EFE9] cursor-pointer transition active:scale-95"
+                >
+                  <Dices className="size-3.5" aria-hidden />
+                  <span>Roll Avatar</span>
+                </button>
+                {customPhoto && (
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    className="text-xs text-rose-400 hover:text-rose-300 underline cursor-pointer py-1"
+                  >
+                    Reset to avatar
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 

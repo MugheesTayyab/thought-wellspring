@@ -80,11 +80,15 @@ export function ScrollMascot() {
     preloadFrames();
     lastScrollY.current = window.scrollY;
 
-    // Brief delay before showing mascot so it doesn't flash on load
-    const showTimer = setTimeout(() => {
-      setVisible(true);
+    // Immediately active on mount with zero padded delay
+    setVisible(true);
+    goIdle();
+
+    const onScrollEnd = () => {
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+      velocity.current = 0;
       goIdle();
-    }, 1800);
+    };
 
     const onScroll = () => {
       if (rafId.current) cancelAnimationFrame(rafId.current);
@@ -94,7 +98,7 @@ export function ScrollMascot() {
         const delta = currentY - lastScrollY.current;
         lastScrollY.current = currentY;
 
-        // Exponential smoothing of velocity
+        // Velocity tracking
         velocity.current = velocity.current * 0.6 + delta * 0.4;
         const v = velocity.current;
 
@@ -115,19 +119,19 @@ export function ScrollMascot() {
           setFrame(6); // begin reverse
         }
 
-        // After 700ms of no scroll, return to idle
+        // Minimal 60ms debounce fallback for immediate snap on scroll stop
         idleTimer.current = setTimeout(() => {
-          velocity.current = 0;
-          goIdle();
-        }, 700);
+          onScrollEnd();
+        }, 60);
       });
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scrollend", onScrollEnd, { passive: true });
 
     return () => {
-      clearTimeout(showTimer);
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scrollend", onScrollEnd);
       stopBlinkLoop();
       if (idleTimer.current) clearTimeout(idleTimer.current);
       if (rafId.current) cancelAnimationFrame(rafId.current);
@@ -169,7 +173,7 @@ export function ScrollMascot() {
               objectPosition: "right bottom",
               // Show only the active frame — GPU composited, no layout shift
               opacity: frame === fi ? 1 : 0,
-              transition: "opacity 70ms linear",
+              transition: "opacity 40ms linear",
             }}
           />
         );

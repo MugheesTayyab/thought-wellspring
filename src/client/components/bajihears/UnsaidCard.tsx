@@ -44,8 +44,6 @@ const REACTION_ICON = {
   hug: HeartHandshake,
 } as const;
 
-const BURST_EMOJIS = ["❤️", "☕", "🔥", "🫂", "💖", "💅"];
-
 const QUICK_VIBES = [
   "Real spill 💅",
   "I feel you 🥺",
@@ -63,7 +61,6 @@ type Props = {
   hero?: boolean;
   isWinner?: boolean;
   hook?: string;
-  intrigueBadge?: string;
   onReact: (id: string, key: ReactionKey) => void;
   onEcho: (id: string, text: string, echoHandle: string | null) => void;
   onReport: (id: string) => void;
@@ -79,7 +76,6 @@ export function UnsaidCard({
   hero = false,
   isWinner = false,
   hook,
-  intrigueBadge,
   onReact,
   onEcho,
   onReport,
@@ -209,19 +205,23 @@ export function UnsaidCard({
     onReact(unsaid.id, key);
   };
 
-  // Instagram-style double tap anywhere on the card = multi-emoji floating burst + hearth embers.
-  const onCardPointerUp = () => {
+  // Double tap anywhere on the card: exclusively likes post with a minimal centered heart pop.
+  // Decoupled from selection/copy and ignores taps on interactive child controls.
+  const onCardPointerUp = (e: React.PointerEvent<HTMLElement>) => {
+    const target = e.target as HTMLElement | null;
+    if (target?.closest("button, a, input, textarea, form, [role='button']")) {
+      return;
+    }
+
     const t = Date.now();
-    if (t - lastTap.current < 320) {
+    if (t - lastTap.current < 280) {
       lastTap.current = 0;
       triggerHaptic("celebration");
       if (!mine.includes("heart")) onReact(unsaid.id, "heart");
       setBurst(true);
-      setHearthSpark(true);
       window.setTimeout(() => {
         setBurst(false);
-        setHearthSpark(false);
-      }, 950);
+      }, 350);
       return;
     }
     lastTap.current = t;
@@ -291,22 +291,15 @@ export function UnsaidCard({
           isVetoed && "opacity-40 pointer-events-none",
         )}
       >
-        {/* Real Floating Ember Hearth Burst on Reaction or Double-Tap */}
+        {/* Real Floating Ember Hearth Burst on Explicit Reaction */}
         {hearthSpark && <HearthBurst />}
-        {/* Multi-Emoji Floating Burst on Double-Tap */}
+
+        {/* Minimal Centered Heart Pop on Double-Tap (quick settle, does not compete with text) */}
         {burst && (
-          <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center gap-3 overflow-hidden">
-            {BURST_EMOJIS.map((emoji, idx) => (
-              <span
-                key={idx}
-                className="float-up-particle text-3xl drop-shadow-md"
-                style={{
-                  animationDelay: `${idx * 0.08}s`,
-                }}
-              >
-                {emoji}
-              </span>
-            ))}
+          <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
+            <div className="animate-like-heart-settle flex items-center justify-center">
+              <Heart className="size-14 text-rose-500 fill-rose-500 drop-shadow-[0_4px_16px_rgba(244,63,94,0.6)]" />
+            </div>
           </div>
         )}
 
@@ -323,13 +316,13 @@ export function UnsaidCard({
 
         {/* Crowned Winner Header (Responsive, zero-collision layout) */}
         {isWinner && (
-          <div className="flex items-center justify-between flex-wrap gap-2.5 pb-3 mb-3 border-b border-white/10 relative z-10">
+          <div className="winner-badge-float flex items-center justify-between flex-wrap gap-2.5 pb-3 mb-3 border-b border-white/10 relative z-10">
             <div className="flex items-center gap-2">
-              <span className="flex size-7 items-center justify-center rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs shadow-[0_0_12px_rgba(245,158,11,0.25)] shrink-0">
+              <span className="winner-crown-bob flex size-7 items-center justify-center rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs shadow-[0_0_12px_rgba(245,158,11,0.25)] shrink-0">
                 👑
               </span>
               <div className="flex flex-col">
-                <span className="font-mono text-[10px] uppercase tracking-wider text-amber-300 font-bold leading-tight">
+                <span className="font-sans text-[11px] font-bold uppercase tracking-[0.14em] text-amber-300 leading-tight">
                   CYCLE CHAMPION
                 </span>
                 <span className="text-[10px] text-[#9C8F87] font-sans leading-tight">
@@ -337,29 +330,17 @@ export function UnsaidCard({
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-mono text-[#F5EFE9] shrink-0">
+            <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-sans font-medium text-[#F5EFE9] shrink-0">
               <Instagram className="size-3 text-[#E8552E] shrink-0" />
               <RevealCountdown prefix="Drop in " className="text-[#E8552E] font-medium" />
             </div>
           </div>
         )}
 
-        {/* High Intrigue / Psychological Voyeurism Badge */}
-        {intrigueBadge && !isWinner && (
-          <div className="flex items-center justify-between gap-2 mb-3 pb-2.5 border-b border-white/[0.08]">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-[#fa541c]/40 bg-[#fa541c]/15 text-[10px] font-mono font-bold tracking-wider uppercase text-[#fa541c] shadow-[0_0_10px_rgba(250,84,28,0.25)] animate-pulse">
-              <span>{intrigueBadge}</span>
-            </span>
-            <span className="text-[10px] text-[#9C8F87] font-sans">
-              People can&apos;t look away 👀
-            </span>
-          </div>
-        )}
-
         {/* Quote: The Hero */}
         <p
           className={cn(
-            "font-quote font-normal leading-[1.65] text-[#F5EFE9] tracking-normal select-text",
+            "font-quote font-normal leading-[1.65] text-[#F5EFE9] tracking-normal select-none text-balance text-pretty",
             isWinner ? "text-[21px] sm:text-[24px] leading-[1.6]" : "text-[18px] sm:text-[20px]",
           )}
         >
@@ -414,7 +395,7 @@ export function UnsaidCard({
                 )}
               </div>
             ) : (
-              <span className="text-[12px] font-mono text-[#9C8F87]/80">
+              <span className="text-[12px] font-sans font-medium text-[#9C8F87]/80">
                 anonymous
               </span>
             )}
@@ -459,7 +440,7 @@ export function UnsaidCard({
             <Heart
               className={cn("size-3.5", mine.includes("heart") && "fill-current text-[#E8552E]")}
             />
-            <span className="tabular-nums font-mono text-xs">{compactCount(unsaid.reactions.heart)}</span>
+            <span className="tabular-nums font-sans font-semibold text-xs">{compactCount(unsaid.reactions.heart)}</span>
           </button>
 
           {/* User's custom non-heart reaction indicator if active */}

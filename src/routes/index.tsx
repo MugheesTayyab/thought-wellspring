@@ -256,8 +256,8 @@ function Home() {
 
           {/* Feed Sort & Psychological Ranking Filter */}
           <div className="pt-2">
-            <div className="flex items-center justify-between gap-2 px-1 mb-2.5 font-vibe">
-              <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-2xl border border-white/8">
+            <div className="flex flex-col items-center justify-center gap-1.5 px-1 mb-3">
+              <div className="flex items-center justify-center gap-1 bg-white/[0.04] p-1 rounded-2xl border border-white/8 shadow-xs">
                 <button
                   type="button"
                   onClick={() => {
@@ -265,14 +265,14 @@ function Home() {
                     setFeedSort("spicy");
                   }}
                   className={cn(
-                    "px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer",
+                    "px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer",
                     feedSort === "spicy"
                       ? "bg-[#E8552E] text-white shadow-[0_0_12px_rgba(232,85,46,0.35)]"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   <span>🔥</span>
-                  <span>Spicy Secrets</span>
+                  <span>Spicy</span>
                 </button>
                 <button
                   type="button"
@@ -281,7 +281,7 @@ function Home() {
                     setFeedSort("latest");
                   }}
                   className={cn(
-                    "px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer",
+                    "px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer",
                     feedSort === "latest"
                       ? "bg-[#E8552E] text-white shadow-[0_0_12px_rgba(232,85,46,0.35)]"
                       : "text-muted-foreground hover:text-foreground"
@@ -292,7 +292,7 @@ function Home() {
                 </button>
               </div>
 
-              <span className="text-[11px] text-[#9C8F87] font-sans">
+              <span className="text-[11px] text-[#9C8F87] font-sans text-center">
                 {feedSort === "spicy" ? "Most addictive first" : "Chronological"}
               </span>
             </div>
@@ -362,12 +362,12 @@ function Home() {
 
           {/* Empty State */}
           {!isFeedLoading && !isFeedError && visiblePosts.length === 0 && (
-            <div className="bg-card border-border rounded-3xl border p-5 text-center font-vibe">
-              <p className="font-display text-lg font-bold">No confessions here yet</p>
-              <p className="text-muted-foreground mt-2 text-sm">
+            <div className="bg-[#17110D] border border-white/[0.08] rounded-3xl p-6 text-center font-sans">
+              <p className="font-display text-lg font-bold text-[#F5EFE9]">A quiet moment on the wall</p>
+              <p className="text-muted-foreground mt-2 text-xs max-w-xs mx-auto leading-relaxed">
                 {filters.length > 0
-                  ? "No confessions found in this category. Try selecting another!"
-                  : "Be the first to share an unspoken thought or secret confession."}
+                  ? "No confessions found in this category. Try selecting another filter."
+                  : "If you have unsaid thoughts kept inside, write them freely. An anonymous whisper here can reach thousands of kindred souls."}
               </p>
             </div>
           )}
@@ -377,7 +377,6 @@ function Home() {
             <Fragment key={u.id}>
               <UnsaidCard
                 unsaid={u}
-                intrigueBadge={index === 0 && feedSort === "spicy" ? "🔥 Most Whispered Secret" : undefined}
                 mine={myReactions[u.id] ?? []}
                 echoed={myEchoedIds.includes(u.id)}
                 reported={myReports.includes(u.id)}
