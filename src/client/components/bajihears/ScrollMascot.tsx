@@ -15,14 +15,14 @@ import { useEffect, useRef, useState } from "react";
 
 const FRAMES = [
   null,             // 0 — hidden
-  "/mascot/f1.jpg", // 1
-  "/mascot/f2.jpg", // 2
-  "/mascot/f3.jpg", // 3
-  "/mascot/f4.jpg", // 4
-  "/mascot/f5.jpg", // 5
-  "/mascot/f6.jpg", // 6
-  "/mascot/f7.jpg", // 7
-  "/mascot/f8.jpg", // 8
+  "/mascot/f1.png", // 1
+  "/mascot/f2.png", // 2
+  "/mascot/f3.png", // 3
+  "/mascot/f4.png", // 4
+  "/mascot/f5.png", // 5
+  "/mascot/f6.png", // 6
+  "/mascot/f7.png", // 7
+  "/mascot/f8.png", // 8
 ];
 
 // Preload all frames the moment the component mounts
@@ -43,16 +43,15 @@ export function ScrollMascot() {
   const rafId = useRef<number | null>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const blinkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const idleFrame = useRef<1 | 2>(1);
 
-  // Blink loop when idle (alternates f1 ↔ f2 every ~4s)
+  // Blink loop when idle (alternates f1 ↔ f2 every ~3.5-5.5s)
   const startBlinkLoop = () => {
     blinkTimer.current = setTimeout(() => {
       setFrame(2); // close eyes
       blinkTimer.current = setTimeout(() => {
         setFrame(1); // open eyes
         startBlinkLoop();
-      }, 250);
+      }, 220);
     }, 3500 + Math.random() * 2000);
   };
 
@@ -116,11 +115,11 @@ export function ScrollMascot() {
           setFrame(6); // begin reverse
         }
 
-        // After 800ms of no scroll, return to idle
+        // After 700ms of no scroll, return to idle
         idleTimer.current = setTimeout(() => {
           velocity.current = 0;
           goIdle();
-        }, 800);
+        }, 700);
       });
     };
 
@@ -145,11 +144,11 @@ export function ScrollMascot() {
       className="mascot-root pointer-events-none fixed z-[25] select-none"
       aria-hidden="true"
       style={{
-        // Pin to bottom-right, above bottom nav but below modals
+        // Pin strictly flush against the right edge of any mobile screen
         right: 0,
-        bottom: "calc(5.5rem + env(safe-area-inset-bottom, 0px))",
-        width: 88,
-        height: 88,
+        bottom: "calc(5.2rem + env(safe-area-inset-bottom, 0px))",
+        height: 86,
+        width: 90,
       }}
     >
       {FRAMES.slice(1).map((fsrc, i) => {
@@ -162,16 +161,15 @@ export function ScrollMascot() {
             draggable={false}
             style={{
               position: "absolute",
-              inset: 0,
-              width: "100%",
+              right: 0,
+              bottom: 0,
               height: "100%",
+              width: "auto",
               objectFit: "contain",
               objectPosition: "right bottom",
               // Show only the active frame — GPU composited, no layout shift
               opacity: frame === fi ? 1 : 0,
-              transition: "opacity 80ms linear",
-              // Slight right-offset so body is half off-canvas — realistic edge peek
-              transform: "translateX(22px)",
+              transition: "opacity 70ms linear",
             }}
           />
         );
