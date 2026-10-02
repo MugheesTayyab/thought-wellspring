@@ -2,6 +2,9 @@ node_modules
 dist
 .output
 .vinxi
+.wrangler
+screenshots
+*.log
 pnpm-lock.yaml
 package-lock.json
 bun.lock

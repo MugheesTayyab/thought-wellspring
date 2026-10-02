@@ -8,6 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
+import { Flame } from "lucide-react";
 
 import "@/styles.css";
 import appCss from "@/styles.css?url";
@@ -85,36 +86,45 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "BajiHears | Say the Unsaid" },
-      { name: "description", content: "An intimate sanctuary for anonymous confessions, hot takes, and real connection." },
-      { name: "theme-color", content: "#0F0A0A" },
+      {
+        name: "description",
+        content: "An intimate sanctuary for anonymous confessions, hot takes, and real connection.",
+      },
+      { name: "theme-color", content: "#0c0c0b" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "BajiHears" },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://bajihears.mugheestayyab4.workers.dev/" },
       { property: "og:title", content: "BajiHears | Say the Unsaid" },
-      { property: "og:description", content: "An intimate sanctuary for anonymous confessions, hot takes, and real connection." },
-      { property: "og:image", content: "https://bajihears.mugheestayyab4.workers.dev/og-image.jpg" },
+      {
+        property: "og:description",
+        content: "An intimate sanctuary for anonymous confessions, hot takes, and real connection.",
+      },
+      {
+        property: "og:image",
+        content: "https://bajihears.mugheestayyab4.workers.dev/og-image.jpg",
+      },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "675" },
       { property: "og:image:alt", content: "BajiHears | Say the Unsaid" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "BajiHears | Say the Unsaid" },
-      { name: "twitter:description", content: "An intimate sanctuary for anonymous confessions, hot takes, and real connection." },
-      { name: "twitter:image", content: "https://bajihears.mugheestayyab4.workers.dev/og-image.jpg" },
+      {
+        name: "twitter:description",
+        content: "An intimate sanctuary for anonymous confessions, hot takes, and real connection.",
+      },
+      {
+        name: "twitter:image",
+        content: "https://bajihears.mugheestayyab4.workers.dev/og-image.jpg",
+      },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
-      },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,600&family=Playfair+Display:ital,wght@1,600;1,700&display=swap",
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
       { rel: "apple-touch-icon", href: "/favicon.png" },
@@ -134,6 +144,12 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <a
+          href="#main-content"
+          className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-md bg-foreground px-4 py-3 text-sm font-bold text-background transition-transform focus:translate-y-0"
+        >
+          Skip to content
+        </a>
         {children}
         <Scripts />
       </body>
@@ -170,18 +186,20 @@ function RootComponent() {
         <WarmthProvider>
           <WarmthSyncWatcher />
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
+          <div id="main-content" tabIndex={-1}>
+            <Outlet />
+          </div>
 
           {/* Daily Return Bonus Toast */}
           {dailyBonus && (
             <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none select-none">
-              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-[#17110D]/85 px-3.5 py-1.5 text-xs text-[#F5EFE9] shadow-[0_8px_30px_rgba(0,0,0,0.6)] backdrop-blur-2xl font-sans animate-[slideDown_0.25s_cubic-bezier(0.16,1,0.3,1)]">
-                <span className="text-xs shrink-0 select-none">🔥</span>
-                <span className="font-semibold tabular-nums text-[#E8552E]">
+              <div className="flex min-h-11 items-center gap-2 rounded-lg border border-border bg-popover px-4 text-xs text-foreground shadow-soft font-sans animate-[slideDown_0.25s_cubic-bezier(0.16,1,0.3,1)]">
+                <Flame className="size-4 shrink-0 text-primary" aria-hidden />
+                <span className="font-semibold tabular-nums text-primary">
                   +{dailyBonus.amount}
                 </span>
-                <span className="text-[#9C8F87] text-[11px] font-normal truncate max-w-[200px]">
-                  Welcome back · {dailyBonus.streak}d streak
+                <span className="text-muted-foreground text-xs font-normal truncate max-w-[200px]">
+                  Welcome back · {dailyBonus.streak} day streak
                 </span>
               </div>
             </div>

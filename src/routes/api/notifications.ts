@@ -18,7 +18,7 @@ export const apiSavePushSubscription = createServerFn({ method: "POST" })
       jwt?: string;
       deviceToken?: string;
       userAgent?: string;
-    }) => data
+    }) => data,
   )
   .handler(async ({ data }) => {
     const { handleSavePushSubscription } = await import("@/server/handlers/notifications");

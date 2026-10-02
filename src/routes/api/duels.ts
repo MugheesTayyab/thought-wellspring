@@ -17,7 +17,7 @@ export const apiSubmitDuelVote = createServerFn({ method: "POST" })
       choiceIndex: 0 | 1;
       deviceToken: string;
       profileId?: string | null;
-    }) => data
+    }) => data,
   )
   .handler(async ({ data }) => {
     const { handleSubmitDuelVote } = await import("@/server/handlers/duels");

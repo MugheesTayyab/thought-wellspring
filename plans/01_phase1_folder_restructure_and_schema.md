@@ -1,6 +1,8 @@
 # Phase 1 — Exhaustive Implementation Plan
+
 ## Folder Restructure + Supabase Schema + Row-Level Security
-*BajiHears · Bulk client-facing production standard · No code — pure specification*
+
+_BajiHears · Bulk client-facing production standard · No code — pure specification_
 
 ---
 
@@ -66,6 +68,7 @@ This remains unchanged. All existing `@/lib/`, `@/components/` imports are updat
 to the new paths as files are moved. No alias is added or removed — only import paths update.
 
 The `@/` alias continues to point to `src/`. The new paths become:
+
 - `@/client/components/bajihears/UnsaidCard` instead of `@/components/bajihears/UnsaidCard`
 - `@/shared/types/unsaid` instead of `@/lib/bajihears` for type imports
 - `@/server/functions/posts` for server function calls from routes
@@ -79,40 +82,40 @@ The `@/` alias continues to point to `src/`. The new paths become:
 These files are relocated without touching their internal code.
 Only their import paths change in other files that reference them.
 
-| Current Location | New Location | Reason |
-|---|---|---|
-| `src/components/bajihears/BajiIntroSplash.tsx` | `src/client/components/bajihears/BajiIntroSplash.tsx` | UI-only component |
-| `src/components/bajihears/BajiMascot.tsx` | `src/client/components/bajihears/BajiMascot.tsx` | UI-only component |
-| `src/components/bajihears/BajiReadCard.tsx` | `src/client/components/bajihears/BajiReadCard.tsx` | UI-only component |
-| `src/components/bajihears/BajiReadLockedCard.tsx` | `src/client/components/bajihears/BajiReadLockedCard.tsx` | UI-only component |
-| `src/components/bajihears/BajiReadShareDialog.tsx` | `src/client/components/bajihears/BajiReadShareDialog.tsx` | UI-only component |
-| `src/components/bajihears/BottomNav.tsx` | `src/client/components/bajihears/BottomNav.tsx` | UI-only component |
-| `src/components/bajihears/CommunityRegulars.tsx` | `src/client/components/bajihears/CommunityRegulars.tsx` | UI-only component |
-| `src/components/bajihears/CornerAvatar.tsx` | `src/client/components/bajihears/CornerAvatar.tsx` | UI-only component |
-| `src/components/bajihears/CornerMenu.tsx` | `src/client/components/bajihears/CornerMenu.tsx` | UI-only component |
-| `src/components/bajihears/DuelCard.tsx` | `src/client/components/bajihears/DuelCard.tsx` | UI-only component |
-| `src/components/bajihears/FeedSkeleton.tsx` | `src/client/components/bajihears/FeedSkeleton.tsx` | UI-only component |
-| `src/components/bajihears/FeedWritingPrompt.tsx` | `src/client/components/bajihears/FeedWritingPrompt.tsx` | UI-only component |
-| `src/components/bajihears/GiftMilestone.tsx` | `src/client/components/bajihears/GiftMilestone.tsx` | UI-only component |
-| `src/components/bajihears/Logo.tsx` | `src/client/components/bajihears/Logo.tsx` | UI-only component |
-| `src/components/bajihears/PushPermissionSheet.tsx` | `src/client/components/bajihears/PushPermissionSheet.tsx` | UI-only component |
-| `src/components/bajihears/QuoteCardDialog.tsx` | `src/client/components/bajihears/QuoteCardDialog.tsx` | UI-only component |
-| `src/components/bajihears/RevealCountdown.tsx` | `src/client/components/bajihears/RevealCountdown.tsx` | UI-only component |
-| `src/components/bajihears/TopGivers.tsx` | `src/client/components/bajihears/TopGivers.tsx` | UI-only component |
-| `src/components/bajihears/UnsaidCard.tsx` | `src/client/components/bajihears/UnsaidCard.tsx` | UI-only component |
-| `src/components/bajihears/WarmthOrb.tsx` | `src/client/components/bajihears/WarmthOrb.tsx` | UI-only component |
-| `src/components/bajihears/WarmthSheet.tsx` | `src/client/components/bajihears/WarmthSheet.tsx` | UI-only component |
-| `src/components/bajihears/WarmthStore.tsx` | `src/client/components/bajihears/WarmthStore.tsx` | UI-only component |
-| `src/components/bajihears/WarmthToast.tsx` | `src/client/components/bajihears/WarmthToast.tsx` | UI-only component |
-| `src/components/bajihears/WritingBox.tsx` | `src/client/components/bajihears/WritingBox.tsx` | UI-only component |
-| `src/hooks/use-mobile.tsx` | `src/client/hooks/use-mobile.tsx` | Client hook, uses window resize |
-| `src/lib/haptics.ts` | `src/client/lib/haptics.ts` | Browser API — `navigator.vibrate` |
-| `src/lib/bajiRead.ts` | `src/client/lib/bajiRead.ts` | Client-side personality engine — uses localStorage signals |
-| `src/lib/notifications.ts` | `src/client/lib/notifications.ts` | Browser APIs — `navigator.serviceWorker`, `Notification` |
-| `src/styles.css` | `src/client/styles/styles.css` | CSS assets belong in client zone |
-| `src/lib/error-capture.ts` | `src/client/lib/error-capture.ts` | Client-side error reporting |
-| `src/lib/lovable-error-reporting.ts` | `src/client/lib/lovable-error-reporting.ts` | Client-side reporting |
-| `src/lib/utils.ts` | `src/shared/utils.ts` | `cn()` utility — used by both zones |
+| Current Location                                   | New Location                                              | Reason                                                     |
+| -------------------------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------- |
+| `src/components/bajihears/BajiIntroSplash.tsx`     | `src/client/components/bajihears/BajiIntroSplash.tsx`     | UI-only component                                          |
+| `src/components/bajihears/BajiMascot.tsx`          | `src/client/components/bajihears/BajiMascot.tsx`          | UI-only component                                          |
+| `src/components/bajihears/BajiReadCard.tsx`        | `src/client/components/bajihears/BajiReadCard.tsx`        | UI-only component                                          |
+| `src/components/bajihears/BajiReadLockedCard.tsx`  | `src/client/components/bajihears/BajiReadLockedCard.tsx`  | UI-only component                                          |
+| `src/components/bajihears/BajiReadShareDialog.tsx` | `src/client/components/bajihears/BajiReadShareDialog.tsx` | UI-only component                                          |
+| `src/components/bajihears/BottomNav.tsx`           | `src/client/components/bajihears/BottomNav.tsx`           | UI-only component                                          |
+| `src/components/bajihears/CommunityRegulars.tsx`   | `src/client/components/bajihears/CommunityRegulars.tsx`   | UI-only component                                          |
+| `src/components/bajihears/CornerAvatar.tsx`        | `src/client/components/bajihears/CornerAvatar.tsx`        | UI-only component                                          |
+| `src/components/bajihears/CornerMenu.tsx`          | `src/client/components/bajihears/CornerMenu.tsx`          | UI-only component                                          |
+| `src/components/bajihears/DuelCard.tsx`            | `src/client/components/bajihears/DuelCard.tsx`            | UI-only component                                          |
+| `src/components/bajihears/FeedSkeleton.tsx`        | `src/client/components/bajihears/FeedSkeleton.tsx`        | UI-only component                                          |
+| `src/components/bajihears/FeedWritingPrompt.tsx`   | `src/client/components/bajihears/FeedWritingPrompt.tsx`   | UI-only component                                          |
+| `src/components/bajihears/GiftMilestone.tsx`       | `src/client/components/bajihears/GiftMilestone.tsx`       | UI-only component                                          |
+| `src/components/bajihears/Logo.tsx`                | `src/client/components/bajihears/Logo.tsx`                | UI-only component                                          |
+| `src/components/bajihears/PushPermissionSheet.tsx` | `src/client/components/bajihears/PushPermissionSheet.tsx` | UI-only component                                          |
+| `src/components/bajihears/QuoteCardDialog.tsx`     | `src/client/components/bajihears/QuoteCardDialog.tsx`     | UI-only component                                          |
+| `src/components/bajihears/RevealCountdown.tsx`     | `src/client/components/bajihears/RevealCountdown.tsx`     | UI-only component                                          |
+| `src/components/bajihears/TopGivers.tsx`           | `src/client/components/bajihears/TopGivers.tsx`           | UI-only component                                          |
+| `src/components/bajihears/UnsaidCard.tsx`          | `src/client/components/bajihears/UnsaidCard.tsx`          | UI-only component                                          |
+| `src/components/bajihears/WarmthOrb.tsx`           | `src/client/components/bajihears/WarmthOrb.tsx`           | UI-only component                                          |
+| `src/components/bajihears/WarmthSheet.tsx`         | `src/client/components/bajihears/WarmthSheet.tsx`         | UI-only component                                          |
+| `src/components/bajihears/WarmthStore.tsx`         | `src/client/components/bajihears/WarmthStore.tsx`         | UI-only component                                          |
+| `src/components/bajihears/WarmthToast.tsx`         | `src/client/components/bajihears/WarmthToast.tsx`         | UI-only component                                          |
+| `src/components/bajihears/WritingBox.tsx`          | `src/client/components/bajihears/WritingBox.tsx`          | UI-only component                                          |
+| `src/hooks/use-mobile.tsx`                         | `src/client/hooks/use-mobile.tsx`                         | Client hook, uses window resize                            |
+| `src/lib/haptics.ts`                               | `src/client/lib/haptics.ts`                               | Browser API — `navigator.vibrate`                          |
+| `src/lib/bajiRead.ts`                              | `src/client/lib/bajiRead.ts`                              | Client-side personality engine — uses localStorage signals |
+| `src/lib/notifications.ts`                         | `src/client/lib/notifications.ts`                         | Browser APIs — `navigator.serviceWorker`, `Notification`   |
+| `src/styles.css`                                   | `src/client/styles/styles.css`                            | CSS assets belong in client zone                           |
+| `src/lib/error-capture.ts`                         | `src/client/lib/error-capture.ts`                         | Client-side error reporting                                |
+| `src/lib/lovable-error-reporting.ts`               | `src/client/lib/lovable-error-reporting.ts`               | Client-side reporting                                      |
+| `src/lib/utils.ts`                                 | `src/shared/utils.ts`                                     | `cn()` utility — used by both zones                        |
 
 ---
 
@@ -128,52 +131,52 @@ They are split — parts go to different destinations, the original file is dele
 This is the largest split. Current file contains: mock data, types, localStorage helpers,
 scoring algorithm, formatting utilities, warmth extensions, duel types, and constants.
 
-| Content | New Location | Reason |
-|---|---|---|
-| `ReactionKey` type | `src/shared/types/unsaid.ts` | Pure type, used by both client components and server functions |
-| `REACTIONS` array | `src/shared/constants/reactions.ts` | Pure constant, needs same values in both client (emoji display) and server (validation) |
-| `CATEGORIES` const + `Category` type | `src/shared/types/unsaid.ts` and `src/shared/constants/categories.ts` | Type used by DB schema; constant used by server (CHECK constraint validation) and client (filter chips) |
-| `Preset` type, `PRESETS`, `EXCLUSIVE_PRESETS`, `presetByKey()` | `src/shared/types/unsaid.ts` and `src/shared/constants/presets.ts` | Type needed on server for validation; constants needed on client for card rendering |
-| `Echo` type, `Unsaid` type | `src/shared/types/unsaid.ts` | These are the core data contracts shared by DB layer and UI components |
-| `WINNER` hardcoded object | `src/server/lib/fallback-winner.ts` | Server fallback only — clients never reference this directly |
-| `MOCK_UNSAIDS` array | **DELETED** | Replaced by real DB data in Phase 4 |
-| `MAX_LEN = 280`, `MIN_LEN = 3`, `CYCLE_MS`, `LOCKOUT_MS` | `src/shared/constants/cycle.ts` | Referenced by both server validation and client character counter |
-| `nextRevealAt()` function | `src/shared/utils.ts` | Pure calculation, no side effects |
-| localStorage key constants (`SUBMIT_KEY`, `REACT_KEY`, etc.) | `src/client/lib/local-storage.ts` | Browser-only persistence helpers |
-| `readLastSubmit`, `writeLastSubmit`, `clearLastSubmit`, all `read*` / `write*` functions | `src/client/lib/local-storage.ts` | localStorage wrappers — client-only |
-| `readUnsaids`, `writeUnsaids`, `initializeWall` | **DELETED** | These served the mock wall. Real data comes from server in Phase 4 |
-| `scorePost()`, `getSortedFeed()` | `src/server/lib/scoring.ts` | Scoring runs on the server for winner selection. Kept in client until Phase 4 only for current wall sort — will be removed from client in Phase 4 |
-| `getWinner()` (the localStorage-cached version) | **DELETED in Phase 4** | Replaced by `fetchWinner` server function |
-| `generateShareCode()`, `buildShareUrl()` | `src/shared/utils.ts` | Pure functions, no side effects |
-| `vetoPost()` (the localStorage version) | **DELETED in Phase 4** | Replaced by `reportPost` server function |
-| `relativeTime()`, `formatCountdown()`, `formatShortCountdown()`, `compactCount()`, `stripHandle()`, `getInstagramUrl()` | `src/shared/utils.ts` | Pure formatting, no side effects, safe in both zones |
-| `ActionType`, `WarmthLogEntry` | `src/shared/types/warmth.ts` | Shared type definition |
-| `DuelFormat`, `DuelOption`, `Duel` types | `src/shared/types/duel.ts` | DB schema mirrors these types |
-| `MOCK_DUELS` array | **DELETED** | Replaced by real DB data in Phase 4 |
-| Warmth localStorage keys + all `readWarmth`, `writeWarmth`, etc. | `src/client/lib/local-storage.ts` | localStorage wrappers — client-only |
-| `DailyCapState`, `StreakState` interfaces | `src/shared/types/warmth.ts` | Shared — server will compute these in Phase 4 |
-| `AnsweredDuelRecord` type | `src/shared/types/duel.ts` | Shared type |
-| `readAnsweredDuels`, `writeAnsweredDuels` | `src/client/lib/local-storage.ts` | localStorage wrappers |
-| `readMyPostCategories`, `appendMyPostCategory` | `src/client/lib/local-storage.ts` | localStorage wrappers |
-| `randomSeed()` | `src/shared/utils.ts` | Pure function |
+| Content                                                                                                                 | New Location                                                          | Reason                                                                                                                                            |
+| ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ReactionKey` type                                                                                                      | `src/shared/types/unsaid.ts`                                          | Pure type, used by both client components and server functions                                                                                    |
+| `REACTIONS` array                                                                                                       | `src/shared/constants/reactions.ts`                                   | Pure constant, needs same values in both client (emoji display) and server (validation)                                                           |
+| `CATEGORIES` const + `Category` type                                                                                    | `src/shared/types/unsaid.ts` and `src/shared/constants/categories.ts` | Type used by DB schema; constant used by server (CHECK constraint validation) and client (filter chips)                                           |
+| `Preset` type, `PRESETS`, `EXCLUSIVE_PRESETS`, `presetByKey()`                                                          | `src/shared/types/unsaid.ts` and `src/shared/constants/presets.ts`    | Type needed on server for validation; constants needed on client for card rendering                                                               |
+| `Echo` type, `Unsaid` type                                                                                              | `src/shared/types/unsaid.ts`                                          | These are the core data contracts shared by DB layer and UI components                                                                            |
+| `WINNER` hardcoded object                                                                                               | `src/server/lib/fallback-winner.ts`                                   | Server fallback only — clients never reference this directly                                                                                      |
+| `MOCK_UNSAIDS` array                                                                                                    | **DELETED**                                                           | Replaced by real DB data in Phase 4                                                                                                               |
+| `MAX_LEN = 280`, `MIN_LEN = 3`, `CYCLE_MS`, `LOCKOUT_MS`                                                                | `src/shared/constants/cycle.ts`                                       | Referenced by both server validation and client character counter                                                                                 |
+| `nextRevealAt()` function                                                                                               | `src/shared/utils.ts`                                                 | Pure calculation, no side effects                                                                                                                 |
+| localStorage key constants (`SUBMIT_KEY`, `REACT_KEY`, etc.)                                                            | `src/client/lib/local-storage.ts`                                     | Browser-only persistence helpers                                                                                                                  |
+| `readLastSubmit`, `writeLastSubmit`, `clearLastSubmit`, all `read*` / `write*` functions                                | `src/client/lib/local-storage.ts`                                     | localStorage wrappers — client-only                                                                                                               |
+| `readUnsaids`, `writeUnsaids`, `initializeWall`                                                                         | **DELETED**                                                           | These served the mock wall. Real data comes from server in Phase 4                                                                                |
+| `scorePost()`, `getSortedFeed()`                                                                                        | `src/server/lib/scoring.ts`                                           | Scoring runs on the server for winner selection. Kept in client until Phase 4 only for current wall sort — will be removed from client in Phase 4 |
+| `getWinner()` (the localStorage-cached version)                                                                         | **DELETED in Phase 4**                                                | Replaced by `fetchWinner` server function                                                                                                         |
+| `generateShareCode()`, `buildShareUrl()`                                                                                | `src/shared/utils.ts`                                                 | Pure functions, no side effects                                                                                                                   |
+| `vetoPost()` (the localStorage version)                                                                                 | **DELETED in Phase 4**                                                | Replaced by `reportPost` server function                                                                                                          |
+| `relativeTime()`, `formatCountdown()`, `formatShortCountdown()`, `compactCount()`, `stripHandle()`, `getInstagramUrl()` | `src/shared/utils.ts`                                                 | Pure formatting, no side effects, safe in both zones                                                                                              |
+| `ActionType`, `WarmthLogEntry`                                                                                          | `src/shared/types/warmth.ts`                                          | Shared type definition                                                                                                                            |
+| `DuelFormat`, `DuelOption`, `Duel` types                                                                                | `src/shared/types/duel.ts`                                            | DB schema mirrors these types                                                                                                                     |
+| `MOCK_DUELS` array                                                                                                      | **DELETED**                                                           | Replaced by real DB data in Phase 4                                                                                                               |
+| Warmth localStorage keys + all `readWarmth`, `writeWarmth`, etc.                                                        | `src/client/lib/local-storage.ts`                                     | localStorage wrappers — client-only                                                                                                               |
+| `DailyCapState`, `StreakState` interfaces                                                                               | `src/shared/types/warmth.ts`                                          | Shared — server will compute these in Phase 4                                                                                                     |
+| `AnsweredDuelRecord` type                                                                                               | `src/shared/types/duel.ts`                                            | Shared type                                                                                                                                       |
+| `readAnsweredDuels`, `writeAnsweredDuels`                                                                               | `src/client/lib/local-storage.ts`                                     | localStorage wrappers                                                                                                                             |
+| `readMyPostCategories`, `appendMyPostCategory`                                                                          | `src/client/lib/local-storage.ts`                                     | localStorage wrappers                                                                                                                             |
+| `randomSeed()`                                                                                                          | `src/shared/utils.ts`                                                 | Pure function                                                                                                                                     |
 
 ---
 
 #### `src/lib/warmth.ts` (214 lines) → Splits into 3 destinations
 
-| Content | New Location | Reason |
-|---|---|---|
-| `TierKey`, `TierInfo` types | `src/shared/types/warmth.ts` | Used by client tier display AND server warmth calculation |
-| `TIERS` array | `src/shared/constants/warmth.ts` | Needed by client for tier display AND server for validating warmth milestones |
-| `getTier()`, `getNextTier()` functions | `src/shared/utils.ts` | Pure calculations, no side effects |
-| `ActionType` (duplicate — merge with bajihears.ts version) | `src/shared/types/warmth.ts` | One definition only |
-| `AWARD_VALUES` record | `src/shared/constants/warmth.ts` | Server awards warmth using these values |
-| `DAILY_PASSIVE_CAP` | `src/shared/constants/warmth.ts` | Both client (cap display) and server (enforcement) |
-| `GiftMilestone` interface, `GIFT_MILESTONES` array | `src/shared/constants/warmth.ts` and `src/shared/types/warmth.ts` | Shared |
-| `generateClaimCode()` | `src/shared/utils.ts` | Pure function |
-| `generateSplit()` | **DELETED** | Replaced by real DB vote counts in Phase 4 |
-| `getTodayKey()` | `src/shared/utils.ts` | Pure date utility |
-| `claimDailyBonus()` | `src/server/functions/warmth.ts` | Server-side claim — must be server-enforced in Phase 4. For now, kept in client until Phase 4 migration. Mark with `// PHASE4: move to server` comment |
+| Content                                                    | New Location                                                      | Reason                                                                                                                                                 |
+| ---------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `TierKey`, `TierInfo` types                                | `src/shared/types/warmth.ts`                                      | Used by client tier display AND server warmth calculation                                                                                              |
+| `TIERS` array                                              | `src/shared/constants/warmth.ts`                                  | Needed by client for tier display AND server for validating warmth milestones                                                                          |
+| `getTier()`, `getNextTier()` functions                     | `src/shared/utils.ts`                                             | Pure calculations, no side effects                                                                                                                     |
+| `ActionType` (duplicate — merge with bajihears.ts version) | `src/shared/types/warmth.ts`                                      | One definition only                                                                                                                                    |
+| `AWARD_VALUES` record                                      | `src/shared/constants/warmth.ts`                                  | Server awards warmth using these values                                                                                                                |
+| `DAILY_PASSIVE_CAP`                                        | `src/shared/constants/warmth.ts`                                  | Both client (cap display) and server (enforcement)                                                                                                     |
+| `GiftMilestone` interface, `GIFT_MILESTONES` array         | `src/shared/constants/warmth.ts` and `src/shared/types/warmth.ts` | Shared                                                                                                                                                 |
+| `generateClaimCode()`                                      | `src/shared/utils.ts`                                             | Pure function                                                                                                                                          |
+| `generateSplit()`                                          | **DELETED**                                                       | Replaced by real DB vote counts in Phase 4                                                                                                             |
+| `getTodayKey()`                                            | `src/shared/utils.ts`                                             | Pure date utility                                                                                                                                      |
+| `claimDailyBonus()`                                        | `src/server/functions/warmth.ts`                                  | Server-side claim — must be server-enforced in Phase 4. For now, kept in client until Phase 4 migration. Mark with `// PHASE4: move to server` comment |
 
 ---
 
@@ -187,12 +190,12 @@ No logic changes yet. Changes come in Phase 4 when server sync is added.
 
 #### `src/lib/identity.ts` (653 lines) → Splits into 2 destinations
 
-| Content | New Location | Reason |
-|---|---|---|
-| `BajiIdentity` type | `src/shared/types/profile.ts` | DB `profiles` table mirrors this type |
-| `STREAK_MILESTONES` array | `src/shared/constants/identity.ts` | Shared constant for display and server evaluation |
-| `PREFIXES` and `SUFFIXES` arrays | `src/client/lib/identity.ts` | Used only for client-side handle generation. Server doesn't need to generate handles. |
-| `getOrCreateIdentity()`, `updateVisitStreak()`, `generateHandle()`, all identity localStorage functions | `src/client/lib/identity.ts` | All use localStorage — client-only. In Phase 4, server functions take over streak tracking |
+| Content                                                                                                 | New Location                       | Reason                                                                                     |
+| ------------------------------------------------------------------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------ |
+| `BajiIdentity` type                                                                                     | `src/shared/types/profile.ts`      | DB `profiles` table mirrors this type                                                      |
+| `STREAK_MILESTONES` array                                                                               | `src/shared/constants/identity.ts` | Shared constant for display and server evaluation                                          |
+| `PREFIXES` and `SUFFIXES` arrays                                                                        | `src/client/lib/identity.ts`       | Used only for client-side handle generation. Server doesn't need to generate handles.      |
+| `getOrCreateIdentity()`, `updateVisitStreak()`, `generateHandle()`, all identity localStorage functions | `src/client/lib/identity.ts`       | All use localStorage — client-only. In Phase 4, server functions take over streak tracking |
 
 ---
 
@@ -200,10 +203,10 @@ No logic changes yet. Changes come in Phase 4 when server sync is added.
 
 The file is duplicated, NOT moved. Both versions are kept in sync.
 
-| Copy | Location | Reason |
-|---|---|---|
+| Copy        | Location                        | Reason                                                 |
+| ----------- | ------------------------------- | ------------------------------------------------------ |
 | Client copy | `src/client/lib/spam-filter.ts` | Provides immediate UX feedback before the user submits |
-| Server copy | `src/server/lib/spam-filter.ts` | Enforced validation — cannot be bypassed |
+| Server copy | `src/server/lib/spam-filter.ts` | Enforced validation — cannot be bypassed               |
 
 The server version may have additional patterns not present in the client version.
 Client version catches obvious violations. Server version is the final authority.
@@ -216,10 +219,10 @@ Client version catches obvious violations. Server version is the final authority
 
 #### `src/lib/warmthStore.ts` (113 lines) → Splits into 2 destinations
 
-| Content | New Location | Reason |
-|---|---|---|
-| `StoreItemCategory`, `StoreItemAction`, `StoreItem` types | `src/shared/types/warmth.ts` | Server validates purchases using these types |
-| `STORE_ITEMS` array | `src/shared/constants/warmth.ts` | Server needs item cost and action to validate purchases |
+| Content                                                         | New Location                      | Reason                                                                          |
+| --------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------- |
+| `StoreItemCategory`, `StoreItemAction`, `StoreItem` types       | `src/shared/types/warmth.ts`      | Server validates purchases using these types                                    |
+| `STORE_ITEMS` array                                             | `src/shared/constants/warmth.ts`  | Server needs item cost and action to validate purchases                         |
 | `getPurchasedItems()`, `hasPurchasedItem()`, `recordPurchase()` | `src/client/lib/local-storage.ts` | localStorage wrappers — client-only until Phase 4 when these move to the server |
 
 ---
@@ -229,28 +232,28 @@ Client version catches obvious violations. Server version is the final authority
 These files do not exist yet. Their presence in `src/server/` is established in Phase 1
 so imports from future phases resolve correctly. They contain only empty exports with comments.
 
-| New File | Purpose |
-|---|---|
-| `src/server/db/client.ts` | Supabase admin + anon client factory |
-| `src/server/db/unsaids.ts` | DB query functions for `unsaids` table |
-| `src/server/db/profiles.ts` | DB query functions for `profiles` table |
-| `src/server/db/reactions.ts` | DB query functions for `reactions` table |
-| `src/server/db/echoes.ts` | DB query functions for `echoes` table |
-| `src/server/db/duels.ts` | DB query functions for `duels` and `duel_votes` tables |
-| `src/server/functions/posts.ts` | Server functions for wall posts |
-| `src/server/functions/duels.ts` | Server functions for duels |
-| `src/server/functions/warmth.ts` | Server functions for warmth persistence |
-| `src/server/functions/auth.ts` | Server functions for account migration |
-| `src/server/functions/moderation.ts` | Server functions for reports |
-| `src/server/functions/notifications.ts` | Server functions for push subscriptions |
-| `src/server/lib/spam-filter.ts` | Server-side spam filter (copy from client) |
-| `src/server/lib/scoring.ts` | Post scoring algorithm (copy from `bajihears.ts`) |
-| `src/server/lib/fallback-winner.ts` | Hardcoded `WINNER` object from `bajihears.ts` |
-| `src/server/lib/vapid.ts` | VAPID push wrapper (empty until Phase 7) |
-| `src/server/jobs/winner-selection.ts` | 12h cron handler (empty until Phase 6) |
-| `src/server/jobs/push-dispatch.ts` | Push batch sender (empty until Phase 7) |
-| `src/server/middleware/rate-limit.ts` | Rate limit helpers (empty until Phase 2) |
-| `src/server/middleware/device-token.ts` | Token validation (empty until Phase 2) |
+| New File                                | Purpose                                                |
+| --------------------------------------- | ------------------------------------------------------ |
+| `src/server/db/client.ts`               | Supabase admin + anon client factory                   |
+| `src/server/db/unsaids.ts`              | DB query functions for `unsaids` table                 |
+| `src/server/db/profiles.ts`             | DB query functions for `profiles` table                |
+| `src/server/db/reactions.ts`            | DB query functions for `reactions` table               |
+| `src/server/db/echoes.ts`               | DB query functions for `echoes` table                  |
+| `src/server/db/duels.ts`                | DB query functions for `duels` and `duel_votes` tables |
+| `src/server/functions/posts.ts`         | Server functions for wall posts                        |
+| `src/server/functions/duels.ts`         | Server functions for duels                             |
+| `src/server/functions/warmth.ts`        | Server functions for warmth persistence                |
+| `src/server/functions/auth.ts`          | Server functions for account migration                 |
+| `src/server/functions/moderation.ts`    | Server functions for reports                           |
+| `src/server/functions/notifications.ts` | Server functions for push subscriptions                |
+| `src/server/lib/spam-filter.ts`         | Server-side spam filter (copy from client)             |
+| `src/server/lib/scoring.ts`             | Post scoring algorithm (copy from `bajihears.ts`)      |
+| `src/server/lib/fallback-winner.ts`     | Hardcoded `WINNER` object from `bajihears.ts`          |
+| `src/server/lib/vapid.ts`               | VAPID push wrapper (empty until Phase 7)               |
+| `src/server/jobs/winner-selection.ts`   | 12h cron handler (empty until Phase 6)                 |
+| `src/server/jobs/push-dispatch.ts`      | Push batch sender (empty until Phase 7)                |
+| `src/server/middleware/rate-limit.ts`   | Rate limit helpers (empty until Phase 2)               |
+| `src/server/middleware/device-token.ts` | Token validation (empty until Phase 2)                 |
 
 ---
 
@@ -258,23 +261,23 @@ so imports from future phases resolve correctly. They contain only empty exports
 
 These files are not touched during Phase 1-A.
 
-| File | Why It Stays |
-|---|---|
-| `src/routes/__root.tsx` | TanStack requires this exact location |
-| `src/routes/index.tsx` | TanStack requires this exact location |
-| `src/routes/duel.tsx` | TanStack requires this exact location |
-| `src/routes/read.tsx` | TanStack requires this exact location |
-| `src/routes/corner.tsx` | TanStack requires this exact location |
-| `src/router.tsx` | TanStack entry — must stay in `src/` |
-| `src/server.ts` | Cloudflare Worker entry — must stay in `src/` |
-| `src/start.ts` | TanStack middleware entry — must stay in `src/` |
-| `src/routeTree.gen.ts` | Auto-generated by TanStack — never manually edit |
-| `public/sw.js` | Service worker must be at the public root |
-| `public/favicon.png` | Static asset |
-| `vite.config.ts` | Build config |
-| `package.json` | Package manifest |
-| `.prettierrc` | Formatter config |
-| `.env.local` | Secrets — never moved, never committed |
+| File                    | Why It Stays                                     |
+| ----------------------- | ------------------------------------------------ |
+| `src/routes/__root.tsx` | TanStack requires this exact location            |
+| `src/routes/index.tsx`  | TanStack requires this exact location            |
+| `src/routes/duel.tsx`   | TanStack requires this exact location            |
+| `src/routes/read.tsx`   | TanStack requires this exact location            |
+| `src/routes/corner.tsx` | TanStack requires this exact location            |
+| `src/router.tsx`        | TanStack entry — must stay in `src/`             |
+| `src/server.ts`         | Cloudflare Worker entry — must stay in `src/`    |
+| `src/start.ts`          | TanStack middleware entry — must stay in `src/`  |
+| `src/routeTree.gen.ts`  | Auto-generated by TanStack — never manually edit |
+| `public/sw.js`          | Service worker must be at the public root        |
+| `public/favicon.png`    | Static asset                                     |
+| `vite.config.ts`        | Build config                                     |
+| `package.json`          | Package manifest                                 |
+| `.prettierrc`           | Formatter config                                 |
+| `.env.local`            | Secrets — never moved, never committed           |
 
 ---
 
@@ -284,6 +287,7 @@ Every import in every route file updates to the new paths.
 The route files are the junction — they import from both client and server zones.
 
 Example of what changes in `src/routes/index.tsx`:
+
 - `@/components/bajihears/UnsaidCard` → `@/client/components/bajihears/UnsaidCard`
 - `@/lib/bajihears` (for types) → `@/shared/types/unsaid` and `@/shared/constants/categories`
 - `@/lib/warmth-context` → `@/client/stores/warmth-context`
@@ -414,6 +418,7 @@ a device's identity once a guest converts to an account.
 ### Column Specifications
 
 **`id` — UUID, Primary Key, Foreign Key to `auth.users(id)`**
+
 - Type: `UUID`
 - Default: none (must be provided)
 - Not null: yes
@@ -426,6 +431,7 @@ a device's identity once a guest converts to an account.
   on `unsaids` has `ON DELETE SET NULL`.
 
 **`handle` — TEXT, Unique, Not Null**
+
 - Type: `TEXT`
 - Default: none (generated by server function at insert time from PREFIXES/SUFFIXES logic)
 - Not null: yes
@@ -436,6 +442,7 @@ a device's identity once a guest converts to an account.
   Length 3–40: minimum 3 prevents single-character handles, maximum 40 matches Instagram's limit.
 
 **`avatar_seed` — INTEGER, Not Null**
+
 - Type: `INTEGER`
 - Default: `1`
 - Not null: yes
@@ -446,6 +453,7 @@ a device's identity once a guest converts to an account.
   500 seeds gives enough variety for expected user count.
 
 **`member_since` — DATE, Not Null**
+
 - Type: `DATE` (not `TIMESTAMPTZ` — precision of day is sufficient)
 - Default: `CURRENT_DATE`
 - Not null: yes
@@ -454,6 +462,7 @@ a device's identity once a guest converts to an account.
   Set once at insert, never updated (trigger does not touch this column).
 
 **`device_token` — TEXT, Unique, Nullable**
+
 - Type: `TEXT`
 - Default: `NULL`
 - Not null: no (nullable)
@@ -466,6 +475,7 @@ a device's identity once a guest converts to an account.
   This is correct behavior: multiple users without prior anonymous use can all have `NULL`.
 
 **`visit_streak` — INTEGER, Not Null**
+
 - Type: `INTEGER`
 - Default: `0`
 - Not null: yes
@@ -475,6 +485,7 @@ a device's identity once a guest converts to an account.
   Minimum 0 prevents negative streaks from any arithmetic bug.
 
 **`last_visit` — DATE, Nullable**
+
 - Type: `DATE`
 - Default: `NULL`
 - Not null: no
@@ -482,6 +493,7 @@ a device's identity once a guest converts to an account.
   NULL means the user has never visited (account just created via a mechanism other than direct app visit).
 
 **`streak_freeze_used` — BOOLEAN, Not Null**
+
 - Type: `BOOLEAN`
 - Default: `FALSE`
 - Not null: yes
@@ -490,6 +502,7 @@ a device's identity once a guest converts to an account.
   Simple boolean — no timestamp needed.
 
 **`total_actions` — INTEGER, Not Null**
+
 - Type: `INTEGER`
 - Default: `0`
 - Not null: yes
@@ -499,6 +512,7 @@ a device's identity once a guest converts to an account.
   Server function increments this atomically in the same transaction as the action.
 
 **`warmth_total` — INTEGER, Not Null**
+
 - Type: `INTEGER` (not `BIGINT` — warmth values are bounded by milestones, max meaningful value ~10,000)
 - Default: `0`
 - Not null: yes
@@ -507,6 +521,7 @@ a device's identity once a guest converts to an account.
   separately in the log). `CHECK >= 0` prevents underflow bugs.
 
 **`warmth_log` — JSONB, Not Null**
+
 - Type: `JSONB`
 - Default: `'[]'::jsonb`
 - Not null: yes
@@ -519,6 +534,7 @@ a device's identity once a guest converts to an account.
   If the log grows beyond 50, the oldest entries are removed.
 
 **`purchased_items` — TEXT[], Not Null**
+
 - Type: `TEXT[]` (Postgres native array)
 - Default: `'{}'::text[]`
 - Not null: yes
@@ -528,6 +544,7 @@ a device's identity once a guest converts to an account.
   and have better index support (`GIN` index if needed).
 
 **`tabs_unlocked` — JSONB, Not Null**
+
 - Type: `JSONB`
 - Default: `'{"duel": false, "read": false}'::jsonb`
 - Not null: yes
@@ -535,6 +552,7 @@ a device's identity once a guest converts to an account.
   (e.g., a future "Corner Plus" tab) without a schema migration. Simple boolean values per key.
 
 **`push_subscription` — JSONB, Nullable**
+
 - Type: `JSONB`
 - Default: `NULL`
 - Not null: no
@@ -544,11 +562,13 @@ a device's identity once a guest converts to an account.
   JSONB stored because the structure is fixed by the Web Push spec — no need to normalize.
 
 **`created_at` — TIMESTAMPTZ, Not Null**
+
 - Type: `TIMESTAMPTZ`
 - Default: `NOW()`
 - Not null: yes
 
 **`updated_at` — TIMESTAMPTZ, Not Null**
+
 - Type: `TIMESTAMPTZ`
 - Default: `NOW()`
 - Not null: yes
@@ -572,6 +592,7 @@ The design is heavily optimized for read performance.
 ### Column Specifications
 
 **`id` — UUID, Primary Key**
+
 - Type: `UUID`
 - Default: `gen_random_uuid()`
 - Not null: yes
@@ -579,6 +600,7 @@ The design is heavily optimized for read performance.
   Sequential integers would allow someone to enumerate all posts by guessing IDs.
 
 **`text` — TEXT, Not Null**
+
 - Type: `TEXT`
 - Default: none
 - Not null: yes
@@ -588,6 +610,7 @@ The design is heavily optimized for read performance.
   the DB rejects the insert.
 
 **`handle` — TEXT, Nullable**
+
 - Type: `TEXT`
 - Default: `NULL`
 - Not null: no
@@ -597,6 +620,7 @@ The design is heavily optimized for read performance.
   preserved even if the profile is later deleted.
 
 **`device_token` — TEXT, Not Null**
+
 - Type: `TEXT`
 - Default: none (must be provided by server function)
 - Not null: yes
@@ -607,6 +631,7 @@ The design is heavily optimized for read performance.
   `CHECK` constraint ensures fabricated tokens with different lengths are rejected at the DB level.
 
 **`profile_id` — UUID, Nullable, Foreign Key**
+
 - Type: `UUID`
 - Default: `NULL`
 - Not null: no
@@ -618,6 +643,7 @@ The design is heavily optimized for read performance.
   This is intentional — deleting an account should not silently erase content from the community.
 
 **`category` — TEXT, Not Null**
+
 - Type: `TEXT`
 - Default: none
 - Not null: yes
@@ -627,6 +653,7 @@ The design is heavily optimized for read performance.
   The exact string values match those displayed in the UI filter chips.
 
 **`preset` — TEXT, Not Null**
+
 - Type: `TEXT`
 - Default: `'midnight-static'`
 - Not null: yes
@@ -636,6 +663,7 @@ The design is heavily optimized for read performance.
   Default is `midnight-static` — the first preset, matching your existing default.
 
 **`status` — TEXT, Not Null**
+
 - Type: `TEXT`
 - Default: `'pending'`
 - Not null: yes
@@ -647,6 +675,7 @@ The design is heavily optimized for read performance.
   a post appears in the feed before spam validation completes.
 
 **`pending_until` — TIMESTAMPTZ, Nullable**
+
 - Type: `TIMESTAMPTZ`
 - Default: `NULL`
 - Not null: no
@@ -654,6 +683,7 @@ The design is heavily optimized for read performance.
   Currently always NULL. Column is included now to avoid a schema migration later.
 
 **`veto_count` — INTEGER, Not Null**
+
 - Type: `INTEGER`
 - Default: `0`
 - Not null: yes
@@ -663,6 +693,7 @@ The design is heavily optimized for read performance.
   When this reaches 5, the server function automatically transitions `status` to `review`.
 
 **`vetoed_by` — TEXT[], Not Null**
+
 - Type: `TEXT[]`
 - Default: `'{}'::text[]`
 - Not null: yes
@@ -675,6 +706,7 @@ The design is heavily optimized for read performance.
   At expected scale, an array on the row is correct.
 
 **`is_winner` — BOOLEAN, Not Null**
+
 - Type: `BOOLEAN`
 - Default: `FALSE`
 - Not null: yes
@@ -683,6 +715,7 @@ The design is heavily optimized for read performance.
   The `fetchWinner` server function queries `is_winner = TRUE ORDER BY winner_cycle DESC LIMIT 1`.
 
 **`winner_cycle` — TIMESTAMPTZ, Nullable**
+
 - Type: `TIMESTAMPTZ`
 - Default: `NULL`
 - Not null: no
@@ -693,6 +726,7 @@ The design is heavily optimized for read performance.
   If yes, skip selection. This prevents double-crowning if the cron fires twice.
 
 **`winner_hook` — TEXT, Nullable**
+
 - Type: `TEXT`
 - Default: `NULL`
 - Not null: no
@@ -702,6 +736,7 @@ The design is heavily optimized for read performance.
   Nullable because posts start with no hook — only the winner gets one.
 
 **`pinned_until` — TIMESTAMPTZ, Nullable**
+
 - Type: `TIMESTAMPTZ`
 - Default: `NULL`
 - Not null: no
@@ -712,6 +747,7 @@ The design is heavily optimized for read performance.
   NULL means not pinned. Expired timestamps (`pinned_until <= NOW()`) are treated as not pinned.
 
 **`reactions` — JSONB, Not Null**
+
 - Type: `JSONB`
 - Default: `'{"heart": 0, "sad": 0, "fire": 0, "hug": 0}'::jsonb`
 - Not null: yes
@@ -722,11 +758,13 @@ The design is heavily optimized for read performance.
   This atomic approach prevents the lost-update race condition that would occur with read-modify-write.
 
 **`created_at` — TIMESTAMPTZ, Not Null**
+
 - Type: `TIMESTAMPTZ`
 - Default: `NOW()`
 - Not null: yes
 
 **`updated_at` — TIMESTAMPTZ, Not Null**
+
 - Type: `TIMESTAMPTZ`
 - Default: `NOW()`
 - Not null: yes
@@ -735,6 +773,7 @@ The design is heavily optimized for read performance.
 ### `unsaids` Table Indexes
 
 **Index 1: `(status, created_at DESC)` — The Primary Feed Index**
+
 - Query it serves: `SELECT * FROM unsaids WHERE status = 'published' ORDER BY created_at DESC`
 - This is the most frequently executed query in the entire application.
   Every wall feed page load runs this query.
@@ -744,23 +783,27 @@ The design is heavily optimized for read performance.
 - For bulk traffic (e.g., 1,000 concurrent users), this index is the most important in the schema.
 
 **Index 2: `(category, status, created_at DESC)` — The Category Filter Index**
+
 - Query it serves: `SELECT * FROM unsaids WHERE category = 'Spill The Tea' AND status = 'published' ORDER BY created_at DESC`
 - When a user filters by category, this index is used instead of Index 1.
   Without this index, Postgres falls back to Index 1 (status + created_at) and then applies a
   category filter as a post-scan filter — fine for small datasets, slow for large ones.
 
 **Index 3: `(is_winner DESC, winner_cycle DESC)` — The Winner Lookup Index**
+
 - Query it serves: `SELECT * FROM unsaids WHERE is_winner = TRUE ORDER BY winner_cycle DESC LIMIT 1`
 - This query runs on every page load (winner card) and is served from Cloudflare edge cache
   for 5 minutes, so it only hits the DB every 5 minutes at most.
   Still indexed because the cron job runs without cache.
 
 **Index 4: `(device_token, created_at DESC)` — The Rate Limit Index**
+
 - Query it serves: `SELECT COUNT(*) FROM unsaids WHERE device_token = $1 AND created_at > NOW() - INTERVAL '1 hour'`
 - This query runs on every post submission to enforce the 3-posts-per-hour rate limit.
   Without the index, every submission scans the entire `unsaids` table for the device's recent posts.
 
 **Index 5: `(pinned_until)` — The Pinned Post Index (Partial Index)**
+
 - Query it serves: Feed query's ORDER BY clause includes pinned posts first
 - Partial index (only on rows where `pinned_until IS NOT NULL`) — keeps the index small
 - At scale, only a small fraction of posts are pinned at any time
@@ -775,41 +818,50 @@ individual timestamps, handles, and future features (likes on echoes).
 ### Column Specifications
 
 **`id` — UUID, Primary Key**
+
 - `gen_random_uuid()`, same rationale as `unsaids.id`
 
 **`unsaid_id` — UUID, Not Null, Foreign Key**
+
 - Constraint: `REFERENCES unsaids(id) ON DELETE CASCADE`
 - Rationale: `ON DELETE CASCADE` — if a post is deleted (set to `rejected` and later purged),
   its echoes are deleted with it. Echoes without a parent post are meaningless.
 
 **`text` — TEXT, Not Null**
+
 - Constraint: `CHECK (char_length(text) >= 1 AND char_length(text) <= 200)`
 - Rationale: Echoes are shorter than posts. 200 characters allows a meaningful comment
   without echoes becoming posts themselves.
 
 **`handle` — TEXT, Nullable**
+
 - Same rationale as `unsaids.handle`. NULL = anonymous.
 
 **`device_token` — TEXT, Not Null**
+
 - Constraint: `CHECK (char_length(device_token) = 16)`
 - Same traceability requirement as posts. Rate limit on echoes uses this.
 
 **`profile_id` — UUID, Nullable, Foreign Key**
+
 - Constraint: `REFERENCES profiles(id) ON DELETE SET NULL`
 - Same rationale as `unsaids.profile_id`.
 
 **`created_at` — TIMESTAMPTZ, Not Null**
+
 - Default `NOW()`. No `updated_at` because echoes are never updated.
 
 ### `echoes` Table Indexes
 
 **Index 1: `(unsaid_id, created_at ASC)` — Echo Thread Order**
+
 - Query it serves: `SELECT * FROM echoes WHERE unsaid_id = $1 ORDER BY created_at ASC`
 - Echoes are shown in chronological order (oldest first, like a thread).
   ASC sort to show the conversation in time order.
 - This runs every time a post's echo section is expanded.
 
 **Index 2: `(device_token, created_at DESC)` — Echo Rate Limit**
+
 - Query it serves: `SELECT COUNT(*) FROM echoes WHERE device_token = $1 AND created_at > NOW() - INTERVAL '1 hour'`
 - Rate limit check: 10 echoes per device per hour.
 
@@ -826,13 +878,16 @@ This table stores WHO reacted, with what key, on which post.
 **`id` — UUID, Primary Key**
 
 **`unsaid_id` — UUID, Not Null, Foreign Key**
+
 - Constraint: `REFERENCES unsaids(id) ON DELETE CASCADE`
 - Rationale: When a post is deleted, its reaction records are deleted. No orphaned records.
 
 **`device_token` — TEXT, Not Null**
+
 - Constraint: `CHECK (char_length(device_token) = 16)`
 
 **`reaction_key` — TEXT, Not Null**
+
 - Constraint: `CHECK (reaction_key IN ('heart', 'sad', 'fire', 'hug'))`
 - Rationale: Only valid reaction keys can be stored. Mirror of `ReactionKey` type.
 
@@ -843,6 +898,7 @@ This table stores WHO reacted, with what key, on which post.
 `UNIQUE (unsaid_id, device_token, reaction_key)` — the database itself enforces one reaction per type per post per device.
 
 **How the server function uses this:**
+
 1. Attempt `INSERT INTO reactions (unsaid_id, device_token, reaction_key) VALUES ($1, $2, $3)`
 2. If it succeeds → reaction is new → also increment the counter on `unsaids.reactions`
 3. If it fails with error code `23505` (unique violation) → reaction already exists → DELETE it → decrement counter
@@ -855,6 +911,7 @@ The UNIQUE constraint is the atomic safety mechanism.
 ### `reactions` Table Indexes
 
 **Index 1: `(unsaid_id, device_token)` — The Dedup Lookup**
+
 - Query it serves: Checking if a device has already reacted when the feed loads
 - When `fetchWall` returns posts, it also returns which of those posts the calling device
   has reacted to. This requires: `SELECT reaction_key FROM reactions WHERE unsaid_id = ANY($postIds) AND device_token = $1`
@@ -872,16 +929,19 @@ These are managed entirely through the Supabase Table Editor (no admin UI needed
 **`id` — UUID, Primary Key**
 
 **`format` — TEXT, Not Null**
+
 - Constraint: `CHECK (format IN ('self-relate', 'head-to-head'))`
 - Rationale: Two duel formats from `DuelFormat` type. Controls how the Duel card renders.
   `self-relate`: "Which one is more you?" — both options are relatable scenarios.
   `head-to-head`: "Which confession hits harder?" — both options are actual posts.
 
 **`prompt` — TEXT, Nullable**
+
 - Constraint: `CHECK (char_length(prompt) <= 150)` when not null
 - Rationale: The question shown above the two options. Nullable — some duels have no prompt.
 
 **`option_a_text` / `option_b_text` — TEXT, Not Null**
+
 - Constraint: `CHECK (char_length(option_a_text) >= 1 AND char_length(option_a_text) <= 280)`
   (same constraint for option_b_text)
 - Rationale: The text of each option. Flat columns (not nested JSONB) for easier editing
@@ -889,14 +949,17 @@ These are managed entirely through the Supabase Table Editor (no admin UI needed
   flat columns are much easier to type into than nested JSON.
 
 **`option_a_handle` / `option_b_handle` — TEXT, Nullable**
+
 - Rationale: Attribution if the option text came from a real user post.
   Nullable — most duels are original content without attribution.
 
 **`option_a_category` / `option_b_category` — TEXT, Nullable**
+
 - Constraint: When not null, must be one of the five valid categories
 - Rationale: Maps to `CATEGORIES` for potential future filtering of duels.
 
 **`votes_a` / `votes_b` — INTEGER, Not Null**
+
 - Default: `0`
 - Constraint: `CHECK (votes_a >= 0)`, `CHECK (votes_b >= 0)`
 - Rationale: Denormalized vote counters. Same pattern as `reactions` on `unsaids`.
@@ -904,6 +967,7 @@ These are managed entirely through the Supabase Table Editor (no admin UI needed
   Displaying real vote totals replaces the simulated `generateSplit` function.
 
 **`active` — BOOLEAN, Not Null**
+
 - Default: `TRUE`
 - Rationale: Set to `FALSE` to retire a duel without deleting it.
   Historical votes are preserved. The duel just stops appearing in the rotation.
@@ -913,6 +977,7 @@ These are managed entirely through the Supabase Table Editor (no admin UI needed
 ### `duels` Table Indexes
 
 **Index 1: `(active, created_at DESC)` — The Active Duel Feed**
+
 - Query it serves: `SELECT * FROM duels WHERE active = TRUE ORDER BY created_at DESC`
 - The Duel page fetches all active duels. This index makes the fetch instant.
 - Partial index (only where `active = TRUE`) keeps the index small as old duels are retired.
@@ -935,13 +1000,16 @@ Same pattern as `reactions`.
 **`id` — UUID, Primary Key**
 
 **`duel_id` — UUID, Not Null, Foreign Key**
+
 - Constraint: `REFERENCES duels(id) ON DELETE CASCADE`
 - Rationale: When a duel is deleted, its vote records are deleted.
 
 **`device_token` — TEXT, Not Null**
+
 - Constraint: `CHECK (char_length(device_token) = 16)`
 
 **`choice_index` — INTEGER, Not Null**
+
 - Constraint: `CHECK (choice_index IN (0, 1))`
 - Rationale: 0 means voted for option A, 1 means voted for option B.
   Integer instead of TEXT because it's used arithmetically to update the correct counter.
@@ -956,6 +1024,7 @@ Same insert-then-check pattern as `reactions`. If unique violation → already v
 ### `duel_votes` Table Indexes
 
 **Index 1: `(duel_id, device_token)` — Vote Dedup Lookup**
+
 - Query it serves: `SELECT * FROM duel_votes WHERE duel_id = ANY($duelIds) AND device_token = $1`
 - When `fetchDuels` returns the duel list, it also returns the calling device's vote on each duel.
 
@@ -980,12 +1049,14 @@ If a determined user calls the Supabase REST API directly with the anon key, RLS
 **Enable RLS:** `ALTER TABLE profiles ENABLE ROW LEVEL SECURITY`
 
 **Policy 1 — `profiles_select_all`**
+
 - Operation: `SELECT`
 - Condition: `USING (true)` — any caller can read any profile
 - Rationale: Profile data (handle, avatar_seed, warmth_total) is displayed publicly
   in the Community Regulars section and on post cards. No restriction on reads.
 
 **Policy 2 — `profiles_insert_own`**
+
 - Operation: `INSERT`
 - Condition: `WITH CHECK (auth.uid() = id)` — can only insert your own profile row
 - Rationale: A profile row's ID must equal the authenticated user's auth ID.
@@ -993,12 +1064,14 @@ If a determined user calls the Supabase REST API directly with the anon key, RLS
   `auth.uid()` is set by Supabase from the JWT in the Authorization header.
 
 **Policy 3 — `profiles_update_own`**
+
 - Operation: `UPDATE`
 - Condition: `USING (auth.uid() = id)` — can only update your own profile row
 - Rationale: Prevents any user from modifying another user's handle, warmth, or purchased items.
   This policy is the most critical security policy in the schema.
 
 **Policy 4 — No DELETE policy**
+
 - No `DELETE` policy is created. Without a policy, `DELETE` on `profiles` via anon key is blocked.
   Account deletion happens via the Supabase Auth admin API (which uses the service_role key),
   which triggers the `ON DELETE CASCADE` to the profiles table.
@@ -1010,6 +1083,7 @@ If a determined user calls the Supabase REST API directly with the anon key, RLS
 **Enable RLS:** `ALTER TABLE unsaids ENABLE ROW LEVEL SECURITY`
 
 **Policy 1 — `unsaids_select_published`**
+
 - Operation: `SELECT`
 - Condition: `USING (status = 'published')`
 - Rationale: Only published posts are visible. `pending`, `review`, and `rejected` posts
@@ -1017,6 +1091,7 @@ If a determined user calls the Supabase REST API directly with the anon key, RLS
   All reads of pending/review/rejected posts go through server functions using service_role.
 
 **Policy 2 — `unsaids_insert_any`**
+
 - Operation: `INSERT`
 - Condition: `WITH CHECK (true)`
 - Rationale: The INSERT is allowed at the RLS level because the server function performs
@@ -1038,9 +1113,11 @@ This is correct — no user should be able to edit or delete a post via the API.
 **Enable RLS:** `ALTER TABLE echoes ENABLE ROW LEVEL SECURITY`
 
 **Policy 1 — `echoes_select_all`**
+
 - `USING (true)` — echoes on published posts are publicly readable.
 
 **Policy 2 — `echoes_insert_any`**
+
 - `WITH CHECK (true)` — allowed at RLS level; server function performs validation.
   Same rationale as `unsaids_insert_any`.
 
@@ -1051,12 +1128,15 @@ This is correct — no user should be able to edit or delete a post via the API.
 **Enable RLS:** `ALTER TABLE reactions ENABLE ROW LEVEL SECURITY`
 
 **Policy 1 — `reactions_select_all`**
+
 - `USING (true)` — reaction counts are public.
 
 **Policy 2 — `reactions_insert_any`**
+
 - `WITH CHECK (true)` — the UNIQUE constraint handles deduplication.
 
 **Policy 3 — `reactions_delete_own`**
+
 - Operation: `DELETE`
 - Condition: Ideally `USING (device_token = current_setting('request.jwt.claims')::json->>'device_token')`.
   However, custom JWT claims (embedding device_token in the JWT) require a Supabase
@@ -1071,6 +1151,7 @@ This is correct — no user should be able to edit or delete a post via the API.
 **Enable RLS:** `ALTER TABLE duels ENABLE ROW LEVEL SECURITY`
 
 **Policy 1 — `duels_select_active`**
+
 - `USING (active = true)` — only active duels are visible.
 
 **No INSERT/UPDATE/DELETE policies** — duels are managed through the Supabase dashboard
@@ -1083,9 +1164,11 @@ by the admin. No user should ever insert or modify a duel through the API.
 **Enable RLS:** `ALTER TABLE duel_votes ENABLE ROW LEVEL SECURITY`
 
 **Policy 1 — `duel_votes_select_all`**
+
 - `USING (true)` — vote records are public (aggregated totals are shown).
 
 **Policy 2 — `duel_votes_insert_any`**
+
 - `WITH CHECK (true)` — UNIQUE constraint on `(duel_id, device_token)` handles deduplication.
 
 **No DELETE policy** — votes cannot be retracted.
@@ -1097,6 +1180,7 @@ by the admin. No user should ever insert or modify a duel through the API.
 ### Connection String Selection
 
 The Supabase project settings provide three connection string types:
+
 1. **Direct connection** (port 5432, no pooler) — for long-running processes (migrations, scripts)
 2. **Session pooler** (port 5432, pgbouncer session mode) — for traditional server applications
 3. **Transaction pooler** (port 6543, pgbouncer transaction mode) — **for Cloudflare Workers**
@@ -1106,6 +1190,7 @@ The Supabase project settings provide three connection string types:
 The Transaction Pooler URI format: `postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres`
 
 **Why this matters for bulk traffic:**
+
 - Direct connection: each Worker invocation opens a TCP connection to Postgres.
   At 100 concurrent requests, that's 100 open connections. Postgres's free tier has a 200 connection limit.
   60 bursting users would exhaust all connections.
@@ -1129,6 +1214,7 @@ This could power live reaction count updates (when User A reacts, User B sees th
 
 **Decision for Phase 1:** Realtime is NOT enabled on any table in this phase.
 Reasoning:
+
 - Realtime multiplies network traffic — each concurrent user opens a WebSocket.
   At 1,000 concurrent users, that's 1,000 persistent WebSocket connections to Supabase.
   The free tier has a 500 concurrent Realtime connection limit.
@@ -1137,6 +1223,7 @@ Reasoning:
 - Realtime can be enabled per-table at any point in the future without schema changes.
 
 **If Realtime is added in a future phase:**
+
 - `unsaids` table requires `REPLICA IDENTITY FULL` to emit old and new row values on UPDATE.
   This doubles the Write-Ahead Log (WAL) volume for that table.
   Only enable on `unsaids` — not on `reactions` or `echoes`.
@@ -1181,43 +1268,49 @@ After Phase 1-B complete, the agent verifies via MCP and you verify via dashboar
 
 ## What I Need From You — Phase 1 Summary
 
-| Item | When | What Exactly |
-|---|---|---|
-| Confirm Phase 0 complete | Before Phase 1 starts | Tell me "Phase 0 done, MCP works, env is filled" |
-| Confirm table structure | After Phase 1-B | Screenshot or description of any column that looks wrong |
-| Confirm RLS is enabled | After Phase 1-B | In Supabase dashboard, each table shows a lock icon or "RLS enabled" label |
-| Confirm duel seed data | After Phase 1-B | `SELECT COUNT(*) FROM duels` returns 6 — run this in Supabase SQL Editor |
+| Item                     | When                  | What Exactly                                                               |
+| ------------------------ | --------------------- | -------------------------------------------------------------------------- |
+| Confirm Phase 0 complete | Before Phase 1 starts | Tell me "Phase 0 done, MCP works, env is filled"                           |
+| Confirm table structure  | After Phase 1-B       | Screenshot or description of any column that looks wrong                   |
+| Confirm RLS is enabled   | After Phase 1-B       | In Supabase dashboard, each table shows a lock icon or "RLS enabled" label |
+| Confirm duel seed data   | After Phase 1-B       | `SELECT COUNT(*) FROM duels` returns 6 — run this in Supabase SQL Editor   |
 
 ---
 
 ## Common Failure Points
 
 **Failure: Build fails after folder restructure**
+
 - Cause: An import path wasn't updated after a file moved
 - Fix: Build error output shows exactly which file has the broken import and what path it's looking for
 
 **Failure: MCP cannot create tables**
+
 - Cause: MCP is connected with the anon key (not service_role), which doesn't have DDL permissions
 - Fix: Verify MCP config uses the service_role key, not the anon key
 
 **Failure: RLS blocks all reads after enabling**
+
 - Cause: RLS was enabled before the SELECT policies were created
 - Fix: Create all policies for a table BEFORE enabling RLS, or enable RLS and immediately create policies in the same SQL transaction
 
 **Failure: `profiles` INSERT fails with "row already exists"**
+
 - Cause: Trying to create a profile for a user ID that already exists in `auth.users` from a previous test
 - Fix: Delete the test user in Supabase Auth → Users, then recreate
 
 **Failure: Connection pooler refused**
+
 - Cause: Server function is using the direct connection URI (port 5432) instead of the Transaction Pooler URI (port 6543)
 - Fix: Verify `src/server/db/client.ts` uses the 6543 port URL, not the 5432 URL. The Supabase dashboard clearly labels which is which.
 
 **Failure: TypeScript errors after split of `bajihears.ts`**
+
 - Cause: A type is imported from `@/lib/bajihears` somewhere that wasn't updated to the new `@/shared/types/` path
 - Fix: Search for `from "@/lib/bajihears"` across all files after the split — every remaining reference must be updated
 
 ---
 
-*Phase 1 complete state: folder structure matches spec, 6 tables created, RLS active, 9 policies set, 12 indexes built, `set_updated_at` trigger on 2 tables, 6 seed duels inserted, build passes, zero TypeScript errors.*
+_Phase 1 complete state: folder structure matches spec, 6 tables created, RLS active, 9 policies set, 12 indexes built, `set_updated_at` trigger on 2 tables, 6 seed duels inserted, build passes, zero TypeScript errors._
 
-*Next: Phase 2 — Backend API Layer (server functions that call these tables)*
+_Next: Phase 2 — Backend API Layer (server functions that call these tables)_

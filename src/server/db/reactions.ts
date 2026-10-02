@@ -8,7 +8,7 @@ export async function hasDeviceReacted(
   env: DatabaseEnv | undefined,
   postId: string,
   deviceToken: string,
-  reactionKey?: ReactionKey
+  reactionKey?: ReactionKey,
 ): Promise<boolean> {
   try {
     const client = getSupabaseAdminClient(env);
@@ -43,7 +43,7 @@ export async function recordReaction(
   env: DatabaseEnv | undefined,
   postId: string,
   deviceToken: string,
-  reactionKey: ReactionKey
+  reactionKey: ReactionKey,
 ): Promise<{ success: boolean; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAdminClient(env);
@@ -56,14 +56,20 @@ export async function recordReaction(
 
     if (error) {
       if (error.code === "23505") {
-        return { success: false, error: { code: "ALREADY_REACTED", message: "Device has already reacted with this emoji" } };
+        return {
+          success: false,
+          error: { code: "ALREADY_REACTED", message: "Device has already reacted with this emoji" },
+        };
       }
       return { success: false, error: { code: error.code, message: error.message } };
     }
 
     return { success: true, error: null };
   } catch (err: any) {
-    return { success: false, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
+    return {
+      success: false,
+      error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) },
+    };
   }
 }
 
@@ -74,7 +80,7 @@ export async function removeReaction(
   env: DatabaseEnv | undefined,
   postId: string,
   deviceToken: string,
-  reactionKey: ReactionKey
+  reactionKey: ReactionKey,
 ): Promise<{ success: boolean; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAdminClient(env);
@@ -92,7 +98,10 @@ export async function removeReaction(
 
     return { success: true, error: null };
   } catch (err: any) {
-    return { success: false, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
+    return {
+      success: false,
+      error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) },
+    };
   }
 }
 
@@ -102,7 +111,7 @@ export async function removeReaction(
 export async function countDeviceReactionsInWindow(
   env: DatabaseEnv | undefined,
   deviceToken: string,
-  windowMinutes: number = 60
+  windowMinutes: number = 60,
 ): Promise<number> {
   try {
     const client = getSupabaseAdminClient(env);

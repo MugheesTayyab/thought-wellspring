@@ -1,17 +1,6 @@
-import type {
-  Category,
-  MyReactions,
-  ReactionKey,
-  Unsaid,
-} from "@/shared/types/unsaid";
-import type {
-  AnsweredDuelRecord,
-} from "@/shared/types/duel";
-import type {
-  DailyCapState,
-  StreakState,
-  WarmthLogEntry,
-} from "@/shared/types/warmth";
+import type { Category, MyReactions, ReactionKey, Unsaid } from "@/shared/types/unsaid";
+import type { AnsweredDuelRecord } from "@/shared/types/duel";
+import type { DailyCapState, StreakState, WarmthLogEntry } from "@/shared/types/warmth";
 import { getTodayKey } from "@/shared/utils";
 import { SEED_DATA } from "./seedData";
 import { getOrCreateIdentity } from "./identity";

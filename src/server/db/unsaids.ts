@@ -48,7 +48,7 @@ export function mapRowToUnsaid(row: any): Unsaid {
  */
 export async function fetchPublishedFeed(
   env?: DatabaseEnv,
-  options?: FeedOptions
+  options?: FeedOptions,
 ): Promise<{ data: Unsaid[]; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAnonClient(env);
@@ -58,7 +58,7 @@ export async function fetchPublishedFeed(
     let query = client
       .from("unsaids")
       .select(
-        "id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, profile_id"
+        "id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, profile_id",
       )
       .eq("status", "published");
 
@@ -96,7 +96,7 @@ export async function fetchPublishedFeed(
  * Fetch latest cycle winner
  */
 export async function fetchWinner(
-  env?: DatabaseEnv
+  env?: DatabaseEnv,
 ): Promise<{ data: Unsaid | null; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAnonClient(env);
@@ -133,13 +133,15 @@ export async function fetchWinner(
  */
 export async function fetchPostById(
   env: DatabaseEnv | undefined,
-  id: string
+  id: string,
 ): Promise<{ data: Unsaid | null; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAnonClient(env);
     const { data, error } = await client
       .from("unsaids")
-      .select("id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, status")
+      .select(
+        "id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, status",
+      )
       .eq("id", id)
       .in("status", ["published", "review"])
       .maybeSingle();
@@ -159,8 +161,11 @@ export async function fetchPostById(
  */
 export async function insertPost(
   env: DatabaseEnv | undefined,
-  postData: InsertPostInput
-): Promise<{ data: { id: string; createdAt: number; status: string } | null; error: { code: string; message: string } | null }> {
+  postData: InsertPostInput,
+): Promise<{
+  data: { id: string; createdAt: number; status: string } | null;
+  error: { code: string; message: string } | null;
+}> {
   try {
     const client = getSupabaseAdminClient(env);
     const { data, error } = await client
@@ -201,8 +206,11 @@ export async function insertPost(
 export async function incrementReaction(
   env: DatabaseEnv | undefined,
   postId: string,
-  reactionKey: ReactionKey
-): Promise<{ data: Record<ReactionKey, number> | null; error: { code: string; message: string } | null }> {
+  reactionKey: ReactionKey,
+): Promise<{
+  data: Record<ReactionKey, number> | null;
+  error: { code: string; message: string } | null;
+}> {
   try {
     const client = getSupabaseAdminClient(env);
 
@@ -230,7 +238,10 @@ export async function incrementReaction(
       return { data: null, error: { code: "NOT_FOUND", message: "Post not found" } };
     }
     if (post.status !== "published") {
-      return { data: null, error: { code: "FORBIDDEN", message: "Cannot react to non-published post" } };
+      return {
+        data: null,
+        error: { code: "FORBIDDEN", message: "Cannot react to non-published post" },
+      };
     }
 
     const currentReactions: Record<ReactionKey, number> = post.reactions || {
@@ -266,8 +277,11 @@ export async function incrementReaction(
 export async function decrementReaction(
   env: DatabaseEnv | undefined,
   postId: string,
-  reactionKey: ReactionKey
-): Promise<{ data: Record<ReactionKey, number> | null; error: { code: string; message: string } | null }> {
+  reactionKey: ReactionKey,
+): Promise<{
+  data: Record<ReactionKey, number> | null;
+  error: { code: string; message: string } | null;
+}> {
   try {
     const client = getSupabaseAdminClient(env);
 
@@ -319,8 +333,11 @@ export async function decrementReaction(
 export async function appendVeto(
   env: DatabaseEnv | undefined,
   postId: string,
-  reporterDeviceToken: string
-): Promise<{ data: { vetoCount: number; status: string } | null; error: { code: string; message: string } | null }> {
+  reporterDeviceToken: string,
+): Promise<{
+  data: { vetoCount: number; status: string } | null;
+  error: { code: string; message: string } | null;
+}> {
   try {
     const client = getSupabaseAdminClient(env);
 
@@ -337,12 +354,12 @@ export async function appendVeto(
       return { data: null, error: { code: data.code, message: data.message } };
     }
 
-    return { 
-      data: { 
-        vetoCount: data.veto_count, 
-        status: data.quarantined ? 'review' : 'published' 
-      }, 
-      error: null 
+    return {
+      data: {
+        vetoCount: data.veto_count,
+        status: data.quarantined ? "review" : "published",
+      },
+      error: null,
     };
   } catch (err: any) {
     return { data: null, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
@@ -355,7 +372,7 @@ export async function appendVeto(
 export async function countDevicePostsInWindow(
   env: DatabaseEnv | undefined,
   deviceToken: string,
-  windowMinutes: number = 60
+  windowMinutes: number = 60,
 ): Promise<number> {
   try {
     const client = getSupabaseAdminClient(env);
@@ -386,7 +403,7 @@ export async function markWinner(
   env: DatabaseEnv | undefined,
   postId: string,
   cycle: string,
-  hook: string
+  hook: string,
 ): Promise<{ success: boolean; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAdminClient(env);
@@ -400,7 +417,13 @@ export async function markWinner(
       .maybeSingle();
 
     if (existing) {
-      return { success: false, error: { code: "CYCLE_ALREADY_HAS_WINNER", message: "Winner already exists for this cycle" } };
+      return {
+        success: false,
+        error: {
+          code: "CYCLE_ALREADY_HAS_WINNER",
+          message: "Winner already exists for this cycle",
+        },
+      };
     }
 
     const { error } = await client
@@ -418,7 +441,10 @@ export async function markWinner(
 
     return { success: true, error: null };
   } catch (err: any) {
-    return { success: false, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
+    return {
+      success: false,
+      error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) },
+    };
   }
 }
 
@@ -449,8 +475,11 @@ export interface UserThoughtsActivityResult {
  */
 export async function fetchUserThoughtsActivity(
   env: DatabaseEnv | undefined,
-  params: { profileId?: string | null; deviceToken?: string | null }
-): Promise<{ data: UserThoughtsActivityResult | null; error: { code: string; message: string } | null }> {
+  params: { profileId?: string | null; deviceToken?: string | null },
+): Promise<{
+  data: UserThoughtsActivityResult | null;
+  error: { code: string; message: string } | null;
+}> {
   try {
     const client = getSupabaseAdminClient(env);
     const { profileId, deviceToken } = params;
@@ -464,7 +493,10 @@ export async function fetchUserThoughtsActivity(
     } else if (deviceToken) {
       query = query.eq("device_token", deviceToken);
     } else {
-      return { data: { posts: [], totalLikesReceived: 0, totalPosts: 0, likedPosts: [] }, error: null };
+      return {
+        data: { posts: [], totalLikesReceived: 0, totalPosts: 0, likedPosts: [] },
+        error: null,
+      };
     }
 
     query = query.order("created_at", { ascending: false });
@@ -478,7 +510,10 @@ export async function fetchUserThoughtsActivity(
     const postIds = (rawPosts || []).map((p: any) => p.id);
 
     // Fetch echoes for all user posts in bulk
-    let echoesByPost: Record<string, Array<{ id: string; text: string; handle: string | null; createdAt: number }>> = {};
+    const echoesByPost: Record<
+      string,
+      Array<{ id: string; text: string; handle: string | null; createdAt: number }>
+    > = {};
     if (postIds.length > 0) {
       const { data: rawEchoes } = await client
         .from("echoes")
@@ -535,7 +570,9 @@ export async function fetchUserThoughtsActivity(
         const likedIds = Array.from(new Set(myRx.map((r: any) => r.unsaid_id)));
         const { data: likedData } = await client
           .from("unsaids")
-          .select("id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, profile_id")
+          .select(
+            "id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, profile_id",
+          )
           .in("id", likedIds)
           .eq("status", "published");
 
@@ -564,7 +601,7 @@ export async function fetchUserThoughtsActivity(
  */
 export async function fetchPublicProfileWithPosts(
   env: DatabaseEnv | undefined,
-  identifier: string
+  identifier: string,
 ): Promise<{
   data: {
     profile: {
@@ -588,7 +625,9 @@ export async function fetchPublicProfileWithPosts(
     // Check if UUID
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
 
-    let query = client.from("profiles").select("id, handle, avatar_seed, member_since, visit_streak, warmth_total, total_actions");
+    let query = client
+      .from("profiles")
+      .select("id, handle, avatar_seed, member_since, visit_streak, warmth_total, total_actions");
     if (isUuid) {
       query = query.eq("id", cleanId);
     } else {
@@ -605,7 +644,9 @@ export async function fetchPublicProfileWithPosts(
       // If no registered profile found, check if there are posts by this handle
       const { data: handlePosts } = await client
         .from("unsaids")
-        .select("id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, profile_id")
+        .select(
+          "id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, profile_id",
+        )
         .ilike("handle", cleanId)
         .eq("status", "published")
         .order("created_at", { ascending: false });
@@ -643,7 +684,9 @@ export async function fetchPublicProfileWithPosts(
     // Found registered profile; fetch their published posts
     const { data: postsData } = await client
       .from("unsaids")
-      .select("id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, profile_id")
+      .select(
+        "id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, profile_id",
+      )
       .or(`profile_id.eq.${profileRow.id},handle.ilike.${profileRow.handle}`)
       .eq("status", "published")
       .order("created_at", { ascending: false });
@@ -662,7 +705,9 @@ export async function fetchPublicProfileWithPosts(
           id: profileRow.id,
           handle: profileRow.handle,
           avatarSeed: profileRow.avatar_seed ?? 1,
-          memberSince: profileRow.member_since ? String(profileRow.member_since) : new Date().toISOString().split("T")[0]!,
+          memberSince: profileRow.member_since
+            ? String(profileRow.member_since)
+            : new Date().toISOString().split("T")[0]!,
           visitStreak: profileRow.visit_streak ?? 0,
           warmthTotal: profileRow.warmth_total ?? 0,
           totalActions: profileRow.total_actions ?? 0,
@@ -676,4 +721,3 @@ export async function fetchPublicProfileWithPosts(
     return { data: null, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
   }
 }
-

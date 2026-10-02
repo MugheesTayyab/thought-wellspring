@@ -20,13 +20,7 @@ import {
   readMyEchoes,
   writeMyEchoes,
 } from "@/client/lib/local-storage";
-import type {
-  Category,
-  ReactionKey,
-  Unsaid,
-  MyReactions,
-  Echo,
-} from "@/shared/types/unsaid";
+import type { Category, ReactionKey, Unsaid, MyReactions, Echo } from "@/shared/types/unsaid";
 import type { SubmitPostResult } from "@/shared/types/api";
 
 interface FeedPage {
@@ -57,6 +51,7 @@ export interface UseWallReturn {
     category: Category;
     preset?: string;
     handle?: string | null;
+    profileId?: string | null;
   }) => Promise<SubmitPostResult>;
   isSubmitting: boolean;
   submitError: string | null;
@@ -99,7 +94,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
   // Filter actions
   const toggleFilter = useCallback((category: Category) => {
     setFilters((prev) =>
-      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category],
     );
   }, []);
 
@@ -140,7 +135,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
     initialPageParam: 0,
     getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.page + 1 : undefined),
     staleTime: 120_000, // 2 minutes
-    gcTime: 600_000,    // 10 minutes
+    gcTime: 600_000, // 10 minutes
   });
 
   // Flatten posts across pages with client-side filter fallback for multi-category
@@ -165,7 +160,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
           fetchNextPage();
         }
       },
-      { rootMargin: "400px" }
+      { rootMargin: "400px" },
     );
 
     observer.observe(sentinel);
@@ -266,7 +261,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       const action = activeForPost.includes(reactionKey) ? "unreact" : "react";
       reactionMutation.mutate({ postId, reactionKey, action });
     },
-    [myReactions, reactionMutation]
+    [myReactions, reactionMutation],
   );
 
   // Echo mutation with pending state and rollback
@@ -356,7 +351,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
             posts: page.posts.map((post) => {
               if (post.id !== postId) return post;
               const filteredEchoes = (post.echoes || []).filter(
-                (e) => !e.id.startsWith("pending-")
+                (e) => !e.id.startsWith("pending-"),
               );
               return {
                 ...post,
@@ -381,7 +376,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       }
       await echoMutation.mutateAsync(echoParams);
     },
-    [echoMutation]
+    [echoMutation],
   );
 
   // Post submission mutation
@@ -441,7 +436,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
     }) => {
       return await submitMutation.mutateAsync(input);
     },
-    [submitMutation]
+    [submitMutation],
   );
 
   const refetch = useCallback(async () => {

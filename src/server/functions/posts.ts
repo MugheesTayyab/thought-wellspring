@@ -40,7 +40,7 @@ export interface SubmitPostResult {
  */
 export async function submitPost(
   env: DatabaseEnv | undefined,
-  input: SubmitPostInput
+  input: SubmitPostInput,
 ): Promise<SubmitPostResult> {
   const token = validateDeviceToken(input.deviceToken);
 
@@ -61,14 +61,14 @@ export async function submitPost(
 
   // 2. Moderation Pipeline Check
   const normalizedPayload = normalizeText(text);
-  
+
   const hardResult = checkHardFilters(normalizedPayload);
   if (hardResult.blocked) {
     const error = new Error(hardResult.details || "CONTENT_VIOLATION");
-    (error as any).code = 'CONTENT_VIOLATION';
+    (error as any).code = "CONTENT_VIOLATION";
     throw error;
   }
-  
+
   const softResult = checkSoftFilters(normalizedPayload);
   const status: "published" | "review" = softResult.flagged ? "review" : "published";
 
@@ -92,7 +92,7 @@ export async function submitPost(
   // 4. Update profile actions if signed in
   if (input.profileId) {
     await incrementTotalActions(env, input.profileId).catch((err) =>
-      console.error("[submitPost] incrementTotalActions error:", err)
+      console.error("[submitPost] incrementTotalActions error:", err),
     );
   }
 
@@ -112,7 +112,7 @@ export async function submitPost(
  */
 export async function fetchFeed(
   env: DatabaseEnv | undefined,
-  options?: { category?: Category; page?: number; limit?: number }
+  options?: { category?: Category; page?: number; limit?: number },
 ): Promise<{ posts: Unsaid[]; page: number; limit: number; hasMore: boolean }> {
   const page = Math.max(0, options?.page ?? 0);
   const limit = Math.min(Math.max(1, options?.limit ?? 20), 50);
@@ -144,7 +144,7 @@ export async function fetchFeed(
  * Fetch latest cycle winner with automatic fallback
  */
 export async function fetchWinner(
-  env?: DatabaseEnv
+  env?: DatabaseEnv,
 ): Promise<{ winner: Unsaid; hook: string; isFallback: boolean }> {
   const res = await dbFetchWinner(env);
 
@@ -168,7 +168,7 @@ export async function fetchWinner(
  */
 export async function fetchPostById(
   env: DatabaseEnv | undefined,
-  id: string
+  id: string,
 ): Promise<Unsaid | null> {
   const res = await dbFetchPostById(env, id);
   if (res.error) {
@@ -187,7 +187,7 @@ export async function reactToPost(
     reactionKey: ReactionKey;
     deviceToken: string;
     profileId?: string | null;
-  }
+  },
 ): Promise<{ reactions: Record<ReactionKey, number> }> {
   const token = validateDeviceToken(input.deviceToken);
 
@@ -215,7 +215,7 @@ export async function reactToPost(
   // 5. Update user activity if signed in
   if (input.profileId) {
     await incrementTotalActions(env, input.profileId).catch((err) =>
-      console.error("[reactToPost] incrementTotalActions error:", err)
+      console.error("[reactToPost] incrementTotalActions error:", err),
     );
   }
 
@@ -232,7 +232,7 @@ export async function unreactToPost(
     reactionKey: ReactionKey;
     deviceToken: string;
     profileId?: string | null;
-  }
+  },
 ): Promise<{ reactions: Record<ReactionKey, number> }> {
   const token = validateDeviceToken(input.deviceToken);
 
@@ -270,7 +270,7 @@ export async function addEcho(
     deviceToken: string;
     handle?: string | null;
     profileId?: string | null;
-  }
+  },
 ): Promise<Echo> {
   const token = validateDeviceToken(input.deviceToken);
 
@@ -287,11 +287,11 @@ export async function addEcho(
 
   // Moderation pipeline check
   const normalizedPayload = normalizeText(text);
-  
+
   const hardResult = checkHardFilters(normalizedPayload);
   if (hardResult.blocked) {
     const error = new Error(hardResult.details || "CONTENT_VIOLATION");
-    (error as any).code = 'CONTENT_VIOLATION';
+    (error as any).code = "CONTENT_VIOLATION";
     throw error;
   }
 
@@ -316,7 +316,7 @@ export async function addEcho(
 
   if (input.profileId) {
     await incrementTotalActions(env, input.profileId).catch((err) =>
-      console.error("[addEcho] incrementTotalActions error:", err)
+      console.error("[addEcho] incrementTotalActions error:", err),
     );
   }
 

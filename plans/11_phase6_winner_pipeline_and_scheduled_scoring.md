@@ -1,5 +1,6 @@
 # Phase 6 — Automated 12-Hour Winner Pipeline, Algorithmic Scoring Engine & Edge-Cached Hero Delivery
-*Exhaustive Master Implementation Plan for Senior Engineering Execution*
+
+_Exhaustive Master Implementation Plan for Senior Engineering Execution_
 
 ---
 
@@ -84,7 +85,7 @@ graph TD
     DB --> UNSAIDS_TABLE
     DB --> CYCLE_LOG
     SQL_ENGINE -->|Post Winner Crowned| PUSH_QUEUE
-    
+
     HERO_CARD --> CLIENT_HOOK
     CLIENT_HOOK --> WINNER_FN
     WINNER_FN --> EDGE_CACHE
@@ -96,14 +97,14 @@ graph TD
 
 ### 0-C: Subsystem State Transition Matrix
 
-| Subsystem | State Before Phase 6 | Target Production State (After Phase 6) |
-|---|---|---|
-| **Winner Selection Mechanism** | Hardcoded static fallback object (`FALLBACK_WINNER`) in `fallback-winner.ts`. Zero automated calculation. | Automated 12-hour idempotent scoring pipeline executed via atomic database procedure with sub-10ms query execution. |
-| **Scoring Formula** | Rudimentary client-side helper in `scoring.ts` evaluating arbitrary posts in memory without cycle boundary guards. | Mathematically weighted multi-signal scoring model incorporating reaction tiers, echo depth, continuous half-life decay, and veto disqualifiers. |
-| **Winner Storage Schema** | Boolean `is_winner` and timestamp `winner_cycle` on `unsaids`, but lacking editorial hook text and cycle execution history. | Full schema support including `winner_hook` column, partial unique index preventing duplicate winners per cycle, and a dedicated `winner_cycles` audit ledger. |
-| **Hero Card Caching** | Direct database query on every client page load without edge-level caching headers. | Cloudflare Edge Cache (`s-maxage=300, stale-while-revalidate=3600`) delivering sub-20ms hero reads with surrogate tag invalidation. |
-| **Cycle Transition UX** | Static countdown timer with no synchronization to live cron execution. | Synchronized countdown timer with automatic query cache invalidation and subtle micro-celebration animation upon crown transition. |
-| **Curator Controls** | None. No mechanism to pin or manually crown an exceptional confession. | Idempotent manual override capability allowing editorial crowning directly via Supabase without cron collision. |
+| Subsystem                      | State Before Phase 6                                                                                                        | Target Production State (After Phase 6)                                                                                                                        |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Winner Selection Mechanism** | Hardcoded static fallback object (`FALLBACK_WINNER`) in `fallback-winner.ts`. Zero automated calculation.                   | Automated 12-hour idempotent scoring pipeline executed via atomic database procedure with sub-10ms query execution.                                            |
+| **Scoring Formula**            | Rudimentary client-side helper in `scoring.ts` evaluating arbitrary posts in memory without cycle boundary guards.          | Mathematically weighted multi-signal scoring model incorporating reaction tiers, echo depth, continuous half-life decay, and veto disqualifiers.               |
+| **Winner Storage Schema**      | Boolean `is_winner` and timestamp `winner_cycle` on `unsaids`, but lacking editorial hook text and cycle execution history. | Full schema support including `winner_hook` column, partial unique index preventing duplicate winners per cycle, and a dedicated `winner_cycles` audit ledger. |
+| **Hero Card Caching**          | Direct database query on every client page load without edge-level caching headers.                                         | Cloudflare Edge Cache (`s-maxage=300, stale-while-revalidate=3600`) delivering sub-20ms hero reads with surrogate tag invalidation.                            |
+| **Cycle Transition UX**        | Static countdown timer with no synchronization to live cron execution.                                                      | Synchronized countdown timer with automatic query cache invalidation and subtle micro-celebration animation upon crown transition.                             |
+| **Curator Controls**           | None. No mechanism to pin or manually crown an exceptional confession.                                                      | Idempotent manual override capability allowing editorial crowning directly via Supabase without cron collision.                                                |
 
 ---
 
@@ -114,7 +115,7 @@ graph TD
 The `unsaids` table must be enhanced to support editorial presentation and cycle integrity:
 
 1. **`winner_hook` (TEXT, nullable):**
-   - Stores the evocative, contextual editorial headline (e.g., *"The whole wall felt this confession."*, *"2 AM thoughts that struck a chord."*).
+   - Stores the evocative, contextual editorial headline (e.g., _"The whole wall felt this confession."_, _"2 AM thoughts that struck a chord."_).
    - Generated during the scoring execution based on post category, sentiment, and cycle timestamp.
 2. **`winner_score` (NUMERIC(10, 2), nullable):**
    - The exact calculated score at the moment of crowning.
@@ -146,6 +147,7 @@ Table: winner_cycles
 ```
 
 **Indexes for Audit Ledger:**
+
 - `UNIQUE INDEX idx_winner_cycles_range ON winner_cycles(cycle_start, cycle_end)`
 - `INDEX idx_winner_cycles_crowned_post ON winner_cycles(crowned_post_id)`
 
@@ -156,20 +158,22 @@ Table: winner_cycles
 To score hundreds or thousands of confessions within a 12-hour window in milliseconds without table scans:
 
 1. **Covering Query Index:**
+
    ```sql
-   CREATE INDEX idx_unsaids_cycle_scoring 
-   ON unsaids (status, created_at, is_winner) 
+   CREATE INDEX idx_unsaids_cycle_scoring
+   ON unsaids (status, created_at, is_winner)
    INCLUDE (id, reactions, veto_count, category);
    ```
-   *Rationale:* Allows the PostgreSQL engine to calculate scores directly from the Index-Only Scan without reading the primary table heap.
+
+   _Rationale:_ Allows the PostgreSQL engine to calculate scores directly from the Index-Only Scan without reading the primary table heap.
 
 2. **Winner Fetch Index:**
    ```sql
-   CREATE INDEX idx_unsaids_latest_winner 
-   ON unsaids (is_winner, winner_cycle DESC) 
+   CREATE INDEX idx_unsaids_latest_winner
+   ON unsaids (is_winner, winner_cycle DESC)
    WHERE is_winner = true;
    ```
-   *Rationale:* Guarantees `fetchWinner` executes in <1ms by reading only the single top row of the partial index.
+   _Rationale:_ Guarantees `fetchWinner` executes in <1ms by reading only the single top row of the partial index.
 
 ---
 
@@ -211,6 +215,7 @@ Confessions compete on **resonance**, not raw volume. The scoring algorithm bala
 ```
 
 #### Signal Weights Rationale:
+
 1. **Heart (`2.5`):** The primary emotional currency of BajiHears. Represents profound vulnerability and resonance.
 2. **Fire (`2.0`):** High energy, unfiltered honesty, or communal hype.
 3. **Hug (`2.0`):** Compassion and solidarity; vital for confessions of loneliness or anxiety.
@@ -228,6 +233,7 @@ We apply a **continuous exponential half-life decay** model:
 $$\text{Decay}(t) = 0.5^{\frac{\Delta t}{\tau}}$$
 
 Where:
+
 - $\Delta t$ is the elapsed age in hours from post creation to cycle closing:
   $$\Delta t = \frac{\text{cycle\_end} - \text{created\_at}}{3,600,000\text{ ms}}$$
 - $\tau = 8.0\text{ hours}$ (the half-life constant).
@@ -296,29 +302,30 @@ The hook generator evaluates the winning confession's **category**, **cycle wind
 #### Category-Specific Hook Variations:
 
 1. **Category: `confession`**
-   - *"Said in secret, felt by everyone."*
-   - *"The confession the whole wall was waiting to hear."*
-   - *"Unfiltered truth that struck a chord across the city."*
+   - _"Said in secret, felt by everyone."_
+   - _"The confession the whole wall was waiting to hear."_
+   - _"Unfiltered truth that struck a chord across the city."_
 2. **Category: `heartbreak`**
-   - *"Some unsaids leave a silence that never ends."*
-   - *"The heaviest words are always the ones kept quiet."*
-   - *"A quiet grief that the entire community held together."*
+   - _"Some unsaids leave a silence that never ends."_
+   - _"The heaviest words are always the ones kept quiet."_
+   - _"A quiet grief that the entire community held together."_
 3. **Category: `wholesome`**
-   - *"Pure warmth on the wall today."*
-   - *"A gentle reminder that kindness still exists."*
-   - *"The softness everyone needed to read today."*
+   - _"Pure warmth on the wall today."_
+   - _"A gentle reminder that kindness still exists."_
+   - _"The softness everyone needed to read today."_
 4. **Category: `academic`**
-   - *"Everyone is feeling this pressure; one person put it into words."*
-   - *"The collective sigh of the semester."*
-   - *"Campus halls are quiet, but this echoed everywhere."*
+   - _"Everyone is feeling this pressure; one person put it into words."_
+   - _"The collective sigh of the semester."_
+   - _"Campus halls are quiet, but this echoed everywhere."_
 5. **Category: `existential`**
-   - *"Late night thoughts that resonated with the whole wall."*
-   - *"The question none of us know how to answer."*
-   - *"Vulnerability that spoke to every single reader."*
+   - _"Late night thoughts that resonated with the whole wall."_
+   - _"The question none of us know how to answer."_
+   - _"Vulnerability that spoke to every single reader."_
 
 #### Cycle Window Tone Shifts:
-- **Dawn Cycle (00:00 UTC):** Tone emphasizes intimacy, stillness, and midnight revelations (*"From the midnight hours to the morning light."*).
-- **Dusk Cycle (12:00 UTC):** Tone emphasizes shared endurance, evening calm, and daily release (*"As the day closes, this one stayed with us."*).
+
+- **Dawn Cycle (00:00 UTC):** Tone emphasizes intimacy, stillness, and midnight revelations (_"From the midnight hours to the morning light."_).
+- **Dusk Cycle (12:00 UTC):** Tone emphasizes shared endurance, evening calm, and daily release (_"As the day closes, this one stayed with us."_).
 
 ---
 
@@ -338,6 +345,7 @@ RETURNS JSONB
 ```
 
 #### Internal Execution Flow:
+
 1. **Advisory Lock Acquisition:**
    - Calls `pg_try_advisory_xact_lock(hashtext('bajihears_winner_cycle'))`.
    - If lock is held by another concurrent worker, immediately aborts with `{ "status": "locked", "message": "Cycle scoring already in progress" }`.
@@ -376,12 +384,14 @@ To ensure operational reliability regardless of deployment hosting constraints, 
 ```
 
 #### Option A: Cloudflare Pages / Worker Scheduled Trigger
+
 - **Route:** `src/routes/api/cron.winner-cycle.ts`
 - **Method:** `POST`
 - **Security Guard:** `Bearer` token matching server environment variable `CRON_SECRET`.
 - **Worker Execution:** Cloudflare Worker Cron event handler triggers route every 12 hours: `0 0,12 * * *`.
 
 #### Option B: Supabase Native `pg_cron` Extension (Recommended Production Baseline)
+
 - Runs directly inside PostgreSQL at zero cost and zero external HTTP latency.
 - Executes:
   ```sql
@@ -425,6 +435,7 @@ Client Browser ────────► Cloudflare Edge (CDN) ─────
 ```
 
 #### Cache Headers for `fetchWinner` Server Function:
+
 ```http
 Cache-Control: public, max-age=60, s-maxage=300, stale-while-revalidate=3600
 Surrogate-Key: bajihears-winner
@@ -440,6 +451,7 @@ Vary: Accept-Encoding
 ### 6-B: Cache Purge & Cycle Invalidation
 
 When a new winner is crowned at `00:00` or `12:00`:
+
 1. The cron execution calls Cloudflare's Cache Purge API using the surrogate tag `bajihears-winner`.
 2. Edge nodes immediately invalidate the cached winner payload.
 3. The next visitor triggers a fresh read, caching the new winner for the subsequent 12 hours.
@@ -463,7 +475,9 @@ Refetch on Reconnect: true
 ```
 
 #### Optimistic Reaction Handling on the Winner Card:
+
 The Winner Card allows users to react directly on the hero banner.
+
 - The hook must maintain **optimistic cache reconciliation**:
   1. When user taps reaction on the winner, update query cache data `['winner', 'current']` immediately.
   2. Simultaneously update feed query cache `['wall', 'feed']` if the winning post is visible in the list below.
@@ -516,7 +530,7 @@ Stored Procedure runs:
 4. Preserves manual winner intact
 ```
 
-*Guarantee:* The administrator has total sovereign control. Automated scoring will never overwrite a human curator's decision.
+_Guarantee:_ The administrator has total sovereign control. Automated scoring will never overwrite a human curator's decision.
 
 ---
 
@@ -579,4 +593,4 @@ A principal developer executing Phase 6 must adhere to this exact sequence:
 
 ---
 
-*Authored for BajiHears Engineering Architecture · Ready for Immediate Technical Execution*
+_Authored for BajiHears Engineering Architecture · Ready for Immediate Technical Execution_

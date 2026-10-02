@@ -12,9 +12,15 @@ export interface ProfanityCheckResult {
 }
 
 // 1. Core English Vulgar Roots (Whole-word or boundary matching)
-const ENGLISH_BAD_WORDS: Array<{ regex: RegExp; category: ProfanityCheckResult["category"] }> = [
+const ENGLISH_BAD_WORDS: Array<{
+  regex: RegExp;
+  category: NonNullable<ProfanityCheckResult["category"]>;
+}> = [
   // F-Words
-  { regex: /\b(?:f+u+c*k+|f+u+k+|f+c+k+|f+v+c+k+|f+a+k+|f\*+ck|f\*+k|motherf+u+c*k+|stfu)\w*\b/i, category: "f_word" },
+  {
+    regex: /\b(?:f+u+c*k+|f+u+k+|f+c+k+|f+v+c+k+|f+a+k+|f\*+ck|f\*+k|motherf+u+c*k+|stfu)\w*\b/i,
+    category: "f_word",
+  },
   { regex: /\bf\s+u\s+c\s+k\b/i, category: "f_word" },
 
   // S-Words
@@ -25,23 +31,36 @@ const ENGLISH_BAD_WORDS: Array<{ regex: RegExp; category: ProfanityCheckResult["
   { regex: /\b(?:b+i+t+c+h+|b\*+tch|b!+tch|b+a+s+t+a+r+d+)\w*\b/i, category: "vulgar" },
 
   // A-Words (asshole, dumbass, jackass - careful not to match 'pass', 'glass', 'compass')
-  { regex: /\b(?:a+s+s+h+o+l+e+|d+u+m+b+a+s+s+|j+a+c+k+a+s+s+|b+a+d+a+s+s+|a\$\$+hole|a\*\*+hole)\w*\b/i, category: "vulgar" },
+  {
+    regex:
+      /\b(?:a+s+s+h+o+l+e+|d+u+m+b+a+s+s+|j+a+c+k+a+s+s+|b+a+d+a+s+s+|a\$\$+hole|a\*\*+hole)\w*\b/i,
+    category: "vulgar",
+  },
   { regex: /\b(?:a+s+s|a\$\$)\b/i, category: "vulgar" },
 
   // C-words, D-words, P-words, Slurs & Sexual explicit
-  { regex: /\b(?:c+u+n+t+|d+i+c+k+|p+u+s+s+y+|c+o+c+k+|s+l+u+t+|w+h+o+r+e+|b+l+o+w+j+o+b+)\w*\b/i, category: "vulgar" },
+  {
+    regex: /\b(?:c+u+n+t+|d+i+c+k+|p+u+s+s+y+|c+o+c+k+|s+l+u+t+|w+h+o+r+e+|b+l+o+w+j+o+b+)\w*\b/i,
+    category: "vulgar",
+  },
   { regex: /\b(?:n+i+g+g+[ae]r*|f+a+g+g*o+t*|r+e+t+a+r+d+)\w*\b/i, category: "slur" },
   { regex: /\b(?:p+o+r+n+|p+o+r+n+o+|x+x+x+|n+u+d+e+s+)\b/i, category: "vulgar" },
 ];
 
 // 2. Roman Urdu & Regional Vulgarities / Abusive terms
-const ROMAN_URDU_BAD_WORDS: Array<{ regex: RegExp; category: ProfanityCheckResult["category"] }> = [
+const ROMAN_URDU_BAD_WORDS: Array<{
+  regex: RegExp;
+  category: NonNullable<ProfanityCheckResult["category"]>;
+}> = [
   // Bhenchod, Madarchod & abbreviations
   { regex: /\b(?:b+h*e+h*e*n+c+h+o+d+|b+e+h+n+c+h+o+d+|b+c)\b/i, category: "abusive" },
   { regex: /\b(?:m+a+d+a+r+c+h+o+d+|m+c)\b/i, category: "abusive" },
 
   // Chutiya & variations
-  { regex: /\b(?:c+h+u+t+i+y+a+|c+h+o+o+t+i+y+a+|c+h+o+o+t+y+a+|c+h+u+t+i+y+e+)\w*\b/i, category: "abusive" },
+  {
+    regex: /\b(?:c+h+u+t+i+y+a+|c+h+o+o+t+i+y+a+|c+h+o+o+t+y+a+|c+h+u+t+i+y+e+)\w*\b/i,
+    category: "abusive",
+  },
 
   // Gaandu, Randi, Harami, Kanjar, Kutta, Bharwa
   { regex: /\b(?:g+a+a*n+d+u+|g+a+n+d+u+)\b/i, category: "abusive" },
@@ -91,7 +110,8 @@ export function detectProfanity(rawText: string): ProfanityCheckResult {
         hasProfanity: true,
         matchedWord: match[0],
         category,
-        message: "Baji keeps it warm & honest, not dirty. Inappropriate words (like f-words, s-words, etc.) are strictly forbidden.",
+        message:
+          "Baji keeps it warm & honest, not dirty. Inappropriate words (like f-words, s-words, etc.) are strictly forbidden.",
       };
     }
   }
@@ -104,14 +124,24 @@ export function detectProfanity(rawText: string): ProfanityCheckResult {
         hasProfanity: true,
         matchedWord: match[0],
         category,
-        message: "Baji keeps it warm & honest, not dirty. Abusive language or slurs are strictly forbidden.",
+        message:
+          "Baji keeps it warm & honest, not dirty. Abusive language or slurs are strictly forbidden.",
       };
     }
   }
 
   // 3. Compact string check for spaced-out words (e.g. "f u c k", "s h i t")
   const compact = lower.replace(/[^a-z]/g, "");
-  const compactForbidden = ["fuck", "shit", "bitch", "cunt", "nigger", "bhenchod", "chutiya", "madarchod"];
+  const compactForbidden = [
+    "fuck",
+    "shit",
+    "bitch",
+    "cunt",
+    "nigger",
+    "bhenchod",
+    "chutiya",
+    "madarchod",
+  ];
   for (const word of compactForbidden) {
     if (compact.includes(word)) {
       return {

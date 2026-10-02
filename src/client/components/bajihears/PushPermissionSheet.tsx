@@ -16,7 +16,7 @@ interface PushPermissionSheetProps {
 }
 
 export const PushPermissionSheet: React.FC<PushPermissionSheetProps> = ({ isOpen, onClose }) => {
-  const deviceToken = useDeviceToken();
+  const { deviceToken } = useDeviceToken();
   const [isSubscribing, setIsSubscribing] = useState(false);
   const isIosBrowser = isIosDevice() && !isStandalonePwa();
 
@@ -61,9 +61,7 @@ export const PushPermissionSheet: React.FC<PushPermissionSheetProps> = ({ isOpen
           <Bell className="size-4" />
         </div>
 
-        <h3 className="text-sm font-bold text-[#F5EFE9]">
-          Get notified?
-        </h3>
+        <h3 className="text-sm font-bold text-[#F5EFE9]">Get notified?</h3>
         <p className="text-[11px] text-[#9C8F87] mt-1 leading-relaxed">
           Alerts when your confessions get replies or the daily winner is crowned.
         </p>
@@ -71,7 +69,9 @@ export const PushPermissionSheet: React.FC<PushPermissionSheetProps> = ({ isOpen
         {isIosBrowser && (
           <div className="mt-2.5 flex items-center gap-2 rounded-xl bg-white/[0.03] border border-white/10 p-2 text-[10px] text-[#F5EFE9]/80 text-left">
             <Smartphone className="size-3.5 text-[#E8552E] shrink-0" />
-            <span>On iPhone: Tap <strong>Share</strong> → <strong>Add to Home Screen</strong>.</span>
+            <span>
+              On iPhone: Tap <strong>Share</strong> → <strong>Add to Home Screen</strong>.
+            </span>
           </div>
         )}
 

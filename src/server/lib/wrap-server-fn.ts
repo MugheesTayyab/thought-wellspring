@@ -62,8 +62,8 @@ export function mapErrorToResponse(error: unknown): ServerFnFailure {
     error instanceof Error
       ? error.message
       : typeof error === "string"
-      ? error
-      : "Unknown error occurred";
+        ? error
+        : "Unknown error occurred";
 
   if (/already reacted|already submitted this reaction/i.test(message)) {
     return {
@@ -186,7 +186,9 @@ export function mapErrorToResponse(error: unknown): ServerFnFailure {
     };
   }
 
-  if (/validation|invalid category|invalid choice|must be at least|must not exceed/i.test(message)) {
+  if (
+    /validation|invalid category|invalid choice|must be at least|must not exceed/i.test(message)
+  ) {
     return {
       ok: false,
       error: {
@@ -212,9 +214,7 @@ export function mapErrorToResponse(error: unknown): ServerFnFailure {
 /**
  * Wrap an async handler with consistent error handling and response formatting
  */
-export async function wrapServerFn<T>(
-  handler: () => Promise<T>
-): Promise<ServerFnResult<T>> {
+export async function wrapServerFn<T>(handler: () => Promise<T>): Promise<ServerFnResult<T>> {
   try {
     const result = await handler();
     return {

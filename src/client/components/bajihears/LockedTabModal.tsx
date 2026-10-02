@@ -12,11 +12,7 @@ interface LockedTabModalProps {
   onUnlocked?: () => void;
 }
 
-export const LockedTabModal: React.FC<LockedTabModalProps> = ({
-  type,
-  onClose,
-  onUnlocked,
-}) => {
+export const LockedTabModal: React.FC<LockedTabModalProps> = ({ type, onClose, onUnlocked }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -54,7 +50,9 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
     try {
       localStorage.setItem("baji:identity", JSON.stringify(id));
       sessionStorage.setItem("baji:read-visited", "1");
-    } catch {}
+    } catch {
+      // Keep the tab locked when local storage is unavailable.
+    }
     if (onUnlocked) onUnlocked();
     onClose();
     navigate({ to: isDuel ? "/duel" : "/read" });
@@ -96,8 +94,7 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
         {!isDuel && (
           <div className="flex justify-center mb-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full border border-white/10 bg-white/[0.04] text-[10px] font-sans font-semibold tracking-wider uppercase text-[#E8552E]">
-              <Eye className="size-2.5" />
-              2 MIN READ · PERSONALITY INSIGHT
+              <Eye className="size-2.5" />2 MIN READ · PERSONALITY INSIGHT
             </span>
           </div>
         )}
@@ -105,9 +102,7 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
         {/* Header Icon + Title */}
         <div className="text-center">
           <h2 className="text-base sm:text-lg font-bold text-[#F5EFE9] tracking-tight font-display">
-            {isDuel
-              ? "Today's Dilemma"
-              : "What do people secretly think of your personality?"}
+            {isDuel ? "Today's Dilemma" : "What do people secretly think of your personality?"}
           </h2>
           <p className="text-xs text-[#9C8F87] mt-1 leading-relaxed font-sans px-1">
             {isDuel
@@ -131,7 +126,8 @@ export const LockedTabModal: React.FC<LockedTabModalProps> = ({
                   <span>How people secretly think of you:</span>
                 </div>
                 <p className="text-[11px] text-[#9C8F87] italic line-clamp-2">
-                  &ldquo;They assume you have an icy filter, but secretly wonder who holds you when you cry...&rdquo;
+                  &ldquo;They assume you have an icy filter, but secretly wonder who holds you when
+                  you cry...&rdquo;
                 </p>
               </div>
               <div className="flex items-center gap-1 text-[10px] text-rose-400 font-medium">

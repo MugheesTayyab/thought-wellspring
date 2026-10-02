@@ -27,7 +27,16 @@ describe("Psychological Intrigue & Voyeurism Ranking Engine", () => {
     handle: null,
     createdAt: Date.now() - 7200000,
     reactions: { heart: 45, sad: 12, fire: 68, hug: 18 },
-    echoes: [{ id: "e-1", text: "Girl run", createdAt: Date.now(), handle: null, profileId: null, deviceToken: "d" }],
+    echoes: [
+      {
+        id: "e-1",
+        text: "Girl run",
+        createdAt: Date.now(),
+        handle: null,
+        profileId: null,
+        deviceToken: "d",
+      },
+    ],
     status: "published",
     deviceToken: "dev-2",
   };

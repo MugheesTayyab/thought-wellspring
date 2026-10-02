@@ -1,15 +1,13 @@
 import fs from "fs";
 import path from "path";
+import { it } from "vitest";
 import {
   handleFetchFeed,
   handleFetchWinner,
   handleSubmitPost,
   handleReactToPost,
 } from "../handlers/wall";
-import {
-  handleFetchActiveDuel,
-  handleSubmitDuelVote,
-} from "../handlers/duels";
+import { handleFetchActiveDuel, handleSubmitDuelVote } from "../handlers/duels";
 import { wrapServerFn } from "../lib/wrap-server-fn";
 import { setWorkerEnv } from "../lib/get-env";
 import { DeviceTokenError } from "../middleware/device-token";
@@ -43,7 +41,8 @@ function loadEnv(): DatabaseEnv {
       VITE_SUPABASE_URL: process.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"],
       SUPABASE_SERVICE_ROLE_KEY: process.env["SUPABASE_SERVICE_ROLE_KEY"],
       SUPABASE_ANON_KEY: process.env["VITE_SUPABASE_ANON_KEY"] || process.env["SUPABASE_ANON_KEY"],
-      VITE_SUPABASE_ANON_KEY: process.env["VITE_SUPABASE_ANON_KEY"] || process.env["SUPABASE_ANON_KEY"],
+      VITE_SUPABASE_ANON_KEY:
+        process.env["VITE_SUPABASE_ANON_KEY"] || process.env["SUPABASE_ANON_KEY"],
     };
   }
 }
@@ -89,7 +88,7 @@ async function runPhase3Tests() {
       v01Res.ok === true && (v01Res as any).data?.count === 42,
       "V-01",
       "wrapServerFn utility returns { ok: true, data: ... } on success",
-      v01Res
+      v01Res,
     );
 
     // V-02: wrapServerFn utility: DeviceTokenError returns { ok: false, error: { code: 'MISSING_DEVICE_TOKEN' } }
@@ -102,7 +101,7 @@ async function runPhase3Tests() {
         (v02Res as any).error?.statusCode === 400,
       "V-02",
       "wrapServerFn utility catches DeviceTokenError and returns MISSING_DEVICE_TOKEN with 400 status",
-      v02Res
+      v02Res,
     );
 
     // V-03: wrapServerFn utility: RateLimitError returns { ok: false, error: { code: 'RATE_LIMIT_EXCEEDED' } }
@@ -115,7 +114,7 @@ async function runPhase3Tests() {
         (v03Res as any).error?.statusCode === 429,
       "V-03",
       "wrapServerFn utility catches RateLimitError and returns RATE_LIMIT_EXCEEDED with 429 status",
-      v03Res
+      v03Res,
     );
 
     // V-04: apiFetchFeed handler: Returns { ok: true, data: { posts: [], page: 0, hasMore: boolean } }
@@ -127,7 +126,7 @@ async function runPhase3Tests() {
         typeof (v04Res as any).data?.hasMore === "boolean",
       "V-04",
       "handleFetchFeed returns { ok: true, data: { posts, page, limit, hasMore } }",
-      v04Res
+      v04Res,
     );
 
     // V-05: apiSubmitPost handler: Returns { ok: true, data: { id, status, createdAt } } on valid input
@@ -145,7 +144,7 @@ async function runPhase3Tests() {
         (v05Res as any).data?.status === "published",
       "V-05",
       "handleSubmitPost successfully publishes post via wrapped API handler",
-      v05Res
+      v05Res,
     );
 
     // V-06: apiSubmitPost handler: Returns { ok: false, error: { code: 'MISSING_DEVICE_TOKEN' } } on missing token
@@ -158,7 +157,7 @@ async function runPhase3Tests() {
       v06Res.ok === false && (v06Res as any).error?.code === "MISSING_DEVICE_TOKEN",
       "V-06",
       "handleSubmitPost returns MISSING_DEVICE_TOKEN error envelope on empty deviceToken",
-      v06Res
+      v06Res,
     );
 
     // V-07: apiFetchWinner handler: Returns { ok: true, data: { winner, hook, isFallback } }
@@ -170,7 +169,7 @@ async function runPhase3Tests() {
         typeof (v07Res as any).data?.isFallback === "boolean",
       "V-07",
       "handleFetchWinner returns { ok: true, data: { winner, hook, isFallback } }",
-      v07Res
+      v07Res,
     );
 
     // V-08: apiReactToPost handler: Returns { ok: true, data: { reactions } } on first reaction
@@ -186,7 +185,7 @@ async function runPhase3Tests() {
           (v08Res as any).data.reactions.heart >= 1,
         "V-08",
         "handleReactToPost returns updated reaction counters on first reaction",
-        v08Res
+        v08Res,
       );
 
       // V-09: apiReactToPost handler: Returns { ok: false, error: { code: 'ALREADY_REACTED' } } on duplicate
@@ -199,7 +198,7 @@ async function runPhase3Tests() {
         v09Res.ok === false && (v09Res as any).error?.code === "ALREADY_REACTED",
         "V-09",
         "handleReactToPost returns ALREADY_REACTED error envelope on duplicate reaction",
-        v09Res
+        v09Res,
       );
     } else {
       assert(false, "V-08", "Skipped V-08 because V-05 did not return createdPostId");
@@ -221,7 +220,7 @@ async function runPhase3Tests() {
           typeof (v10Res as any).data?.votesA === "number",
         "V-10",
         "handleSubmitDuelVote records vote and returns updated counts",
-        v10Res
+        v10Res,
       );
     } else {
       assert(false, "V-10", "No active duel found in database to vote on", activeDuelRes);
@@ -241,11 +240,10 @@ async function runPhase3Tests() {
   console.log("=================================================");
 
   if (failed > 0) {
-    process.exit(1);
+    throw new Error(`${failed} Phase 3 integration checks failed`);
   }
 }
 
-runPhase3Tests().catch((err) => {
-  console.error("Phase 3 test execution error:", err);
-  process.exit(1);
-});
+it("passes the Phase 3 route integration checks", async () => {
+  await runPhase3Tests();
+}, 120_000);

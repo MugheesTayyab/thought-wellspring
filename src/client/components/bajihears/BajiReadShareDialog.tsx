@@ -159,9 +159,7 @@ export function BajiReadShareDialog({ archetype, open, onClose }: BajiReadShareD
       <div className="w-full max-w-[320px] rounded-3xl border border-white/12 bg-gradient-to-b from-[#1f1712]/95 via-[#17110D]/95 to-[#100b08]/98 p-4 text-[#F5EFE9] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] backdrop-blur-2xl max-h-[92vh] overflow-y-auto no-scrollbar animate-[scaleUp_0.18s_ease-out]">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <p className="font-sans text-xs font-semibold text-[#F5EFE9]">
-            Share your Baji Read
-          </p>
+          <p className="font-sans text-xs font-semibold text-[#F5EFE9]">Share your Baji Read</p>
           <button
             type="button"
             onClick={onClose}

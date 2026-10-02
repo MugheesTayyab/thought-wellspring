@@ -15,18 +15,17 @@ export function isPushSupported(): boolean {
 
 export function isStandalonePwa(): boolean {
   if (typeof window === "undefined") return false;
+  const navigatorWithStandalone = window.navigator as Navigator & { standalone?: boolean };
   return (
     window.matchMedia("(display-mode: standalone)").matches ||
-    (window.navigator as any).standalone === true
+    navigatorWithStandalone.standalone === true
   );
 }
 
 export function isIosDevice(): boolean {
   if (typeof window === "undefined") return false;
-  return (
-    /iPad|iPhone|iPod/.test(navigator.userAgent) &&
-    !(window as any).MSStream
-  );
+  const windowWithMsStream = window as Window & { MSStream?: unknown };
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !windowWithMsStream.MSStream;
 }
 
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
@@ -81,11 +80,9 @@ export function markPushPromptShown(): void {
 /**
  * Converts a URL-safe Base64 string to a Uint8Array for PushManager.subscribe()
  */
-export function urlBase64ToUint8Array(base64String: string): Uint8Array {
+export function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, "+")
-    .replace(/_/g, "/");
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
 
   const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
@@ -104,12 +101,9 @@ function arrayBufferToBase64Url(buffer: ArrayBuffer | null): string {
   const bytes = new Uint8Array(buffer);
   let binary = "";
   for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
+    binary += String.fromCharCode(bytes[i]!);
   }
-  return window.btoa(binary)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
+  return window.btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 export interface SubscribePushOptions {
@@ -121,7 +115,7 @@ export interface SubscribePushOptions {
  * Subscribes the current device to Web Push and transmits the keys to the server
  */
 export async function subscribeDeviceToPush(
-  options: SubscribePushOptions = {}
+  options: SubscribePushOptions = {},
 ): Promise<{ success: boolean; error?: string }> {
   if (!isPushSupported()) {
     return { success: false, error: "Web push is not supported in this browser." };
@@ -137,9 +131,10 @@ export async function subscribeDeviceToPush(
     }
 
     // 2. Retrieve service worker registration
-    let registration = await navigator.serviceWorker.getRegistration();
+    let registration: ServiceWorkerRegistration | undefined =
+      await navigator.serviceWorker.getRegistration();
     if (!registration) {
-      registration = await registerServiceWorker();
+      registration = (await registerServiceWorker()) ?? undefined;
     }
     if (!registration) {
       return { success: false, error: "Failed to initialize service worker registration." };
@@ -150,7 +145,7 @@ export async function subscribeDeviceToPush(
 
     // 3. Resolve VAPID Public Key
     const vapidPublicKey =
-      import.meta.env.VITE_VAPID_PUBLIC_KEY ||
+      import.meta.env["VITE_VAPID_PUBLIC_KEY"] ||
       "BC2J76RtDSeeFuYN3VnrvChrz3qKHVD_bhO1eKaFHl3RO5dz3CUA8JOMIoicqBQG5XBrE1WvriUXP5RDAOmugsI";
 
     const convertedKey = urlBase64ToUint8Array(vapidPublicKey);
@@ -177,34 +172,33 @@ export async function subscribeDeviceToPush(
 
     // 6. Transmit to server function
     const deviceToken =
-      options.deviceToken ||
-      localStorage.getItem("bh:device_token") ||
-      crypto.randomUUID();
+      options.deviceToken || localStorage.getItem("bh:device_token") || crypto.randomUUID();
 
-    const result = await apiSavePushSubscription({
-      data: {
-        subscription: {
-          endpoint: subscription.endpoint,
-          keys: {
-            p256dh,
-            auth,
-          },
+    const requestData = {
+      subscription: {
+        endpoint: subscription.endpoint,
+        keys: {
+          p256dh,
+          auth,
         },
-        deviceToken,
-        jwt: options.jwt,
-        userAgent: navigator.userAgent,
       },
+      deviceToken,
+      userAgent: navigator.userAgent,
+      ...(options.jwt ? { jwt: options.jwt } : {}),
+    };
+    const result = await apiSavePushSubscription({
+      data: requestData,
     });
 
-    if (result && "success" in result && !result.success) {
-      return { success: false, error: result.error?.message || "Server rejected subscription." };
+    if (!result.ok) {
+      return { success: false, error: result.error.message || "Server rejected subscription." };
     }
 
     localStorage.setItem(PUSH_ENABLED_KEY, "true");
     markPushPromptShown();
     return { success: true };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[Push] Exception subscribing device:", err);
-    return { success: false, error: err.message || String(err) };
+    return { success: false, error: err instanceof Error ? err.message : String(err) };
   }
 }

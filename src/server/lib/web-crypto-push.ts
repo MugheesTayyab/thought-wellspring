@@ -25,7 +25,7 @@ export interface PushSendResult {
 }
 
 // URL-safe Base64 utilities
-export function base64UrlToUint8Array(base64Url: string): Uint8Array {
+export function base64UrlToUint8Array(base64Url: string): Uint8Array<ArrayBuffer> {
   const padding = "=".repeat((4 - (base64Url.length % 4)) % 4);
   const base64 = (base64Url + padding).replace(/-/g, "+").replace(/_/g, "/");
   const raw = atob(base64);
@@ -39,12 +39,9 @@ export function base64UrlToUint8Array(base64Url: string): Uint8Array {
 export function uint8ArrayToBase64Url(bytes: Uint8Array): string {
   let binary = "";
   for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
+    binary += String.fromCharCode(bytes[i]!);
   }
-  return btoa(binary)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 /**
@@ -53,7 +50,7 @@ export function uint8ArrayToBase64Url(bytes: Uint8Array): string {
 export async function createVapidToken(
   audience: string,
   vapid: VapidDetails,
-  expirationSeconds = 12 * 3600
+  expirationSeconds = 12 * 3600,
 ): Promise<string> {
   const pubBytes = base64UrlToUint8Array(vapid.publicKey);
   const x = uint8ArrayToBase64Url(pubBytes.slice(1, 33));
@@ -73,7 +70,7 @@ export async function createVapidToken(
     },
     { name: "ECDSA", namedCurve: "P-256" },
     false,
-    ["sign"]
+    ["sign"],
   );
 
   const header = { typ: "JWT", alg: "ES256" };
@@ -92,7 +89,7 @@ export async function createVapidToken(
   const rawSignature = await crypto.subtle.sign(
     { name: "ECDSA", hash: "SHA-256" },
     signingKey,
-    dataToSign
+    dataToSign,
   );
 
   // Web Crypto returns 64-byte IEEE P1363 (r || s), standard for ES256 JWT
@@ -105,8 +102,8 @@ export async function createVapidToken(
  */
 export async function encryptPayload(
   subscription: WebPushSubscription,
-  payloadText: string
-): Promise<Uint8Array> {
+  payloadText: string,
+): Promise<Uint8Array<ArrayBuffer>> {
   const enc = new TextEncoder();
   const plainBytes = enc.encode(payloadText);
 
@@ -114,11 +111,11 @@ export async function encryptPayload(
   const localKeyPair = await crypto.subtle.generateKey(
     { name: "ECDH", namedCurve: "P-256" },
     true,
-    ["deriveBits"]
+    ["deriveBits"],
   );
 
   const localPublicKeyRaw = new Uint8Array(
-    await crypto.subtle.exportKey("raw", localKeyPair.publicKey)
+    await crypto.subtle.exportKey("raw", localKeyPair.publicKey),
   );
 
   // 2. Import subscriber's public key (p256dh)
@@ -128,7 +125,7 @@ export async function encryptPayload(
     subscriberPubBytes,
     { name: "ECDH", namedCurve: "P-256" },
     false,
-    []
+    [],
   );
 
   // 3. Compute shared ECDH secret
@@ -136,19 +133,19 @@ export async function encryptPayload(
     await crypto.subtle.deriveBits(
       { name: "ECDH", public: subscriberKey },
       localKeyPair.privateKey,
-      256
-    )
+      256,
+    ),
   );
 
   // 4. Derive pseudo-random key (PRK) using auth secret
   const authSecret = base64UrlToUint8Array(subscription.keys.auth);
-  const authKey = await crypto.subtle.importKey("raw", authSecret, "HKDF", false, [
-    "deriveBits",
-  ]);
+  const authKey = await crypto.subtle.importKey("raw", authSecret, "HKDF", false, ["deriveBits"]);
 
   // HKDF info: "WebPush: info\0" + subscriberPublicKey + localPublicKey
   const infoPrefix = enc.encode("WebPush: info\0");
-  const ikmInfo = new Uint8Array(infoPrefix.length + subscriberPubBytes.length + localPublicKeyRaw.length);
+  const ikmInfo = new Uint8Array(
+    infoPrefix.length + subscriberPubBytes.length + localPublicKeyRaw.length,
+  );
   ikmInfo.set(infoPrefix, 0);
   ikmInfo.set(subscriberPubBytes, infoPrefix.length);
   ikmInfo.set(localPublicKeyRaw, infoPrefix.length + subscriberPubBytes.length);
@@ -162,7 +159,7 @@ export async function encryptPayload(
       info: ikmInfo,
     },
     authKey,
-    256
+    256,
   );
 
   // 5. Generate random 16-byte salt for this record
@@ -185,7 +182,7 @@ export async function encryptPayload(
     ikmKey,
     { name: "AES-GCM", length: 128 },
     false,
-    ["encrypt"]
+    ["encrypt"],
   );
 
   // Derive Nonce
@@ -197,7 +194,7 @@ export async function encryptPayload(
       info: enc.encode("Content-Encoding: nonce\0"),
     },
     ikmKey,
-    96 // 12 bytes * 8
+    96, // 12 bytes * 8
   );
 
   // 7. Pad plaintext with delimiter \x02
@@ -213,7 +210,7 @@ export async function encryptPayload(
       tagLength: 128,
     },
     cekKey,
-    paddedPlain
+    paddedPlain,
   );
 
   // 9. Assemble aes128gcm body:
@@ -242,7 +239,7 @@ export async function sendWebPushNotification(
   subscription: WebPushSubscription,
   payload: string,
   vapid: VapidDetails,
-  ttlSeconds = 43200 // 12 hours
+  ttlSeconds = 43200, // 12 hours
 ): Promise<PushSendResult> {
   const url = new URL(subscription.endpoint);
   const audience = `${url.protocol}//${url.host}`;
@@ -259,7 +256,7 @@ export async function sendWebPushNotification(
       Urgency: "normal",
       Authorization: `vapid t=${vapidToken}, k=${vapid.publicKey}`,
     },
-    body: encryptedBody,
+    body: encryptedBody.buffer,
   });
 
   const isSuccess = response.status === 201;

@@ -6,11 +6,7 @@ import type {
 import { wrapServerFn, extractBearerJwt } from "@/server/lib/wrap-server-fn";
 import { getServerEnv } from "@/server/lib/get-env";
 import { getSupabaseAnonClient } from "@/server/db/client";
-import {
-  claimDailyBonus,
-  purchaseStoreItem,
-  syncWarmth,
-} from "@/server/functions/warmth";
+import { claimDailyBonus, purchaseStoreItem, syncWarmth } from "@/server/functions/warmth";
 
 export async function handleClaimDailyBonus(data?: {
   jwt?: string;
@@ -57,13 +53,11 @@ export async function handlePurchaseStoreItem(data: {
   });
 }
 
-export async function handleSyncWarmth(
-  data: {
-    deviceToken: string;
-    localWarmth: number;
-    profileId?: string | null;
-  }
-): Promise<ServerFnResult<{ serverTotal: number }>> {
+export async function handleSyncWarmth(data: {
+  deviceToken: string;
+  localWarmth: number;
+  profileId?: string | null;
+}): Promise<ServerFnResult<{ serverTotal: number }>> {
   return wrapServerFn(async () => {
     const env = getServerEnv();
     return syncWarmth(env, data);

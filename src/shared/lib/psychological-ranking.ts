@@ -12,35 +12,95 @@ import type { Category, Unsaid } from "@/shared/types/unsaid";
 
 // 1. Voyeuristic & Privacy-Invasion Keyword Clusters
 const SNOOPING_KEYWORDS = [
-  "phone", "passcode", "unlocked", "gallery", "screenshots", "archived", "deleted",
-  "chats", "dms", "whatsapp", "active status", "location", "burner", "stalking",
-  "searched", "notes app", "lock screen", "notification", "lockscreen",
+  "phone",
+  "passcode",
+  "unlocked",
+  "gallery",
+  "screenshots",
+  "archived",
+  "deleted",
+  "chats",
+  "dms",
+  "whatsapp",
+  "active status",
+  "location",
+  "burner",
+  "stalking",
+  "searched",
+  "notes app",
+  "lock screen",
+  "notification",
+  "lockscreen",
 ];
 
 const EAVESDROPPING_KEYWORDS = [
-  "overheard", "behind their back", "whispered", "door", "caught", "listening",
-  "saw him", "saw her", "read his", "read her", "found out", "secretly", "spied",
-  "under the table", "other room",
+  "overheard",
+  "behind their back",
+  "whispered",
+  "door",
+  "caught",
+  "listening",
+  "saw him",
+  "saw her",
+  "read his",
+  "read her",
+  "found out",
+  "secretly",
+  "spied",
+  "under the table",
+  "other room",
 ];
 
 const TABOO_DRAMA_KEYWORDS = [
-  "fiance", "fiancé", "wedding", "engaged", "in-laws", "mother-in-law", "cousin",
-  "best friend's", "two-faced", "double life", "nobody knows", "never told anyone",
-  "real story", "real reason", "fake smile", "pretending", "affair", "cheating",
-  "lie", "lied", "truth is", "secret", "confession",
+  "fiance",
+  "fiancé",
+  "wedding",
+  "engaged",
+  "in-laws",
+  "mother-in-law",
+  "cousin",
+  "best friend's",
+  "two-faced",
+  "double life",
+  "nobody knows",
+  "never told anyone",
+  "real story",
+  "real reason",
+  "fake smile",
+  "pretending",
+  "affair",
+  "cheating",
+  "lie",
+  "lied",
+  "truth is",
+  "secret",
+  "confession",
 ];
 
 const VULNERABILITY_KEYWORDS = [
-  "2am", "3am", "2 am", "3 am", "midnight", "crying", "heartbreak", "block list",
-  "unsaid", "replaying", "ghosted", "voicenote", "playlist", "regret", "miss",
+  "2am",
+  "3am",
+  "2 am",
+  "3 am",
+  "midnight",
+  "crying",
+  "heartbreak",
+  "block list",
+  "unsaid",
+  "replaying",
+  "ghosted",
+  "voicenote",
+  "playlist",
+  "regret",
+  "miss",
 ];
 
 // Category multipliers based on psychological appetite
 const CATEGORY_MULTIPLIER: Record<Category, number> = {
   "Spill The Tea": 1.35,
   "Silent Thoughts": 1.25,
-  "Hard Truth": 1.20,
-  "Plot Twist": 1.20,
+  "Hard Truth": 1.2,
+  "Plot Twist": 1.2,
   "Vibe Check": 1.05,
 };
 
@@ -82,10 +142,7 @@ export function calculatePsychologicalIntrigueScore(unsaid: Unsaid): number {
   // 5. Engagement Heat (Likeability & Echo Discussion)
   const rx = unsaid.reactions || { heart: 0, sad: 0, fire: 0, hug: 0 };
   const reactionWeight =
-    (rx.fire || 0) * 3.0 +
-    (rx.heart || 0) * 2.2 +
-    (rx.hug || 0) * 1.5 +
-    (rx.sad || 0) * 1.5;
+    (rx.fire || 0) * 3.0 + (rx.heart || 0) * 2.2 + (rx.hug || 0) * 1.5 + (rx.sad || 0) * 1.5;
   const echoWeight = (unsaid.echoes?.length || 0) * 4.0;
   score += Math.min(40, reactionWeight + echoWeight);
 

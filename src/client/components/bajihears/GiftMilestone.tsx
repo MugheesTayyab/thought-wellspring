@@ -26,7 +26,9 @@ export const GiftMilestoneModal: React.FC<GiftMilestoneModalProps> = ({
       navigator.clipboard?.writeText(claimCode);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
-    } catch {}
+    } catch {
+      // Gift animation remains optional when local storage is unavailable.
+    }
   };
 
   return createPortal(
@@ -46,12 +48,8 @@ export const GiftMilestoneModal: React.FC<GiftMilestoneModalProps> = ({
         </div>
 
         {/* Header */}
-        <h2 className="text-sm font-bold text-[#F5EFE9] leading-tight">
-          {milestone.title}
-        </h2>
-        <p className="text-[11px] text-[#9C8F87] mt-0.5">
-          {milestone.threshold} warmth unlocked
-        </p>
+        <h2 className="text-sm font-bold text-[#F5EFE9] leading-tight">{milestone.title}</h2>
+        <p className="text-[11px] text-[#9C8F87] mt-0.5">{milestone.threshold} warmth unlocked</p>
 
         {/* Minimal Reward Box */}
         <div className="my-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-2.5 text-left space-y-1.5">

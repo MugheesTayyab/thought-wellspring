@@ -1,9 +1,6 @@
 import type { DatabaseEnv } from "../db/client";
 import { getServerEnv } from "../lib/get-env";
-import {
-  sendWebPushNotification,
-  type VapidDetails,
-} from "../lib/web-crypto-push";
+import { sendWebPushNotification, type VapidDetails } from "../lib/web-crypto-push";
 import {
   getActiveSubscriptions,
   deactivateDeadSubscription,
@@ -34,16 +31,27 @@ export interface PushDispatchResult {
  */
 export async function dispatchWinnerPushNotification(
   payload: WinnerPushPayload,
-  env?: DatabaseEnv
+  env?: DatabaseEnv,
 ): Promise<PushDispatchResult> {
   try {
     const fallback = getServerEnv();
-    const publicKey = env?.VAPID_PUBLIC_KEY || fallback.VAPID_PUBLIC_KEY || process.env.VAPID_PUBLIC_KEY || process.env.VITE_VAPID_PUBLIC_KEY;
-    const privateKey = env?.VAPID_PRIVATE_KEY || fallback.VAPID_PRIVATE_KEY || process.env.VAPID_PRIVATE_KEY;
-    const subject = env?.VAPID_SUBJECT || fallback.VAPID_SUBJECT || process.env.VAPID_SUBJECT || "mailto:admin@bajihears.com";
+    const publicKey =
+      env?.VAPID_PUBLIC_KEY ||
+      fallback.VAPID_PUBLIC_KEY ||
+      process.env["VAPID_PUBLIC_KEY"] ||
+      process.env["VITE_VAPID_PUBLIC_KEY"];
+    const privateKey =
+      env?.VAPID_PRIVATE_KEY || fallback.VAPID_PRIVATE_KEY || process.env["VAPID_PRIVATE_KEY"];
+    const subject =
+      env?.VAPID_SUBJECT ||
+      fallback.VAPID_SUBJECT ||
+      process.env["VAPID_SUBJECT"] ||
+      "mailto:admin@bajihears.com";
 
     if (!publicKey || !privateKey) {
-      console.warn("[PushDispatch] VAPID keys not configured in environment. Skipping push broadcast.");
+      console.warn(
+        "[PushDispatch] VAPID keys not configured in environment. Skipping push broadcast.",
+      );
       return {
         dispatched: false,
         recipientCount: 0,
@@ -60,7 +68,9 @@ export async function dispatchWinnerPushNotification(
     // 1. Idempotency Check: Prevent duplicate broadcasts for same cycle
     const alreadySent = await hasCyclePushDispatched(env, payload.cycleTimestamp);
     if (alreadySent) {
-      console.log(`[PushDispatch] Push already dispatched for cycle ${payload.cycleTimestamp}. Skipping.`);
+      console.log(
+        `[PushDispatch] Push already dispatched for cycle ${payload.cycleTimestamp}. Skipping.`,
+      );
       return {
         dispatched: true,
         recipientCount: 0,
@@ -81,7 +91,9 @@ export async function dispatchWinnerPushNotification(
 
     // 3. Format push message payload
     const truncatedExcerpt = payload.excerpt
-      ? (payload.excerpt.length > 120 ? `${payload.excerpt.slice(0, 117)}...` : payload.excerpt)
+      ? payload.excerpt.length > 120
+        ? `${payload.excerpt.slice(0, 117)}...`
+        : payload.excerpt
       : "A new confession won the community crown.";
 
     const messageData = JSON.stringify({
@@ -105,12 +117,12 @@ export async function dispatchWinnerPushNotification(
     for (let i = 0; i < targets.length; i += CHUNK_SIZE) {
       const chunk = targets.slice(i, i + CHUNK_SIZE);
       const results = await Promise.allSettled(
-        chunk.map((sub) => sendWebPushNotification(sub, messageData, vapid))
+        chunk.map((sub) => sendWebPushNotification(sub, messageData, vapid)),
       );
 
       for (let idx = 0; idx < results.length; idx++) {
-        const res = results[idx];
-        const sub = chunk[idx];
+        const res = results[idx]!;
+        const sub = chunk[idx]!;
 
         if (res.status === "fulfilled") {
           if (res.value.success) {
@@ -119,7 +131,11 @@ export async function dispatchWinnerPushNotification(
             failedCount++;
             if (res.value.isExpired) {
               prunedCount++;
-              await deactivateDeadSubscription(env, sub.endpoint, `${res.value.status} ${res.value.statusText}`);
+              await deactivateDeadSubscription(
+                env,
+                sub.endpoint,
+                `${res.value.status} ${res.value.statusText}`,
+              );
             }
           }
         } else {
@@ -138,7 +154,7 @@ export async function dispatchWinnerPushNotification(
     });
 
     console.log(
-      `[PushDispatch] Broadcast complete: ${deliveredCount}/${subscribers.length} delivered, ${prunedCount} pruned.`
+      `[PushDispatch] Broadcast complete: ${deliveredCount}/${subscribers.length} delivered, ${prunedCount} pruned.`,
     );
 
     return {

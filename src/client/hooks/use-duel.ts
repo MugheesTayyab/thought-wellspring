@@ -86,13 +86,7 @@ export function useDuel(): UseDuelReturn {
   }, [votesA, votesB]);
 
   const voteMutation = useMutation({
-    mutationFn: async ({
-      duelId,
-      choiceIndex,
-    }: {
-      duelId: string;
-      choiceIndex: 0 | 1;
-    }) => {
+    mutationFn: async ({ duelId, choiceIndex }: { duelId: string; choiceIndex: 0 | 1 }) => {
       if (!deviceToken) throw new Error("No device identity available");
       const res = await apiSubmitDuelVote({
         data: {
@@ -146,10 +140,7 @@ export function useDuel(): UseDuelReturn {
     },
     onError: (_err, _vars, context) => {
       if (context?.previousDuelData) {
-        queryClient.setQueryData(
-          queryKeys.duels.active(deviceToken),
-          context.previousDuelData
-        );
+        queryClient.setQueryData(queryKeys.duels.active(deviceToken), context.previousDuelData);
       }
       if (context?.previousRecord) {
         setAnsweredRecord(context.previousRecord);

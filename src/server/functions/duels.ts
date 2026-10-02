@@ -20,7 +20,7 @@ export interface ActiveDuelResponse {
  */
 export async function fetchActiveDuel(
   env: DatabaseEnv | undefined,
-  deviceToken?: string | null
+  deviceToken?: string | null,
 ): Promise<ActiveDuelResponse> {
   const res = await dbFetchActiveDuel(env);
 
@@ -64,7 +64,7 @@ export async function submitDuelVote(
     choiceIndex: 0 | 1;
     deviceToken: string;
     profileId?: string | null;
-  }
+  },
 ): Promise<{ choiceIndex: 0 | 1; votesA: number; votesB: number }> {
   const token = validateDeviceToken(input.deviceToken);
 
@@ -82,7 +82,7 @@ export async function submitDuelVote(
   // Reward signed-in user if profileId provided
   if (input.profileId) {
     await incrementTotalActions(env, input.profileId).catch((err) =>
-      console.error("[submitDuelVote] incrementTotalActions error:", err)
+      console.error("[submitDuelVote] incrementTotalActions error:", err),
     );
 
     const warmthReward = 10;

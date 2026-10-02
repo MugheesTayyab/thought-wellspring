@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { it } from "vitest";
 import { submitPost, fetchFeed, fetchWinner, reactToPost } from "../functions/posts";
 import { fetchActiveDuel, submitDuelVote } from "../functions/duels";
 import { reportPost } from "../functions/moderation";
@@ -98,7 +99,7 @@ async function runTests() {
     assert(
       postRes.status === "published" && Boolean(postRes.id),
       "T-02",
-      `Clean post published successfully (id: ${postRes.id})`
+      `Clean post published successfully (id: ${postRes.id})`,
     );
 
     // Verify it appears in feed
@@ -119,7 +120,7 @@ async function runTests() {
     assert(
       spamRes.status === "review",
       "T-03",
-      "Spam post flagged with 'review' status (shadow review)"
+      "Spam post flagged with 'review' status (shadow review)",
     );
 
     // Confirm it does NOT appear in public feed
@@ -133,19 +134,35 @@ async function runTests() {
   // T-04: submitPost Rate Limiting (3 per hour)
   try {
     // Submit 3 posts quickly with rateLimitDevice
-    await submitPost(env, { text: "Post one of the hour test", category: "Vibe Check", deviceToken: rateLimitDevice });
-    await submitPost(env, { text: "Post two of the hour test", category: "Vibe Check", deviceToken: rateLimitDevice });
-    await submitPost(env, { text: "Post three of the hour test", category: "Vibe Check", deviceToken: rateLimitDevice });
+    await submitPost(env, {
+      text: "Post one of the hour test",
+      category: "Vibe Check",
+      deviceToken: rateLimitDevice,
+    });
+    await submitPost(env, {
+      text: "Post two of the hour test",
+      category: "Vibe Check",
+      deviceToken: rateLimitDevice,
+    });
+    await submitPost(env, {
+      text: "Post three of the hour test",
+      category: "Vibe Check",
+      deviceToken: rateLimitDevice,
+    });
 
     // 4th should throw RateLimitError
     try {
-      await submitPost(env, { text: "Post four should be blocked", category: "Vibe Check", deviceToken: rateLimitDevice });
+      await submitPost(env, {
+        text: "Post four should be blocked",
+        category: "Vibe Check",
+        deviceToken: rateLimitDevice,
+      });
       assert(false, "T-04", "4th post should have been rate limited");
     } catch (rateErr: any) {
       assert(
         rateErr instanceof RateLimitError || rateErr.message.includes("Rate limit"),
         "T-04",
-        "4th post in 60 minutes correctly rejected with RateLimitError"
+        "4th post in 60 minutes correctly rejected with RateLimitError",
       );
     }
   } catch (err: any) {
@@ -163,7 +180,7 @@ async function runTests() {
       assert(
         reactRes.reactions.heart >= 1,
         "T-05",
-        `Reacted with 'heart', new heart count: ${reactRes.reactions.heart}`
+        `Reacted with 'heart', new heart count: ${reactRes.reactions.heart}`,
       );
     } catch (err: any) {
       assert(false, "T-05", `reactToPost failed: ${err.message}`);
@@ -181,7 +198,7 @@ async function runTests() {
       assert(
         dupErr.message.includes("already") || dupErr.message.includes("Duplicate"),
         "T-06",
-        "Duplicate reaction from same device rejected"
+        "Duplicate reaction from same device rejected",
       );
     }
   }
@@ -192,7 +209,7 @@ async function runTests() {
     assert(
       Boolean(winnerRes.winner && winnerRes.hook),
       "T-07",
-      `fetchWinner returned winner (isFallback: ${winnerRes.isFallback}, hook: "${winnerRes.hook}")`
+      `fetchWinner returned winner (isFallback: ${winnerRes.isFallback}, hook: "${winnerRes.hook}")`,
     );
   } catch (err: any) {
     assert(false, "T-07", `fetchWinner failed: ${err.message}`);
@@ -211,7 +228,7 @@ async function runTests() {
       assert(
         voteRes.choiceIndex === 0 && voteRes.votesA > 0,
         "T-08",
-        `Voted on duel, votesA is now: ${voteRes.votesA}`
+        `Voted on duel, votesA is now: ${voteRes.votesA}`,
       );
 
       // T-09: Duplicate vote on duel
@@ -226,7 +243,7 @@ async function runTests() {
         assert(
           dupVoteErr.message.includes("already voted"),
           "T-09",
-          "Duplicate duel vote correctly rejected"
+          "Duplicate duel vote correctly rejected",
         );
       }
     } else {
@@ -249,7 +266,7 @@ async function runTests() {
       assert(
         selfErr.message.includes("Author cannot report") || selfErr.message.includes("SELF_VETO"),
         "T-11",
-        "Author prevented from reporting own post"
+        "Author prevented from reporting own post",
       );
     }
 
@@ -270,11 +287,10 @@ async function runTests() {
   console.log("=================================================");
 
   if (failed > 0) {
-    process.exit(1);
+    throw new Error(`${failed} Phase 2 integration checks failed`);
   }
 }
 
-runTests().catch((err) => {
-  console.error("Unhandled test suite exception:", err);
-  process.exit(1);
-});
+it("passes the Phase 2 server integration checks", async () => {
+  await runTests();
+}, 120_000);

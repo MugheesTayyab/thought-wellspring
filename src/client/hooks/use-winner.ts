@@ -40,7 +40,7 @@ export function useWinner(): UseWinnerReturn {
       };
     },
     staleTime: 300_000, // 5 minutes
-    gcTime: 900_000,    // 15 minutes
+    gcTime: 900_000, // 15 minutes
   });
 
   // Automated revalidation on 12-hour cycle boundary (+30s grace window)

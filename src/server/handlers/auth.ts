@@ -1,14 +1,8 @@
 import { getServerEnv } from "@/server/lib/get-env";
-import {
-  wrapServerFn,
-  extractBearerJwt,
-} from "@/server/lib/wrap-server-fn";
+import { wrapServerFn, extractBearerJwt } from "@/server/lib/wrap-server-fn";
 import type { ServerFnResult } from "@/shared/types/api";
 import { getSupabaseAnonClient } from "@/server/db/client";
-import {
-  migrateGuestToAccount,
-  refreshProfile,
-} from "@/server/functions/auth";
+import { migrateGuestToAccount, refreshProfile } from "@/server/functions/auth";
 import type { DbProfile } from "@/shared/types/profile";
 
 export interface MigrateGuestData {

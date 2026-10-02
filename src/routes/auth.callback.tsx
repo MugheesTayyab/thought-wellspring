@@ -56,7 +56,7 @@ function AuthCallbackPage() {
           },
         });
 
-        if (result.success && result.data?.profile) {
+        if (result.ok && result.data.profile) {
           setProfile(result.data.profile);
         }
       } catch (err) {

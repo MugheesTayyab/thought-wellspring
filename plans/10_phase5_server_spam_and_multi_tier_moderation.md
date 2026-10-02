@@ -1,5 +1,6 @@
 # Phase 5 — Server-Side Spam Defense, Cultural Text Normalization & Multi-Tier Moderation Engine
-*Exhaustive Master Implementation Plan for Senior Engineering Execution*
+
+_Exhaustive Master Implementation Plan for Senior Engineering Execution_
 
 ---
 
@@ -70,7 +71,7 @@ stateDiagram-v2
 
     RateLimitCheck --> Normalization: Token Valid & Within Quota
     Normalization --> Preprocessing: Unicode, Homoglyph, Repetition Folding
-    
+
     Preprocessing --> Tier3Check: Test Hard Patterns
     Tier3Check --> HardRejected: Phone Numbers, URLs, Script Injection
     HardRejected --> [*]: Abort with 400 Validation Error
@@ -96,14 +97,14 @@ stateDiagram-v2
 
 ### 0-C: Subsystem State Transition Matrix
 
-| Subsystem | State Before Phase 5 | Target Production State (After Phase 5) |
-|---|---|---|
-| **Spam Filter Architecture** | Single regex array in `spam-filter.ts` checking only 10 basic patterns. Binary pass/fail. | 3-stage normalization pipeline + two-tiered regex dictionaries (Hard Block vs Soft Review) with cultural Pakistani adaptations. |
-| **Pakistani Phone Detection** | Only catches continuous `03\d{9}` and `+92\d{10}`. Bypassed by spaces, dashes, or words. | Detects all domestic prefixes (`0300`–`0349`), international formats, spaced-out digits, and phonetic words (`zero teen`, `o three`). |
-| **Roman Urdu Abuse Detection** | Non-existent. Relies purely on English keywords. | Comprehensive Roman Urdu swear word, slur, and harassment lexicon with phonetic root matching. |
-| **Rate Limiting Engine** | In-memory config reading from `unsaids` directly. Report rate limit incorrectly queries post table. | Unified `device_actions` ledger in Supabase tracking rolling windows for posts, echoes, reactions, and reports independently. |
-| **Community Veto Engine** | Simple update query prone to race conditions. Auto-hides at 5 reports without engagement checks. | Atomic SQL stored procedure (`append_veto_atomic`) with self-report guards, 5-report auto-quarantine, and engagement shields. |
-| **Moderation Interface** | Manual table inspection in Supabase with no audit trail. | Optimized `moderation_queue` SQL view with calculated risk scores and an immutable `moderation_audit_log` table. |
+| Subsystem                      | State Before Phase 5                                                                                | Target Production State (After Phase 5)                                                                                               |
+| ------------------------------ | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **Spam Filter Architecture**   | Single regex array in `spam-filter.ts` checking only 10 basic patterns. Binary pass/fail.           | 3-stage normalization pipeline + two-tiered regex dictionaries (Hard Block vs Soft Review) with cultural Pakistani adaptations.       |
+| **Pakistani Phone Detection**  | Only catches continuous `03\d{9}` and `+92\d{10}`. Bypassed by spaces, dashes, or words.            | Detects all domestic prefixes (`0300`–`0349`), international formats, spaced-out digits, and phonetic words (`zero teen`, `o three`). |
+| **Roman Urdu Abuse Detection** | Non-existent. Relies purely on English keywords.                                                    | Comprehensive Roman Urdu swear word, slur, and harassment lexicon with phonetic root matching.                                        |
+| **Rate Limiting Engine**       | In-memory config reading from `unsaids` directly. Report rate limit incorrectly queries post table. | Unified `device_actions` ledger in Supabase tracking rolling windows for posts, echoes, reactions, and reports independently.         |
+| **Community Veto Engine**      | Simple update query prone to race conditions. Auto-hides at 5 reports without engagement checks.    | Atomic SQL stored procedure (`append_veto_atomic`) with self-report guards, 5-report auto-quarantine, and engagement shields.         |
+| **Moderation Interface**       | Manual table inspection in Supabase with no audit trail.                                            | Optimized `moderation_queue` SQL view with calculated risk scores and an immutable `moderation_audit_log` table.                      |
 
 ---
 
@@ -139,13 +140,14 @@ Attackers insert invisible characters between letters to break regular expressio
 ```typescript
 export interface NormalizedTextPayload {
   original: string;
-  normalized: string;        // Folded case, trimmed, normalized whitespace
-  compact: string;           // Punctuation and spaces stripped for sequence detection
-  words: string[];           // Tokenized array of lower-case words
+  normalized: string; // Folded case, trimmed, normalized whitespace
+  compact: string; // Punctuation and spaces stripped for sequence detection
+  words: string[]; // Tokenized array of lower-case words
 }
 ```
 
 The normalization function must:
+
 1. Apply Unicode Normalization Form KD (`str.normalize('NFKD')`) to separate base characters from combining diacritical marks.
 2. Strip all zero-width characters:
    - `\u200B` (Zero-width space)
@@ -164,19 +166,19 @@ Malicious actors substitute visually identical glyphs from Cyrillic, Greek, or s
 
 The pipeline must map homoglyphs to their ASCII equivalents using a deterministic translation dictionary:
 
-| Source Character / Homoglyph | Canonical Target | Category |
-|---|---|---|
-| `а`, `α`, `à`, `á`, `â`, `ã`, `ä`, `@`, `4` | `a` | Vowel substitution |
-| `е`, `ё`, `ε`, `é`, `è`, `ê`, `ë`, `3`, `€` | `e` | Vowel substitution |
-| `і`, `ї`, `ι`, `í`, `ì`, `î`, `ï`, `1`, `!`, `\|` | `i` | Vowel substitution |
-| `о`, `ο`, `ò`, `ó`, `ô`, `õ`, `ö`, `0`, `θ` | `o` | Vowel substitution |
-| `и`, `υ`, `ú`, `ù`, `û`, `ü`, `μ` | `u` | Vowel substitution |
-| `с`, `ç`, `¢`, `$` | `s` | Consonant substitution |
-| `р`, `ρ` | `p` | Consonant substitution |
-| `х`, `χ`, `×` | `x` | Consonant substitution |
-| `у` | `y` | Consonant substitution |
-| `в` | `b` | Consonant substitution |
-| `т`, `7`, `+` | `t` | Consonant substitution |
+| Source Character / Homoglyph                      | Canonical Target | Category               |
+| ------------------------------------------------- | ---------------- | ---------------------- |
+| `а`, `α`, `à`, `á`, `â`, `ã`, `ä`, `@`, `4`       | `a`              | Vowel substitution     |
+| `е`, `ё`, `ε`, `é`, `è`, `ê`, `ë`, `3`, `€`       | `e`              | Vowel substitution     |
+| `і`, `ї`, `ι`, `í`, `ì`, `î`, `ï`, `1`, `!`, `\|` | `i`              | Vowel substitution     |
+| `о`, `ο`, `ò`, `ó`, `ô`, `õ`, `ö`, `0`, `θ`       | `o`              | Vowel substitution     |
+| `и`, `υ`, `ú`, `ù`, `û`, `ü`, `μ`                 | `u`              | Vowel substitution     |
+| `с`, `ç`, `¢`, `$`                                | `s`              | Consonant substitution |
+| `р`, `ρ`                                          | `p`              | Consonant substitution |
+| `х`, `χ`, `×`                                     | `x`              | Consonant substitution |
+| `у`                                               | `y`              | Consonant substitution |
+| `в`                                               | `b`              | Consonant substitution |
+| `т`, `7`, `+`                                     | `t`              | Consonant substitution |
 
 ---
 
@@ -186,7 +188,7 @@ The pipeline must map homoglyphs to their ASCII equivalents using a deterministi
    - Example: `"noooooooo"` $\rightarrow$ `"noo"`
    - Example: `"whyyyyyyy"` $\rightarrow$ `"whyy"`
    - Example: `"0 3 0 0 0 0 0 0 0 0 0"` $\rightarrow$ `"0300"` (in compact representation)
-   - *Rationale:* Preserves natural emotional emphasis (like `"so cool"`) while eliminating regex bypasses and visual flooding.
+   - _Rationale:_ Preserves natural emotional emphasis (like `"so cool"`) while eliminating regex bypasses and visual flooding.
 2. **Whitespace Compression:** Collapse all consecutive spaces, tabs, and carriage returns into a single space, followed by `.trim()`.
 
 ---
@@ -209,7 +211,7 @@ Any submission matching Tier 3 rules is **immediately aborted at the API boundar
 ```typescript
 export interface HardFilterResult {
   blocked: boolean;
-  violationType?: 'PHONE_NUMBER' | 'URL_LINK' | 'SCRIPT_INJECTION' | 'SEVERE_EXPLOIT';
+  violationType?: "PHONE_NUMBER" | "URL_LINK" | "SCRIPT_INJECTION" | "SEVERE_EXPLOIT";
   details?: string;
 }
 ```
@@ -217,6 +219,7 @@ export interface HardFilterResult {
 ### 2-A: Pakistani & International Phone Number Detection Suite
 
 Pakistani mobile numbers follow strict allocation blocks under the Pakistan Telecommunication Authority (PTA):
+
 - Country Code: `+92` or `0092`
 - National Destination Code (NDC): `300` through `349` (covering Jazz, Zong, Telenor, Ufone, SCO)
 - Subscriber Number: 7 digits
@@ -234,8 +237,8 @@ Pakistani mobile numbers follow strict allocation blocks under the Pakistan Tele
    ```
 3. **Phonetic & Word-Spelled Number Detection:**
    Attacking users write numbers phonetically in Roman Urdu or English:
-   - Example: *"zero three zero zero one two three four five six seven"*
-   - Example: *"o three zero zero..."* or *"zero teen zero zero..."*
+   - Example: _"zero three zero zero one two three four five six seven"_
+   - Example: _"o three zero zero..."_ or _"zero teen zero zero..."_
 
    The server must execute a phonetic digit replacement before compacting:
    - Word substitutions: `zero` $\rightarrow$ `0`, `one`/`aik` $\rightarrow$ `1`, `two`/`do` $\rightarrow$ `2`, `three`/`teen` $\rightarrow$ `3`, `four`/`chaar` $\rightarrow$ `4`, `five`/`paanch` $\rightarrow$ `5`, `six`/`chhay` $\rightarrow$ `6`, `seven`/`saat` $\rightarrow$ `7`, `eight`/`aath` $\rightarrow$ `8`, `nine`/`nau` $\rightarrow$ `9`.
@@ -289,14 +292,15 @@ To prevent Stored XSS or HTML injection across the rich rendering surfaces of th
 **Target File:** `src/server/lib/moderation/soft-filters.ts`
 
 Confessions matching Tier 2 criteria are **quarantined**: inserted into Supabase with `status = 'review'`.
+
 - They are **excluded** from the public wall feed (`WHERE status = 'published'`).
-- The author receives a successful submission response with a friendly informational notice: *"Your post has been received and queued for community safety review."*
+- The author receives a successful submission response with a friendly informational notice: _"Your post has been received and queued for community safety review."_
 - The post is surfaced in the moderation queue for administrator approval.
 
 ```typescript
 export interface SoftFilterResult {
   flagged: boolean;
-  category?: 'CULTURAL_ABUSE' | 'SOCIAL_SHILL' | 'LOW_ENTROPY' | 'PROMOTIONAL';
+  category?: "CULTURAL_ABUSE" | "SOCIAL_SHILL" | "LOW_ENTROPY" | "PROMOTIONAL";
   matchedTerms?: string[];
   severityScore: number; // 1 (Minor concern) to 10 (Critical review)
 }
@@ -309,18 +313,21 @@ English-only profanity filters fail completely in Pakistan, where confessions ar
 The dictionary must categorize terms into weighted severity tiers:
 
 #### 1. Severe Profanity & Vulgarity (Tier 2 Auto-Quarantine, Weight: 8–10):
+
 - Common Roman Urdu curse roots and compound phrases.
 - Variations covering typical vowel spelling shifts (e.g., `kutta` / `kuttay` / `kutte`, `kanjar` / `kanjr`, `chootia` / `chutiya` / `chootya`, `harami` / `haraami` / `hramkhor`, `gandu` / `gaandu`, `bhenchod` / `bc` / `bhen k lode`, `madarchod` / `mc`).
 - Explicit anatomical and sexual terms transliterated into Roman Urdu.
 
 #### 2. Targeted Harassment, Doxxing Intent & Blackmail (Weight: 9–10):
+
 - Phrases indicating extortion, non-consensual image distribution, or threats:
-  - *"pics leak"* / *"video leak"* / *"tasweerain leak"*
-  - *"blackmail kar"* / *"barbaad kar doon"*
-  - *"address share"* / *"ghar ka pata"*
-  - *"num share"* / *"number deta hoon"*
+  - _"pics leak"_ / _"video leak"_ / _"tasweerain leak"_
+  - _"blackmail kar"_ / _"barbaad kar doon"_
+  - _"address share"_ / _"ghar ka pata"_
+  - _"num share"_ / _"number deta hoon"_
 
 #### 3. Sectarian & Communal Hate Speech (Weight: 10):
+
 - Pejorative religious and sectarian slurs that cause severe societal harm.
 
 ---
@@ -330,6 +337,7 @@ The dictionary must categorize terms into weighted severity tiers:
 Even without direct URL links, users attempt to funnel followers to private social media accounts.
 
 #### Detection Patterns:
+
 1. **Handle Solicitation Flags:**
    ```regex
    /\b(?:insta|ig|snap|sc|telegram|tg|snapchat)\s*(?::|is|-|pe)?\s*@?[a-z0-9._]{3,25}\b/i
@@ -377,13 +385,13 @@ CREATE TABLE IF NOT EXISTS public.device_actions (
 );
 
 -- Index for lightning-fast rolling window count queries
-CREATE INDEX IF NOT EXISTS idx_device_actions_window 
+CREATE INDEX IF NOT EXISTS idx_device_actions_window
 ON public.device_actions (device_token, action_type, created_at DESC);
 
 -- Automated TTL cleanup: purge records older than 48 hours to keep table lean
 CREATE OR REPLACE FUNCTION purge_old_device_actions() RETURNS VOID AS $$
 BEGIN
-    DELETE FROM public.device_actions 
+    DELETE FROM public.device_actions
     WHERE created_at < NOW() - INTERVAL '48 hours';
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -395,13 +403,13 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 Rate limits are enforced using strict **sliding rolling windows** (not clock-hour aligned):
 
-| Action Type | Maximum Count | Window Duration | Purpose / Justification |
-|---|---|---|---|
-| `submit_post` | **3** | 60 minutes | Prevents feed flooding; enforces deliberate, thoughtful posting. |
-| `echo` | **10** | 30 minutes | Allows natural conversations while blocking automated comment bots. |
-| `react` | **40** | 10 minutes | Generous for browsing; stops rapid automated script clicking. |
-| `report` | **5** | 24 hours | Prevents mass-flagging and malicious brigading of benign posts. |
-| `duel_vote` | **1** | Per Duel ID | Duel votes are strictly deduplicated by unique constraint in DB. |
+| Action Type   | Maximum Count | Window Duration | Purpose / Justification                                             |
+| ------------- | ------------- | --------------- | ------------------------------------------------------------------- |
+| `submit_post` | **3**         | 60 minutes      | Prevents feed flooding; enforces deliberate, thoughtful posting.    |
+| `echo`        | **10**        | 30 minutes      | Allows natural conversations while blocking automated comment bots. |
+| `react`       | **40**        | 10 minutes      | Generous for browsing; stops rapid automated script clicking.       |
+| `report`      | **5**         | 24 hours        | Prevents mass-flagging and malicious brigading of benign posts.     |
+| `duel_vote`   | **1**         | Per Duel ID     | Duel votes are strictly deduplicated by unique constraint in DB.    |
 
 ---
 
@@ -552,7 +560,7 @@ CREATE TABLE IF NOT EXISTS public.moderation_audit_log (
 
 -- View: Optimized Moderation Queue for Supabase Table Editor
 CREATE OR REPLACE VIEW public.moderation_queue AS
-SELECT 
+SELECT
     u.id,
     u.text,
     u.category,
@@ -562,7 +570,7 @@ SELECT
     u.created_at,
     u.status,
     u.device_token,
-    CASE 
+    CASE
         WHEN u.veto_count >= 5 THEN 'HIGH: Community Veto Threshold Met'
         WHEN u.text ~* '(?:insta|snap|whatsapp|kutta|kanjar|leak)' THEN 'MEDIUM: Cultural/Social Pattern Flag'
         ELSE 'LOW: Standard Quality Queue'
@@ -617,6 +625,7 @@ While backend evaluation is authoritative, users need immediate, responsive UI f
 ```
 
 ### 7-A: Strict Security Boundary Rule
+
 > [!WARNING]
 > **Heuristic Obfuscation Principle:**
 > The client `spam-filter.ts` must **only** contain basic UX guidelines (detecting obvious URLs and phone numbers).
@@ -629,6 +638,7 @@ While backend evaluation is authoritative, users need immediate, responsive UI f
 The implementation is broken down into **20 discrete, verifiable engineering steps**:
 
 ### Phase 5.1: Database Schema & Migration Foundation
+
 - [ ] **Step 1:** Author Supabase migration `supabase/migrations/20260925_phase5_moderation.sql`.
 - [ ] **Step 2:** Define `device_actions` table with compound indexes for rolling window calculations.
 - [ ] **Step 3:** Implement PostgreSQL stored procedure `record_and_check_rate_limit`.
@@ -637,22 +647,26 @@ The implementation is broken down into **20 discrete, verifiable engineering ste
 - [ ] **Step 6:** Execute migration via Supabase CLI or SQL dashboard editor.
 
 ### Phase 5.2: Server Text Normalization Pipeline
+
 - [ ] **Step 7:** Create `src/server/lib/moderation/normalize.ts` implementing the 4-stage normalization pipeline (NFKD, homoglyph mapping, repetition folding, compact text generation).
 - [ ] **Step 8:** Add unit tests verifying zero-width stripping, Cyrillic-to-Latin homoglyph mapping, and character folding.
 
 ### Phase 5.3: Tier 3 Hard Security Filters (Auto-Reject)
+
 - [ ] **Step 9:** Create `src/server/lib/moderation/hard-filters.ts` implementing Pakistani mobile detection (`03xx`, `+92`, spaced digits, phonetic words).
 - [ ] **Step 10:** Add URL, Discord, WhatsApp, and Telegram invite link detection.
 - [ ] **Step 11:** Implement HTML entity sanitization and script injection blocking.
 - [ ] **Step 12:** Add unit tests validating that all phone number and URL permutations trigger `blocked: true`.
 
 ### Phase 5.4: Tier 2 Cultural & Quality Moderation (Auto-Review)
+
 - [ ] **Step 13:** Create `src/server/lib/moderation/soft-filters.ts` implementing the Roman Urdu cultural abuse lexicon.
 - [ ] **Step 14:** Implement social handle solicitation (`insta:`, `snap:`, `dm me`) and commercial promotion regexes.
 - [ ] **Step 15:** Implement Shannon character entropy and word repetition ratio heuristics.
 - [ ] **Step 16:** Add unit tests verifying that soft violations return `flagged: true` with appropriate severity ratings.
 
 ### Phase 5.5: Function & Handler Integration
+
 - [ ] **Step 17:** Refactor `src/server/middleware/rate-limit.ts` to execute `record_and_check_rate_limit` against Supabase.
 - [ ] **Step 18:** Update `src/server/functions/posts.ts` (`submitPost` and `addEcho`) to run normalization, check Tier 3 hard filters, evaluate Tier 2 soft filters, and assign `status = 'published'` vs `'review'` accordingly.
 - [ ] **Step 19:** Update `src/server/functions/moderation.ts` (`reportPost`) to invoke `append_veto_atomic`.
@@ -666,22 +680,22 @@ A standalone verification suite must be established in `src/server/__tests__/pha
 
 ### 9-A: Test Scenarios & Acceptance Criteria
 
-| Test ID | Input Confession Text | Expected Pipeline Result | Verification Target |
-|---|---|---|---|
-| **MOD-01** | `"I still think of our chai walks in F-7 every autumn."` | **Tier 1 (Pass):** `status = 'published'` | Normal genuine submission passes without delay. |
-| **MOD-02** | `"Call my ex on 03001234567 and annoy her"` | **Tier 3 (Hard Reject):** Aborted with 400 | Plain domestic Pakistani mobile number blocked. |
-| **MOD-03** | `"Contact me on 0 3 2 1 - 9 8 7 6 5 4 3 right now"` | **Tier 3 (Hard Reject):** Aborted with 400 | Spaced and hyphenated mobile number blocked. |
-| **MOD-04** | `"Text zero three zero zero one two three four five six seven"` | **Tier 3 (Hard Reject):** Aborted with 400 | Phonetically spelled Pakistani mobile number blocked. |
-| **MOD-05** | `"Free money check out https://scam-site.pk/win"` | **Tier 3 (Hard Reject):** Aborted with 400 | URL / domain link blocked. |
-| **MOD-06** | `"Join our secret group: chat.whatsapp.com/AbCdEf123"` | **Tier 3 (Hard Reject):** Aborted with 400 | WhatsApp group invite deep link blocked. |
-| **MOD-07** | `"<script>alert('xss')</script>hello"` | **Tier 3 (Hard Reject):** Aborted with 400 | Script injection tag blocked. |
-| **MOD-08** | `"Follow my insta @lahore_vibes for private confessions"` | **Tier 2 (Auto-Review):** Saved with `status = 'review'` | Social media handle solicitation quarantined. |
-| **MOD-09** | `"Tu intehai kanjar aur harami insaan hai"` (Roman Urdu abuse) | **Tier 2 (Auto-Review):** Saved with `status = 'review'` | Roman Urdu profanity lexicon quarantined. |
-| **MOD-10** | `"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"` | **Tier 2 (Auto-Review):** Saved with `status = 'review'` | Low entropy repetitive gibberish quarantined. |
-| **MOD-11** | Submit 4 posts within 10 minutes from single `device_token` | **Rate Limit Triggered:** 4th post returns 429 | Sliding window limit (3/hour) strictly enforced. |
-| **MOD-12** | Author attempts to report their own post | **Self-Veto Blocked:** Returns 403 `SELF_VETO_FORBIDDEN` | Authors cannot trigger community review on themselves. |
-| **MOD-13** | Report post 5 times from distinct `device_token` values | **Auto-Quarantine Triggered:** Post status changes to `'review'` | Veto threshold automatically removes flagged post from feed. |
-| **MOD-14** | Report high-engagement post (5 echoes) 5 times | **Popularity Shield Active:** Status remains `'published'` | High-echo post requires 8 reports before auto-quarantine. |
+| Test ID    | Input Confession Text                                           | Expected Pipeline Result                                         | Verification Target                                          |
+| ---------- | --------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------ |
+| **MOD-01** | `"I still think of our chai walks in F-7 every autumn."`        | **Tier 1 (Pass):** `status = 'published'`                        | Normal genuine submission passes without delay.              |
+| **MOD-02** | `"Call my ex on 03001234567 and annoy her"`                     | **Tier 3 (Hard Reject):** Aborted with 400                       | Plain domestic Pakistani mobile number blocked.              |
+| **MOD-03** | `"Contact me on 0 3 2 1 - 9 8 7 6 5 4 3 right now"`             | **Tier 3 (Hard Reject):** Aborted with 400                       | Spaced and hyphenated mobile number blocked.                 |
+| **MOD-04** | `"Text zero three zero zero one two three four five six seven"` | **Tier 3 (Hard Reject):** Aborted with 400                       | Phonetically spelled Pakistani mobile number blocked.        |
+| **MOD-05** | `"Free money check out https://scam-site.pk/win"`               | **Tier 3 (Hard Reject):** Aborted with 400                       | URL / domain link blocked.                                   |
+| **MOD-06** | `"Join our secret group: chat.whatsapp.com/AbCdEf123"`          | **Tier 3 (Hard Reject):** Aborted with 400                       | WhatsApp group invite deep link blocked.                     |
+| **MOD-07** | `"<script>alert('xss')</script>hello"`                          | **Tier 3 (Hard Reject):** Aborted with 400                       | Script injection tag blocked.                                |
+| **MOD-08** | `"Follow my insta @lahore_vibes for private confessions"`       | **Tier 2 (Auto-Review):** Saved with `status = 'review'`         | Social media handle solicitation quarantined.                |
+| **MOD-09** | `"Tu intehai kanjar aur harami insaan hai"` (Roman Urdu abuse)  | **Tier 2 (Auto-Review):** Saved with `status = 'review'`         | Roman Urdu profanity lexicon quarantined.                    |
+| **MOD-10** | `"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"`                            | **Tier 2 (Auto-Review):** Saved with `status = 'review'`         | Low entropy repetitive gibberish quarantined.                |
+| **MOD-11** | Submit 4 posts within 10 minutes from single `device_token`     | **Rate Limit Triggered:** 4th post returns 429                   | Sliding window limit (3/hour) strictly enforced.             |
+| **MOD-12** | Author attempts to report their own post                        | **Self-Veto Blocked:** Returns 403 `SELF_VETO_FORBIDDEN`         | Authors cannot trigger community review on themselves.       |
+| **MOD-13** | Report post 5 times from distinct `device_token` values         | **Auto-Quarantine Triggered:** Post status changes to `'review'` | Veto threshold automatically removes flagged post from feed. |
+| **MOD-14** | Report high-engagement post (5 echoes) 5 times                  | **Popularity Shield Active:** Status remains `'published'`       | High-echo post requires 8 reports before auto-quarantine.    |
 
 ---
 

@@ -2,7 +2,9 @@ import "./server/lib/error-capture";
 
 import { consumeLastCapturedError } from "./server/lib/error-capture";
 import { renderErrorPage } from "./server/lib/error-page";
-import { setWorkerEnv } from "./server/lib/get-env";
+import { getSupabaseAdminClient } from "./server/db/client";
+import { getServerEnv, setWorkerEnv } from "./server/lib/get-env";
+import { executeWinnerSelection } from "./server/jobs/winner-selection";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -84,7 +86,10 @@ export default {
       if (allowed && origin) {
         normalized.headers.set("Access-Control-Allow-Origin", origin);
         normalized.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        normalized.headers.set("Access-Control-Allow-Headers", "Content-Type, X-Device-Token, Authorization");
+        normalized.headers.set(
+          "Access-Control-Allow-Headers",
+          "Content-Type, X-Device-Token, Authorization",
+        );
       }
 
       return normalized;
@@ -97,12 +102,13 @@ export default {
     }
   },
 
-  async scheduled(event: unknown, env: unknown, ctx: { waitUntil?: (p: Promise<unknown>) => void }) {
+  async scheduled(
+    event: unknown,
+    env: unknown,
+    ctx: { waitUntil?: (p: Promise<unknown>) => void },
+  ) {
     setWorkerEnv(env);
     try {
-      const { getServerEnv } = await import("./server/lib/get-env");
-      const { executeWinnerSelection } = await import("./server/jobs/winner-selection");
-      const { getSupabaseAdminClient } = await import("./server/db/client");
       const dbEnv = getServerEnv();
 
       const cronRoutine = async () => {

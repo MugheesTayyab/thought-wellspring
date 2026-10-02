@@ -23,7 +23,7 @@ export interface SavePushSubscriptionInput {
  */
 export async function savePushSubscription(
   env: DatabaseEnv | undefined,
-  input: SavePushSubscriptionInput
+  input: SavePushSubscriptionInput,
 ): Promise<{ saved: boolean }> {
   if (!input.subscription || !input.subscription.endpoint) {
     throw new Error("Invalid push subscription: missing endpoint.");
@@ -39,7 +39,7 @@ export async function savePushSubscription(
       endpoint: input.subscription.endpoint,
       p256dh: input.subscription.keys.p256dh,
       auth: input.subscription.keys.auth,
-      user_agent: input.userAgent,
+      ...(input.userAgent ? { user_agent: input.userAgent } : {}),
     });
     if (!anonRes.success) {
       console.warn("[Notifications] Failed saving anonymous subscription:", anonRes.error);

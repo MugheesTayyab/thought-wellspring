@@ -1,5 +1,6 @@
 # Phase 4 — Real Data Wiring: Replacing All Mocks
-*Exhaustive Master Implementation Plan for Senior Engineering Execution*
+
+_Exhaustive Master Implementation Plan for Senior Engineering Execution_
 
 ---
 
@@ -17,6 +18,7 @@
 ### 0-A: System Topology & Data Flow Lifecycle
 
 Prior to Phase 4, BajiHears operates as an isolated in-memory simulation:
+
 1. The wall feed populates on client mount via `initializeWall()`, copying 200 static posts from `seedData.ts` into the browser's `localStorage`.
 2. Reactions, echoes, reports, and duels manipulate browser `localStorage` directly or mutate local React state.
 3. Duel outcome percentages are fabricated on the fly using pseudo-random math (`generateSplit()`).
@@ -52,15 +54,15 @@ Every senior engineer implementing Phase 4 must enforce five non-negotiable inva
 
 ### 0-C: Subsystem State Transition Matrix
 
-| Subsystem | Before Phase 4 (Simulation) | After Phase 4 (Production Real Data) |
-|---|---|---|
-| **Wall Feed** | `localStorage` via `readUnsaids()` sourced from `seedData.ts`. Offset simulated with `window.setTimeout(400ms)`. | `useInfiniteQuery` querying `fetchFeed` via RPC. 20 posts/page. Backed by Supabase `unsaids` table (`status = 'published'`). |
-| **Winner Card** | Hardcoded `WINNER` object in `local-storage.ts` or fallback constant. | `useQuery` querying `fetchWinner` with 5-minute `staleTime`. Computed every 12 hours from highest engagement score in DB. |
-| **Reactions** | Local state increment + `writeMyReactions()` to `localStorage`. No server persistence. | Optimistic cache update on `['wall', 'feed']`. Background call to `reactToPost` or `unreactToPost`. Backed by atomic `increment_reaction` / `decrement_reaction` RPCs & `reactions` ledger. |
-| **Echoes** | In-memory append with mock ID `local-${Date.now()}`. Lost on full cache clear. | Optimistic cache append with `isPending: true`. Background call to `addEcho`. Backed by Supabase `echoes` table and atomic `echo_count` increment on post. |
-| **Duels** | Cycled through 6 hardcoded items in `MOCK_DUELS`. Percentages derived via `generateSplit()` (random number generator). | `useQuery` querying `fetchActiveDuel` with `deviceToken`. Real vote counts (`votesA`, `votesB`). Percentages computed mathematically: `(votesA / total) * 100`. |
-| **Warmth Engine** | Standalone `localStorage` key `bajih_warmth`. Completely disconnected from backend. | Initial monotonic sync via `useWarmthSync` calling `syncWarmth` RPC. Profile row created/updated in Supabase `profiles`. |
-| **Seed Data** | 58 KB array imported on first visit via `initializeWall()`. | Migrated to Supabase via dedicated CLI migration script (`scripts/migrate-seed-to-supabase.ts`). Zero client footprint. |
+| Subsystem         | Before Phase 4 (Simulation)                                                                                            | After Phase 4 (Production Real Data)                                                                                                                                                        |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Wall Feed**     | `localStorage` via `readUnsaids()` sourced from `seedData.ts`. Offset simulated with `window.setTimeout(400ms)`.       | `useInfiniteQuery` querying `fetchFeed` via RPC. 20 posts/page. Backed by Supabase `unsaids` table (`status = 'published'`).                                                                |
+| **Winner Card**   | Hardcoded `WINNER` object in `local-storage.ts` or fallback constant.                                                  | `useQuery` querying `fetchWinner` with 5-minute `staleTime`. Computed every 12 hours from highest engagement score in DB.                                                                   |
+| **Reactions**     | Local state increment + `writeMyReactions()` to `localStorage`. No server persistence.                                 | Optimistic cache update on `['wall', 'feed']`. Background call to `reactToPost` or `unreactToPost`. Backed by atomic `increment_reaction` / `decrement_reaction` RPCs & `reactions` ledger. |
+| **Echoes**        | In-memory append with mock ID `local-${Date.now()}`. Lost on full cache clear.                                         | Optimistic cache append with `isPending: true`. Background call to `addEcho`. Backed by Supabase `echoes` table and atomic `echo_count` increment on post.                                  |
+| **Duels**         | Cycled through 6 hardcoded items in `MOCK_DUELS`. Percentages derived via `generateSplit()` (random number generator). | `useQuery` querying `fetchActiveDuel` with `deviceToken`. Real vote counts (`votesA`, `votesB`). Percentages computed mathematically: `(votesA / total) * 100`.                             |
+| **Warmth Engine** | Standalone `localStorage` key `bajih_warmth`. Completely disconnected from backend.                                    | Initial monotonic sync via `useWarmthSync` calling `syncWarmth` RPC. Profile row created/updated in Supabase `profiles`.                                                                    |
+| **Seed Data**     | 58 KB array imported on first visit via `initializeWall()`.                                                            | Migrated to Supabase via dedicated CLI migration script (`scripts/migrate-seed-to-supabase.ts`). Zero client footprint.                                                                     |
 
 ---
 
@@ -105,14 +107,14 @@ queryKeys
 
 Every mutation in the application maps to an explicit invalidation and cache patch behavior:
 
-| Mutation | Direct Cache Update (Optimistic) | Invalidation Target | Refetch Behavior |
-|---|---|---|---|
-| `submitPost` | None (post is prepended locally only after server confirms status or returns optimistic ID) | `queryKeys.posts.feed(activeFilters)` | Background refetch of Page 0. Preserves active scroll position. |
-| `reactToPost` | Optimistically increment target emoji count; add emoji to `myReactions` | `queryKeys.posts.feed(activeFilters)` and `queryKeys.posts.winner()` | Invalidation triggers background fetch to reconcile authoritative counts from other users. |
-| `unreactToPost` | Optimistically decrement target emoji count; remove emoji from `myReactions` | `queryKeys.posts.feed(activeFilters)` and `queryKeys.posts.winner()` | Background refetch on settle. |
-| `addEcho` | Optimistically append pending echo object (`isPending: true`) to post echoes | `queryKeys.posts.detail(postId)` | On success, replaces pending echo with server echo containing true UUID and timestamp. |
-| `submitDuelVote` | Optimistically compute new `pctA` / `pctB` from current vote counts; set `alreadyVoted: true` | `queryKeys.duels.active(deviceToken)` | Background refetch to reconcile authoritative global vote counts. |
-| `syncWarmth` | Monotonically update local `warmth_total` if `serverTotal > localWarmth` | `queryKeys.warmth.profile(deviceToken)` | Cache set directly from response. No extra refetch needed. |
+| Mutation         | Direct Cache Update (Optimistic)                                                              | Invalidation Target                                                  | Refetch Behavior                                                                           |
+| ---------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `submitPost`     | None (post is prepended locally only after server confirms status or returns optimistic ID)   | `queryKeys.posts.feed(activeFilters)`                                | Background refetch of Page 0. Preserves active scroll position.                            |
+| `reactToPost`    | Optimistically increment target emoji count; add emoji to `myReactions`                       | `queryKeys.posts.feed(activeFilters)` and `queryKeys.posts.winner()` | Invalidation triggers background fetch to reconcile authoritative counts from other users. |
+| `unreactToPost`  | Optimistically decrement target emoji count; remove emoji from `myReactions`                  | `queryKeys.posts.feed(activeFilters)` and `queryKeys.posts.winner()` | Background refetch on settle.                                                              |
+| `addEcho`        | Optimistically append pending echo object (`isPending: true`) to post echoes                  | `queryKeys.posts.detail(postId)`                                     | On success, replaces pending echo with server echo containing true UUID and timestamp.     |
+| `submitDuelVote` | Optimistically compute new `pctA` / `pctB` from current vote counts; set `alreadyVoted: true` | `queryKeys.duels.active(deviceToken)`                                | Background refetch to reconcile authoritative global vote counts.                          |
+| `syncWarmth`     | Monotonically update local `warmth_total` if `serverTotal > localWarmth`                      | `queryKeys.warmth.profile(deviceToken)`                              | Cache set directly from response. No extra refetch needed.                                 |
 
 ### 1-D: TanStack Start SSR Hydration & Boundary Specification
 
@@ -142,6 +144,7 @@ All hooks reside in `src/client/hooks/` and must adhere strictly to these detail
 **Primary Purpose:** Orchestrates infinite pagination, category filtering, optimistic reaction toggling, optimistic echo submission, and pull-to-refresh for The Wall.
 
 #### 1. Input Interface
+
 ```typescript
 interface UseWallOptions {
   initialCategories?: Category[];
@@ -150,6 +153,7 @@ interface UseWallOptions {
 ```
 
 #### 2. Query Configuration (`useInfiniteQuery`)
+
 - **Query Key:** `queryKeys.posts.feed(filters)`
 - **Query Function:** Calls `fetchFeed(undefined, { category: filters.length === 1 ? filters[0] : undefined, page: pageParam, limit: pageSize })`. Note: if multi-category filtering is enabled, the server function handles category intersection, or the query loops over multiple categories.
 - **`initialPageParam`:** `0` (Zero-indexed integer page number matching `posts.ts` `fetchFeed`).
@@ -159,6 +163,7 @@ interface UseWallOptions {
 - **Transformation (`select`):** Flattens `data.pages.flatMap(page => page.posts)` into a memoized `Unsaid[]` array. Prevents child re-renders unless the flattened content or reaction counters change.
 
 #### 3. Sentinel & IntersectionObserver Specification
+
 - The hook manages an internal `sentinelRef = useRef<HTMLDivElement>(null)`.
 - An `IntersectionObserver` attaches to `sentinelRef.current`.
 - **Stale Closure Safeguard:** The observer callback must check current values via refs (`isFetchingNextPageRef`, `hasNextPageRef`) or be reconstructed when `hasNextPage` or `isFetchingNextPage` changes.
@@ -166,9 +171,11 @@ interface UseWallOptions {
 - **Cleanup:** The `useEffect` return handler **must explicitly invoke** `observer.disconnect()` to prevent memory leaks during rapid navigation.
 
 #### 4. Optimistic Reaction Mutation Specification
+
 Tapping an emoji reaction must trigger an instant UI update while handling atomic toggle states (adding a reaction vs. removing an existing one).
 
 **Algorithm for `onMutate`:**
+
 1. Await cancellation of active queries: `await queryClient.cancelQueries({ queryKey: queryKeys.posts.feed(filters) })`.
 2. Snapshot current query data: `const previousFeed = queryClient.getQueryData<InfiniteData<{ posts: Unsaid[] }>>(queryKeys.posts.feed(filters))`.
 3. Snapshot local device reactions: `const previousLocalReactions = readMyReactions()`.
@@ -193,16 +200,20 @@ Tapping an emoji reaction must trigger an instant UI update while handling atomi
 8. Return rollback context: `{ previousFeed, previousLocalReactions, postId, action, reactionKey }`.
 
 **Algorithm for `onError`:**
+
 1. Revert TanStack Query cache: `queryClient.setQueryData(queryKeys.posts.feed(filters), context.previousFeed)`.
 2. Revert `localStorage`: Call `writeMyReactions(context.previousLocalReactions)`.
 3. Inspect error payload: If `error` is `RateLimitError` (HTTP 429), trigger a high-priority toast: `"You're reacting too fast. Please wait a moment."` Otherwise: `"Couldn't save your reaction. Try again."`.
 
 **Algorithm for `onSettled`:**
+
 1. Invalidate queries: `queryClient.invalidateQueries({ queryKey: queryKeys.posts.all })`.
 2. Both feed and winner caches re-sync with authoritative database numbers without causing loading spinners.
 
 #### 5. Optimistic Echo Mutation Specification
+
 When the user submits an echo via `UnsaidCard`:
+
 1. Optimistically append a temporary echo object to the target post:
    ```typescript
    const optimisticEcho: Echo = {
@@ -217,11 +228,12 @@ When the user submits an echo via `UnsaidCard`:
 4. Persist the echoed post ID into `readMyEchoes()` / `writeMyEchoes()` to disable further echo inputs on that post.
 
 #### 6. Export Contract (`UseWallReturn`)
+
 ```typescript
 interface UseWallReturn {
   posts: Unsaid[];
-  isLoading: boolean;              // True only on cold first-load
-  isFetchingNextPage: boolean;     // True when fetching subsequent pages
+  isLoading: boolean; // True only on cold first-load
+  isFetchingNextPage: boolean; // True when fetching subsequent pages
   isError: boolean;
   error: Error | null;
   hasNextPage: boolean;
@@ -229,7 +241,12 @@ interface UseWallReturn {
   filters: Category[];
   toggleFilter: (category: Category) => void;
   clearFilters: () => void;
-  submitPost: (input: { text: string; category: Category; preset?: string; handle?: string | null }) => Promise<SubmitPostResult>;
+  submitPost: (input: {
+    text: string;
+    category: Category;
+    preset?: string;
+    handle?: string | null;
+  }) => Promise<SubmitPostResult>;
   isSubmitting: boolean;
   submitError: string | null;
   onReact: (postId: string, reactionKey: ReactionKey) => void;
@@ -247,6 +264,7 @@ interface UseWallReturn {
 **Primary Purpose:** Manages the 12-hour cycle winner post, caching, fallback resilience, and cross-cache reaction synchronization.
 
 #### 1. Query Configuration
+
 - **Query Key:** `queryKeys.posts.winner()`
 - **Query Function:** Calls `fetchWinner()`.
 - **`staleTime`:** `300_000` (5 minutes).
@@ -254,13 +272,16 @@ interface UseWallReturn {
 - **Error Recovery:** If `isError === true` or network fails, automatically return `{ winner: FALLBACK_WINNER.unsaid, hook: FALLBACK_WINNER.hook, isFallback: true }`. The UI never enters an unrecoverable blank or broken state.
 
 #### 2. Dual-Cache Reaction Synchronization
+
 When a user reacts to the Winner Card:
+
 1. Update `queryKeys.posts.winner()` optimistically.
 2. Search the active `queryKeys.posts.feed(...)` cache. If the winning post is also present within the currently loaded feed pages, update its reaction counter simultaneously in the feed cache.
 3. Call `reactToPost` or `unreactToPost` via the server function.
 4. On mutation settlement, invalidate **both** `queryKeys.posts.winner()` and `queryKeys.posts.feed(...)`. This guarantees that if the user scrolls down to that same confession on the wall, the reaction pill states and counts match perfectly.
 
 #### 3. Export Contract (`UseWinnerReturn`)
+
 ```typescript
 interface UseWinnerReturn {
   winner: Unsaid;
@@ -280,23 +301,27 @@ interface UseWinnerReturn {
 **Primary Purpose:** Manages the active community duel, user choice submissions, exact vote percentages, and transitions.
 
 #### 1. Architectural Resolution: Single Active Duel vs. Mock Cycling
+
 In the mock simulation (`src/shared/constants/duels.ts`), `duel.tsx` cycled through 6 mock duels using a local `currentIndex` and fake percentages (`generateSplit()`).
 
 **Phase 4 Production Model:**
+
 - There is **one authoritative active duel** at any given time, queried from `duels` where `active = true`.
 - When a user votes, their vote is recorded in `duel_votes` bound to `(duel_id, device_token)`.
 - Once voted, the duel displays the **real mathematical percentages**:
   $$\text{pctA} = \text{round}\left(\frac{\text{votesA}}{\text{votesA} + \text{votesB}} \times 100\right)$$
   $$\text{pctB} = 100 - \text{pctA}$$
-  *(Edge Case: If total votes equal 0, both display 50%).*
+  _(Edge Case: If total votes equal 0, both display 50%)._
 - **Cycling Behavior:** When the user taps "Next", if no additional active duel exists in the database, the UI renders the completed summary state with countdown timer until the next daily duel, rather than fabricating fake duels.
 
 #### 2. Query Configuration
+
 - **Query Key:** `queryKeys.duels.active(deviceToken)`
 - **Query Function:** Calls `fetchActiveDuel(undefined, deviceToken)`.
 - **`staleTime`:** `60_000` (1 minute).
 
 #### 3. Optimistic Vote Mutation
+
 - **`onMutate`:**
   1. Cancel active duel queries.
   2. Snapshot cache data.
@@ -310,6 +335,7 @@ In the mock simulation (`src/shared/constants/duels.ts`), `duel.tsx` cycled thro
 - **`onError`:** Roll back cache and local storage. Display error toast: `"Vote could not be recorded. Please try again."`
 
 #### 4. Export Contract (`UseDuelReturn`)
+
 ```typescript
 interface UseDuelReturn {
   duel: Duel | null;
@@ -335,12 +361,15 @@ interface UseDuelReturn {
 **Primary Purpose:** Guarantees one-way monotonic reconciliation between device `localStorage` warmth points and the backend database profile.
 
 #### 1. Execution Triggers
+
 The sync routine executes under three specific lifecycle events:
+
 1. **Initial App Mount:** Inside `RootComponent` in `__root.tsx`.
 2. **App Foregrounding:** Listens to `document.addEventListener('visibilitychange')`. When `document.visibilityState === 'visible'`, runs sync to capture points awarded during background tasks or push interactions.
 3. **Major Milestone / Store Purchase:** Prior to unlocking an exclusive preset or spending points.
 
 #### 2. Monotonic Reconciliation Algorithm
+
 1. Read `deviceToken` from `getOrCreateIdentity().deviceToken`. If null or invalid, abort.
 2. Read `localWarmth` from `readWarmth()` (`localStorage.getItem('bajih_warmth')`).
 3. Invoke server function `syncWarmth({ deviceToken, localWarmth })`.
@@ -353,6 +382,7 @@ The sync routine executes under three specific lifecycle events:
    - Do **not** trigger bonus audio, coin animations, or toast notifications. This is silent data integrity maintenance.
 
 #### 3. Export Contract (`UseWarmthSyncReturn`)
+
 ```typescript
 interface UseWarmthSyncReturn {
   isSyncing: boolean;
@@ -368,11 +398,13 @@ interface UseWarmthSyncReturn {
 **Primary Purpose:** Encapsulates identity retrieval, guarantees SSR safety, and handles cross-tab token synchronization.
 
 #### 1. Architectural Specification
+
 - Guard against SSR execution: Check `typeof window !== 'undefined'`. Return an empty string during server-side evaluation.
 - Memoize the identity resolution: Call `getOrCreateIdentity()` once on mount.
 - Listen for `window.addEventListener('storage', ...)`: If another browser tab regenerates or alters `bajih_identity`, this hook updates state across all open tabs immediately.
 
 #### 2. Export Contract
+
 ```typescript
 interface UseDeviceTokenReturn {
   deviceToken: string;
@@ -391,6 +423,7 @@ The existing server functions in `src/server/functions/` must be expanded with m
 ### 3-A: `unreactToPost` in `src/server/functions/posts.ts`
 
 **Function Signature:**
+
 ```typescript
 export async function unreactToPost(
   env: DatabaseEnv | undefined,
@@ -399,31 +432,32 @@ export async function unreactToPost(
     reactionKey: ReactionKey;
     deviceToken: string;
     profileId?: string | null;
-  }
-): Promise<{ reactions: Record<ReactionKey, number> }>
+  },
+): Promise<{ reactions: Record<ReactionKey, number> }>;
 ```
 
 **Implementation Steps:**
+
 1. **Validation:** Execute `validateDeviceToken(input.deviceToken)`. Verify `postId` is a valid UUID.
 2. **Ledger Check:** Query `reactions` table for existing record:
    ```sql
-   SELECT id FROM reactions 
-   WHERE unsaid_id = input.postId 
-     AND device_token = input.deviceToken 
+   SELECT id FROM reactions
+   WHERE unsaid_id = input.postId
+     AND device_token = input.deviceToken
      AND reaction_key = input.reactionKey;
    ```
 3. **Idempotent Exit:** If no matching row exists, return current reaction counters without error (prevents race conditions if user double-clicked rapidly).
 4. **Atomic Deletion & Decrement:** Execute atomic database stored procedure `decrement_reaction`:
    ```sql
-   DELETE FROM reactions 
-   WHERE unsaid_id = input.postId 
-     AND device_token = input.deviceToken 
+   DELETE FROM reactions
+   WHERE unsaid_id = input.postId
+     AND device_token = input.deviceToken
      AND reaction_key = input.reactionKey;
 
-   UPDATE unsaids 
+   UPDATE unsaids
    SET reactions = jsonb_set(
-     reactions, 
-     ARRAY[input.reactionKey], 
+     reactions,
+     ARRAY[input.reactionKey],
      to_jsonb(GREATEST(0, ((reactions->>input.reactionKey)::int - 1)))
    )
    WHERE id = input.postId
@@ -436,6 +470,7 @@ export async function unreactToPost(
 ### 3-B: `addEcho` in `src/server/functions/posts.ts`
 
 **Function Signature:**
+
 ```typescript
 export async function addEcho(
   env: DatabaseEnv | undefined,
@@ -445,11 +480,12 @@ export async function addEcho(
     deviceToken: string;
     handle?: string | null;
     profileId?: string | null;
-  }
-): Promise<Echo>
+  },
+): Promise<Echo>;
 ```
 
 **Implementation Steps:**
+
 1. **Validation:** Execute `validateDeviceToken(input.deviceToken)`.
 2. **Text Sanitation:** Trim text. Verify length is between 1 and 200 characters. Reject empty strings with `ECHO_TOO_SHORT`. Reject text > 200 chars with `ECHO_TOO_LONG`.
 3. **Rate Limiting:** Check rate limit using `checkRateLimit(env, "echo", token)`. (Limit: 10 echoes per 30 minutes).
@@ -467,6 +503,7 @@ export async function addEcho(
 ### 3-C: `syncWarmth` in `src/server/functions/warmth.ts`
 
 **Function Signature:**
+
 ```typescript
 export async function syncWarmth(
   env: DatabaseEnv | undefined,
@@ -474,18 +511,19 @@ export async function syncWarmth(
     deviceToken: string;
     localWarmth: number;
     profileId?: string | null;
-  }
-): Promise<{ serverTotal: number }>
+  },
+): Promise<{ serverTotal: number }>;
 ```
 
 **Implementation Steps:**
+
 1. **Validation:** Validate device token format. Verify `localWarmth >= 0` and is an integer.
 2. **Monotonic Upsert:** Execute PostgreSQL upsert against `profiles`:
    ```sql
    INSERT INTO profiles (device_token, warmth_total, updated_at)
    VALUES (input.deviceToken, input.localWarmth, NOW())
-   ON CONFLICT (device_token) 
-   DO UPDATE SET 
+   ON CONFLICT (device_token)
+   DO UPDATE SET
      warmth_total = GREATEST(profiles.warmth_total, EXCLUDED.warmth_total),
      updated_at = NOW()
    RETURNING warmth_total;
@@ -499,6 +537,7 @@ export async function syncWarmth(
 To guarantee that seed data is migrated idempotently and counters never drift, Phase 4 requires the following database primitives in Supabase:
 
 #### 1. `app_meta` Key-Value Table
+
 ```sql
 CREATE TABLE IF NOT EXISTS app_meta (
   key TEXT PRIMARY KEY,
@@ -508,6 +547,7 @@ CREATE TABLE IF NOT EXISTS app_meta (
 ```
 
 #### 2. Atomic Decrement Stored Procedure (`decrement_reaction`)
+
 ```sql
 CREATE OR REPLACE FUNCTION decrement_reaction(
   p_post_id UUID,
@@ -553,6 +593,7 @@ $$;
 **Target File:** [`src/client/components/WritingBox.tsx`](file:///c:/Users/mughe/OneDrive/Desktop/Personal%20projects/thought-wellspring/src/client/components/WritingBox.tsx)
 
 **Interface Changes:**
+
 ```typescript
 interface WritingBoxProps {
   onPostSubmit: (post: {
@@ -569,6 +610,7 @@ interface WritingBoxProps {
 ```
 
 **Behavioral Specifications:**
+
 1. **Submission State:** When `isSubmitting === true`, the submit button switches to a spinner state and disables textarea editing to prevent double-submission.
 2. **Cooldown Guard:** Check `cooldownRemaining`. If `> 0`, display countdown badge: `"Cooldown: MM:SS"` and disable submission button.
 3. **Error Handling:** If `submitError` is provided, render an inline amber alert box below the character counter with the exact server error message.
@@ -580,6 +622,7 @@ interface WritingBoxProps {
 **Target File:** [`src/client/components/UnsaidCard.tsx`](file:///c:/Users/mughe/OneDrive/Desktop/Personal%20projects/thought-wellspring/src/client/components/UnsaidCard.tsx)
 
 **Interface Changes:**
+
 ```typescript
 interface UnsaidCardProps {
   unsaid: Unsaid;
@@ -592,6 +635,7 @@ interface UnsaidCardProps {
 ```
 
 **Behavioral Specifications:**
+
 1. **Optimistic Visual State:** When user taps an emoji pill, apply active styles (`border-primary bg-primary/10`) immediately based on `userReaction === key`.
 2. **Pending Echoes:** Echoes marked with `id` starting with `pending-` must render with a pulsing opacity (`opacity-70 animate-pulse`) and an accompanying tiny clock indicator to show that edge synchronization is in-flight.
 
@@ -602,6 +646,7 @@ interface UnsaidCardProps {
 **Target File:** [`src/client/components/DuelCard.tsx`](file:///c:/Users/mughe/OneDrive/Desktop/Personal%20projects/thought-wellspring/src/client/components/DuelCard.tsx)
 
 **Interface Changes:**
+
 ```typescript
 interface DuelCardProps {
   duel: Duel;
@@ -616,6 +661,7 @@ interface DuelCardProps {
 ```
 
 **Behavioral Specifications:**
+
 1. **Mathematical Accuracy:** Render `pctA` and `pctB` directly as CSS flex basis or percentage width on the split bar. **Eliminate all references to `generateSplit`**.
 2. **Transition Animation:** Percentage bars must use `transition: width 600ms cubic-bezier(0.16, 1, 0.3, 1)` to smoothly glide into their true positions upon voting.
 
@@ -649,6 +695,7 @@ const syncWarmthTotal = useCallback((serverTotal: number) => {
 ### 4-F: `src/routes/index.tsx` — Complete Route Rewire
 
 **Refactor Blueprint:**
+
 1. **Delete:**
    - Remove `import { FALLBACK_MOCK_UNSAIDS, WINNER } from "@/client/lib/local-storage"`.
    - Remove `window.setTimeout(..., 400)` mock pagination delay.
@@ -671,6 +718,7 @@ const syncWarmthTotal = useCallback((serverTotal: number) => {
 ### 4-G: `src/routes/duel.tsx` — Complete Route Rewire
 
 **Refactor Blueprint:**
+
 1. **Delete:**
    - Remove `import { MOCK_DUELS, generateSplit } from "@/shared/constants/duels"`.
    - Remove mock cycling state (`currentIndex`, `setCurrentIndex`).
@@ -686,6 +734,7 @@ const syncWarmthTotal = useCallback((serverTotal: number) => {
 ### 4-H: `src/routes/read.tsx` — BajiRead Migration
 
 **Refactor Blueprint:**
+
 - Retain `readMyReactions()`, `readMyEchoes()`, and `readAnsweredDuels()` for initial client rendering.
 - Bind reading stats to profile query data when authenticated to reflect cross-device history.
 
@@ -695,13 +744,13 @@ const syncWarmthTotal = useCallback((serverTotal: number) => {
 
 ### 5-A: Inventory of Deprecated Symbols & Files
 
-| Symbol / File | Location | Action in Phase 4 | Final Removal |
-|---|---|---|---|
-| `initializeWall` | `src/client/lib/local-storage.ts` | Mark `@deprecated`. Remove call in `__root.tsx`. | End of Phase 4 build |
-| `FALLBACK_MOCK_UNSAIDS` | `src/client/lib/local-storage.ts` | Mark `@deprecated`. Remove import in `index.tsx`. | Phase 5 cleanup |
-| `WINNER` | `src/client/lib/local-storage.ts` | Mark `@deprecated`. Remove import in `index.tsx`. | Phase 5 cleanup |
-| `generateSplit` | `src/shared/constants/duels.ts` | **Delete export completely**. | Phase 4 Step 12 |
-| `seedData.ts` | `src/client/lib/seedData.ts` | Retained strictly for migration script input. | Delete after DB migration verification |
+| Symbol / File           | Location                          | Action in Phase 4                                 | Final Removal                          |
+| ----------------------- | --------------------------------- | ------------------------------------------------- | -------------------------------------- |
+| `initializeWall`        | `src/client/lib/local-storage.ts` | Mark `@deprecated`. Remove call in `__root.tsx`.  | End of Phase 4 build                   |
+| `FALLBACK_MOCK_UNSAIDS` | `src/client/lib/local-storage.ts` | Mark `@deprecated`. Remove import in `index.tsx`. | Phase 5 cleanup                        |
+| `WINNER`                | `src/client/lib/local-storage.ts` | Mark `@deprecated`. Remove import in `index.tsx`. | Phase 5 cleanup                        |
+| `generateSplit`         | `src/shared/constants/duels.ts`   | **Delete export completely**.                     | Phase 4 Step 12                        |
+| `seedData.ts`           | `src/client/lib/seedData.ts`      | Retained strictly for migration script input.     | Delete after DB migration verification |
 
 ### 5-B: Two-Phase Elimination Protocol
 
@@ -717,6 +766,7 @@ const syncWarmthTotal = useCallback((serverTotal: number) => {
 ### 6-A: Script Architecture & Execution Command
 
 Execute via `tsx` or `node`:
+
 ```bash
 npx tsx scripts/migrate-seed-to-supabase.ts
 ```
@@ -758,11 +808,18 @@ All routes reside in `src/routes/api/` and extract the Cloudflare Worker databas
 ### 7-B: Route Definitions & Strict Schemas
 
 #### 1. `POST /api/posts` — Confession Submission
+
 - **Zod Schema:**
   ```typescript
   export const SubmitPostSchema = z.object({
     text: z.string().trim().min(3, "Too short").max(280, "Too long"),
-    category: z.enum(["Spill The Tea", "Silent Thoughts", "Plot Twist", "Hard Truth", "Vibe Check"]),
+    category: z.enum([
+      "Spill The Tea",
+      "Silent Thoughts",
+      "Plot Twist",
+      "Hard Truth",
+      "Vibe Check",
+    ]),
     preset: z.string().default("midnight-static"),
     handle: z.string().max(30).nullable().optional(),
     deviceToken: z.string().uuid("Invalid device token"),
@@ -771,6 +828,7 @@ All routes reside in `src/routes/api/` and extract the Cloudflare Worker databas
   ```
 
 #### 2. `POST /api/posts/react` — Reaction Toggle
+
 - **Zod Schema:**
   ```typescript
   export const ReactPostSchema = z.object({
@@ -782,6 +840,7 @@ All routes reside in `src/routes/api/` and extract the Cloudflare Worker databas
   ```
 
 #### 3. `POST /api/posts/echo` — Echo Submission
+
 - **Zod Schema:**
   ```typescript
   export const EchoPostSchema = z.object({
@@ -793,6 +852,7 @@ All routes reside in `src/routes/api/` and extract the Cloudflare Worker databas
   ```
 
 #### 4. `POST /api/duels/vote` — Duel Vote Submission
+
 - **Zod Schema:**
   ```typescript
   export const DuelVoteSchema = z.object({
@@ -803,6 +863,7 @@ All routes reside in `src/routes/api/` and extract the Cloudflare Worker databas
   ```
 
 #### 5. `POST /api/warmth/sync` — Monotonic Warmth Sync
+
 - **Zod Schema:**
   ```typescript
   export const WarmthSyncSchema = z.object({
@@ -819,15 +880,15 @@ All routes reside in `src/routes/api/` and extract the Cloudflare Worker databas
 
 When an error propagates to the UI, the system maps the error code to empathetic, contextual microcopy:
 
-| Server Error Code | HTTP Status | Context | User-Facing Microcopy (Toast / Alert) | UI Action |
-|---|---|---|---|---|
-| `RATE_LIMIT_EXCEEDED` (submit) | 429 | WritingBox | *"The wellspring needs a breath. You can share another whisper in MM minutes."* | Disable submit button; display countdown. |
-| `RATE_LIMIT_EXCEEDED` (react) | 429 | Wall Reaction | *"You're reacting with great passion! Please wait a moment before reacting again."* | Revert reaction pill; dismiss in 3s. |
-| `RATE_LIMIT_EXCEEDED` (echo) | 429 | Echo Input | *"Echo limit reached for this session. Take a moment to read others."* | Disable echo submission field. |
-| `ECHO_TOO_LONG` | 400 | Echo Input | *"Echoes must be gentle and brief (max 200 characters)."* | Highlight character counter in red. |
-| `DUEL_ALREADY_VOTED` | 409 | Duel Arena | *"Your voice has already been counted in this duel."* | Switch card to voted percentage view. |
-| `SPAM_DETECTED` | 422 | WritingBox | *"Your thought was held for community review to keep this sanctuary safe."* | Clear box; show pending review badge. |
-| `NETWORK_FAILURE` | 503 / 0 | Any Surface | *"Connection adrift. Your thoughts are safe locally; retrying..."* | Retry query silently in background. |
+| Server Error Code              | HTTP Status | Context       | User-Facing Microcopy (Toast / Alert)                                               | UI Action                                 |
+| ------------------------------ | ----------- | ------------- | ----------------------------------------------------------------------------------- | ----------------------------------------- |
+| `RATE_LIMIT_EXCEEDED` (submit) | 429         | WritingBox    | _"The wellspring needs a breath. You can share another whisper in MM minutes."_     | Disable submit button; display countdown. |
+| `RATE_LIMIT_EXCEEDED` (react)  | 429         | Wall Reaction | _"You're reacting with great passion! Please wait a moment before reacting again."_ | Revert reaction pill; dismiss in 3s.      |
+| `RATE_LIMIT_EXCEEDED` (echo)   | 429         | Echo Input    | _"Echo limit reached for this session. Take a moment to read others."_              | Disable echo submission field.            |
+| `ECHO_TOO_LONG`                | 400         | Echo Input    | _"Echoes must be gentle and brief (max 200 characters)."_                           | Highlight character counter in red.       |
+| `DUEL_ALREADY_VOTED`           | 409         | Duel Arena    | _"Your voice has already been counted in this duel."_                               | Switch card to voted percentage view.     |
+| `SPAM_DETECTED`                | 422         | WritingBox    | _"Your thought was held for community review to keep this sanctuary safe."_         | Clear box; show pending review badge.     |
+| `NETWORK_FAILURE`              | 503 / 0     | Any Surface   | _"Connection adrift. Your thoughts are safe locally; retrying..."_                  | Retry query silently in background.       |
 
 ### 8-B: Rollback & Re-synchronization Protocols
 
@@ -912,6 +973,7 @@ Step 20 ─── Run Full Verification Protocol & Deprecate Local Storage Mocks
 ### 10-B: Comprehensive Acceptance & Verification Checklist
 
 #### 1. Database & Persistence Checks
+
 - [ ] Confession submitted via `WritingBox` inserts into `unsaids` with valid `device_token`.
 - [ ] Tapping reaction inserts row into `reactions` and atomically increments `reactions->>key` on post.
 - [ ] Tapping same reaction again removes row from `reactions` and decrements count via `decrement_reaction`.
@@ -920,7 +982,9 @@ Step 20 ─── Run Full Verification Protocol & Deprecate Local Storage Mocks
 - [ ] Initial session load creates/updates `profiles` record with monotonic warmth total.
 
 #### 2. Clean Code & Mock Elimination Greps
+
 Every command must return **zero matches** across the active codebase:
+
 ```bash
 # Must return ZERO matches:
 grep -r "initializeWall" src/
@@ -931,6 +995,7 @@ grep -r "window.setTimeout" src/routes/index.tsx
 ```
 
 #### 3. TypeScript & Compilation Gate
+
 - [ ] `npm run build` exits with code `0` and **zero errors**.
 - [ ] No `@ts-ignore` or `any` added to new hook implementations.
 - [ ] Strict mode passes cleanly across all route loaders and components.
@@ -958,6 +1023,6 @@ If a critical database connection pooling outage or Cloudflare Worker execution 
 
 ---
 
-*Phase 4 Implementation Plan Complete.*
-*Scope: 5 New Client Hooks · 3 Server Function Additions · 3 Component Contract Updates · 4 Route Rewrites · 1 Seed Migration Script · 1 Database Primitive Set.*
-*Standard: Production-Grade, Zero Mocks, Absolute Specification.*
+_Phase 4 Implementation Plan Complete._
+_Scope: 5 New Client Hooks · 3 Server Function Additions · 3 Component Contract Updates · 4 Route Rewrites · 1 Seed Migration Script · 1 Database Primitive Set._
+_Standard: Production-Grade, Zero Mocks, Absolute Specification._

@@ -1,4 +1,5 @@
 # BajiHears — The High-Retention Implementation Plan
+
 ### From Every Known Failure to a Community That Keeps Coming Back
 
 > This plan is written as if the world's best product teams — the ones who built Wordle, BeReal, Discord's early community, Reddit's growth engine, and Duolingo's retention system — sat down to fix BajiHears specifically. Every recommendation maps directly to a failure point and is backed by a known, proven mechanism from a product that solved it first.
@@ -30,6 +31,7 @@ Before phases, establish the single number that everything serves:
 **What to do**: Before the first Instagram post that drives traffic, populate the wall with 150 manually written confessions across all categories. They must feel real — not like a product demo.
 
 **Quality standard for each seeded post**:
+
 - Reads like it was written at 1am by a real person
 - Contains a specific, concrete detail (not "I feel lonely" but "I ate dinner alone and put Netflix on just so the room wouldn't be quiet")
 - Covers every category: Silent Thoughts, Hard Truth, Spill The Tea, Plot Twist, Vibe Check
@@ -44,15 +46,17 @@ Before phases, establish the single number that everything serves:
 ### 0.2 Build the Persistent Soft Identity System
 
 **What to do**: Every user who visits gets assigned a persistent, anonymous identity stored in `localStorage` + a cookie fingerprint:
+
 - A generated desi-flavored handle (e.g., `chaiwala_99`, `raat_ki_baat`, `dil_ki_baat_42`)
 - A unique pixel-art avatar (pre-generated set of 200, assigned by device fingerprint hash)
 - A "Member Since" date (stored locally)
 
-**This is not an account**. It requires zero login, zero email. But it gives users *a character to return to*.
+**This is not an account**. It requires zero login, zero email. But it gives users _a character to return to_.
 
 **Why this works**: Snapchat's streak identity. Duolingo's league position. Discord's username. Every high-retention platform gives users something to protect. This is BajiHears' version — soft, anonymous, but persistent enough to create a returning habit.
 
 **Implementation**:
+
 ```
 localStorage["bh:identity"] = {
   handle: "chaiwala_99",
@@ -68,26 +72,29 @@ localStorage["bh:identity"] = {
 ### 0.3 Implement the Visit Streak System
 
 **What to do**: Track consecutive daily visits using the device identity. Show a streak counter in the Corner (profile) page:
+
 - Day 1: "You showed up. That already means something."
 - Day 3: 🔥 Streak unlocks a special color theme for the user's posts
 - Day 7: ⚡ 7-day streak unlocks a badge that appears next to the user's anonymous handle on any post they submit under their handle
 - Day 14: 🌙 "Night Owl" — unlocks an exclusive dark purple card preset for Instagram sharing
 - Day 30: 👑 "Baji Regular" — their name appears on a subtle "Community Regulars" leaderboard
 
-**Why this works**: Duolingo's entire D7 retention is built on streaks. The mechanism is ancient: humans hate losing something they've earned more than they love gaining something new. A 6-day streak is a *loss aversion trap* that drives Day 7 return better than any feature.
+**Why this works**: Duolingo's entire D7 retention is built on streaks. The mechanism is ancient: humans hate losing something they've earned more than they love gaining something new. A 6-day streak is a _loss aversion trap_ that drives Day 7 return better than any feature.
 
 ---
 
 ### 0.4 Build the Notification Infrastructure (Before Launch)
 
 **What to do**: Implement two notification channels from Day 1:
+
 1. **Web Push Notifications** (via service worker — no app install required): Prompt for permission after the user's second action (not first visit — never first visit).
 2. **Optional WhatsApp reminders**: A single WhatsApp number users can message "remind me". A bot sends them "The Wall is live — new confessions from last night" every 48 hours.
 
 **Why this works**: BeReal's entire DAU is driven by one notification. Wordle's peak DAU correlated directly with the morning push. BajiHears' target audience checks WhatsApp 40+ times a day. Meet them there.
 
 **Permission prompt timing**: The moment a user echoes a post (their first emotional investment), immediately show:
-> *"Get notified when someone echoes yours. No spam, just the moment it happens."*
+
+> _"Get notified when someone echoes yours. No spam, just the moment it happens."_
 
 Asking at this exact moment achieves 3–5× higher opt-in rates than any other timing.
 
@@ -103,11 +110,12 @@ Asking at this exact moment achieves 3–5× higher opt-in rates than any other 
 
 ### 1.1 Define and Engineer the BajiHears Aha Moment
 
-**The BajiHears Aha Moment is**: *"Reading a confession that says exactly what you were afraid to say."*
+**The BajiHears Aha Moment is**: _"Reading a confession that says exactly what you were afraid to say."_
 
 That moment requires: user arrives → wall is dense → they scroll → they find one post that hits them → they feel seen.
 
 **How to guarantee it**:
+
 - The top 3 posts in the feed are **always** the highest-quality, most emotionally resonant confessions from the last 24 hours — this is the Hero Feed Algorithm
 - The very first card the user sees is the seeded "24-Hour Winner" — already vetted, already proven to land
 - Below it, the writing prompt appears immediately, lowering the activation energy to contribute
@@ -125,6 +133,7 @@ Score = (Echoes × 3) + (Hearts × 2) + (Fire × 1.5) + (Hugs × 1.5) + (Time De
 ```
 
 **Rules**:
+
 - Posts older than 36 hours drop to a "From Earlier" section — never mixed with fresh content
 - The top 3 slots are always from the last 12 hours — freshness is capped
 - A seeded "Staff Pick" slot (one per day) guaranteed to always be quality content — the founder's curated choice with a subtle "⭐ Community Favourite" label
@@ -136,12 +145,13 @@ Score = (Echoes × 3) + (Hearts × 2) + (Fire × 1.5) + (Hugs × 1.5) + (Time De
 ### 1.3 Simplify the First-Time User Journey to One Action
 
 **What to do**: For users with 0 posts and 0 echoes given, hide The Duel and Baji Read from the bottom nav. Show only:
+
 - **The Wall** (read & react)
 - **Write** (contribute)
 
-After the user takes 3 actions (any reaction or first post), unlock The Duel tab with a subtle animation: *"You've been listening. Ready to weigh in?"*
+After the user takes 3 actions (any reaction or first post), unlock The Duel tab with a subtle animation: _"You've been listening. Ready to weigh in?"_
 
-After 5 actions, unlock Baji Read: *"You've shared enough for Baji to know you."*
+After 5 actions, unlock Baji Read: _"You've shared enough for Baji to know you."_
 
 **Why this works**: Hick's Law — the time to make a decision increases with the number of options. Presenting everything at once to a new user creates decision paralysis. Slack does this. Discord does this. Notion does this. Progressive disclosure is the single biggest UX improvement for new user conversion.
 
@@ -150,7 +160,8 @@ After 5 actions, unlock Baji Read: *"You've shared enough for Baji to know you."
 ### 1.4 The "One More" Mechanic for Session Depth
 
 **What to do**: At the bottom of every 5th card in the feed, insert a micro-prompt:
-> *"You've been reading for a while. Anything you wish someone else would say?"*
+
+> _"You've been reading for a while. Anything you wish someone else would say?"_
 
 This is a soft CTA to write, placed at exactly the moment of highest emotional investment (after reading 5 real confessions). Not a popup. Not a banner. A card in the feed.
 
@@ -169,6 +180,7 @@ This is a soft CTA to write, placed at exactly the moment of highest emotional i
 ### 2.1 Make Warmth Visible to Others
 
 **What to do**: When a user posts under their handle (not anonymously), their Warmth level appears as a subtle aura colour on their handle label:
+
 - 0–49: No aura (default)
 - 50–149: Soft amber glow
 - 150–299: Violet pulse
@@ -182,24 +194,25 @@ This is a soft CTA to write, placed at exactly the moment of highest emotional i
 
 Warmth should buy things users actually want. The economy:
 
-| Cost | What it Buys |
-|------|-------------|
-| 30 | Unlock the deep Baji Read line (existing) |
-| 50 | Pin your post to the top of a specific category for 2 hours |
-| 75 | Change your avatar seed (get a new random avatar) |
-| 100 | A "Baji Spotlight" nomination — your post is considered for the weekly Instagram feature |
-| 200 | An exclusive sharing preset that no one else has (released in limited batches) |
-| 300 | "Baji Regular" badge — visible on every post you make under your handle |
+| Cost | What it Buys                                                                             |
+| ---- | ---------------------------------------------------------------------------------------- |
+| 30   | Unlock the deep Baji Read line (existing)                                                |
+| 50   | Pin your post to the top of a specific category for 2 hours                              |
+| 75   | Change your avatar seed (get a new random avatar)                                        |
+| 100  | A "Baji Spotlight" nomination — your post is considered for the weekly Instagram feature |
+| 200  | An exclusive sharing preset that no one else has (released in limited batches)           |
+| 300  | "Baji Regular" badge — visible on every post you make under your handle                  |
 
-**The key principle**: The most valuable items should be *visible to others* and *scarce*. Pinning a post, a Spotlight nomination, an exclusive preset — these make Warmth feel like social capital, not tutorial points.
+**The key principle**: The most valuable items should be _visible to others_ and _scarce_. Pinning a post, a Spotlight nomination, an exclusive preset — these make Warmth feel like social capital, not tutorial points.
 
 ---
 
 ### 2.3 The Warmth Gift Mechanic
 
-**What to do**: Allow users to send 10 Warmth to any post with one tap. A tiny gift icon on each post. The poster receives a push notification: *"Someone sent you warmth for what you wrote."*
+**What to do**: Allow users to send 10 Warmth to any post with one tap. A tiny gift icon on each post. The poster receives a push notification: _"Someone sent you warmth for what you wrote."_
 
 **Why this works**: This solves two problems simultaneously:
+
 1. It creates a reason to return (someone gifted me something)
 2. It makes Warmth circulate, creating an economy rather than just a progression bar
 
@@ -226,9 +239,10 @@ Warmth should buy things users actually want. The economy:
 **Current state**: User shares a pretty card to Instagram Stories. Viewers see it, maybe visit once.
 
 **The fix**: Every share card contains:
+
 - A unique URL: `bajihears.com/c/[8-char-code]` that links directly to that confession on the wall
 - The URL is styled into the aesthetic card itself: `bajihears.com ✦`
-- When a viewer clicks that link, they land on that *specific post*, fully highlighted at the top of the feed — not the homepage
+- When a viewer clicks that link, they land on that _specific post_, fully highlighted at the top of the feed — not the homepage
 - The emotional experience: they read the confession they saw on a Story, immediately see reactions from real people, and feel the community
 
 **Deep link landing** is the most underused growth mechanism in consumer apps. Pinterest's entire early growth was 60% deep link from shared images.
@@ -240,10 +254,11 @@ Warmth should buy things users actually want. The economy:
 Phase 3 of the PROJECT_VISION mentions A/B posts. This is the highest-potential virality feature in the product.
 
 **How to build it as a flywheel**:
+
 1. User votes in a Duel (e.g., "Middle class things: Kicking an ice cream cover before throwing" vs "Blowing inside a USB before plugging in")
 2. After voting, they see the live percentage split
-3. A share button immediately appears: *"Share your side"*
-4. The share card says: *"I'm Team A — are you? vote: bajihears.com/duel/[id]"*
+3. A share button immediately appears: _"Share your side"_
+4. The share card says: _"I'm Team A — are you? vote: bajihears.com/duel/[id]"_
 5. Viewers who see that Story go directly to that exact duel to vote
 6. Each vote earns +5 Warmth — immediately incentivizing completion
 
@@ -259,11 +274,13 @@ Phase 3 of the PROJECT_VISION mentions A/B posts. This is the highest-potential 
 
 **The fix — Archetype Discovery Cards**:
 After unlocking Baji Read, generate a shareable card that reads:
-> *"BajiHears says I'm The Overthinker 🌙 — which one are you?"*
+
+> _"BajiHears says I'm The Overthinker 🌙 — which one are you?"_
 > `bajihears.com/read`
 
 When a viewer arrives at `/read`, they see the locked state — but instead of a generic "your read is forming" message, they see a personalised message:
-> *"Someone who knows you sent you here. Do 3 duels and react to 2 posts — Baji will tell you yours."*
+
+> _"Someone who knows you sent you here. Do 3 duels and react to 2 posts — Baji will tell you yours."_
 
 **This transforms Baji Read from a dead end into an acquisition loop.** The viewer is now motivated to earn their own result.
 
@@ -277,7 +294,7 @@ When a viewer arrives at `/read`, they see the locked state — but instead of a
 - **Wednesday**: "This Week's Duel — community voted, here's who won"
 - **Friday**: "Baji Spotlight — one person's words changed the week"
 
-Each Instagram post explicitly names the category and teases that more are on the wall right now. The Instagram presence becomes a *sampler*, not the whole meal.
+Each Instagram post explicitly names the category and teases that more are on the wall right now. The Instagram presence becomes a _sampler_, not the whole meal.
 
 **Add the "As Seen On BajiHears" aesthetic watermark** to every Instagram post — consistent brand identity that makes the Instagram page feel like a media outlet, not just a repost account.
 
@@ -294,6 +311,7 @@ Each Instagram post explicitly names the category and teases that more are on th
 ### 4.1 The Warmth-Gated Posting Privilege
 
 **What to do**: Implement a soft quality gate without feeling like gatekeeping:
+
 - **New user (0 Warmth)**: Can submit posts, but they enter a "Pending" queue — visible to themselves but not to others for 30 minutes. An automated filter checks for obvious spam patterns (URLs, repeated characters, phone numbers). Clean posts auto-publish after 30 minutes.
 - **Established user (50+ Warmth)**: Posts publish instantly.
 - **Baji Regular (300+ Warmth)**: Posts get a slight Hero Feed Algorithm boost.
@@ -317,6 +335,7 @@ Each Instagram post explicitly names the category and teases that more are on th
 ### 4.3 Anti-Gaming the Winner Algorithm
 
 **What to do**: The 24-Hour Winner algorithm must account for:
+
 1. **Velocity cap**: A post cannot receive more than 20 echoes per hour from the same IP range
 2. **Age bias**: Newer posts get a freshness multiplier for the first 4 hours (giving them a fair chance against older posts with head starts)
 3. **Diversity rule**: No single device identity can echo more than 3 posts per hour (prevents one person from running up a specific post)
@@ -328,8 +347,8 @@ Each Instagram post explicitly names the category and teases that more are on th
 
 **What to do**: Write the community guidelines in BajiHears' voice — not legalese:
 
-> *"This wall belongs to everyone who's ever been too honest for a group chat. Keep it real. Keep it human. No names. No links. No noise.*
-> *Baji hears everything — but she only keeps what's worth keeping."*
+> _"This wall belongs to everyone who's ever been too honest for a group chat. Keep it real. Keep it human. No names. No links. No noise._
+> _Baji hears everything — but she only keeps what's worth keeping."_
 
 Post these prominently on the first visit (one-time overlay, dismissable). The tone sets expectations. Communities with clear norms (Reddit's subreddit rules, Discord server rules, Notion's community guidelines) produce dramatically better content than those without.
 
@@ -339,15 +358,16 @@ Post these prominently on the first visit (one-time overlay, dismissable). The t
 
 > **Lesson from**: Discord Nitro (premium features, not ad-removal), Duolingo Plus (remove friction, don't add value), Patreon's creator fund model, Notion's team plan.
 >
-> **Rule**: The safest monetization for an emotional community platform is *expanding access*, not *restricting the free experience.*
+> **Rule**: The safest monetization for an emotional community platform is _expanding access_, not _restricting the free experience._
 
 ---
 
 ### 5.1 The Cultural Moat First
 
-Before any monetization, the product must achieve cultural specificity — becoming the platform *for* a defined community, not just *used by* one.
+Before any monetization, the product must achieve cultural specificity — becoming the platform _for_ a defined community, not just _used by_ one.
 
 **The BajiHears cultural moat**:
+
 - A "Desi Voices" content series — featuring confessions that are uniquely specific to the desi experience (joint family dynamics, rishta pressure, navigating two identities, etc.)
 - Collaborations with desi creators, podcasters, or writers who share anonymized confessions from the wall with attribution back to BajiHears
 - A "Baji Heard It" newsletter — weekly email digest of the best confessions, duels results, and Baji Read archetypes with cultural commentary
@@ -359,11 +379,12 @@ Before any monetization, the product must achieve cultural specificity — becom
 ### 5.2 The Warmth Boost Pack (Not Pay-to-Win)
 
 **What to do**: Offer optional Warmth top-ups for purchase:
+
 - **"Tea Pack"** — 100 Warmth for a small fee
 - **"Midnight Pack"** — 300 Warmth with an exclusive archetype skin
 - **"Baji's Favourite"** — 500 Warmth + one guaranteed Spotlight nomination
 
-**Critical rule**: Purchased Warmth behaves identically to earned Warmth. Nothing purchaseable is *exclusive to buyers* — only *faster to reach*. This is Duolingo's Freemium principle. Paying users get convenience, not unfair advantage.
+**Critical rule**: Purchased Warmth behaves identically to earned Warmth. Nothing purchaseable is _exclusive to buyers_ — only _faster to reach_. This is Duolingo's Freemium principle. Paying users get convenience, not unfair advantage.
 
 ---
 
@@ -372,6 +393,7 @@ Before any monetization, the product must achieve cultural specificity — becom
 **A voluntary, opt-in monthly membership** (small amount, culturally priced for the target market):
 
 Benefits:
+
 - 🌙 A subtle "Baji Regular" indicator on posts made under your handle
 - 🎨 Access to 3 exclusive seasonal sharing presets per month (released as limited drops)
 - 📨 A private "Weekly Insights" email: "This week, 73% of confessions on the wall were about [theme]. You were one of them."
@@ -386,9 +408,10 @@ Benefits:
 At scale, the BajiHears audience is a highly specific psychographic: emotionally intelligent, digitally native, South Asian, 16–28. This is not a target demo that tolerates traditional advertising.
 
 **The ethical partnership model**:
+
 - Partner with brands that align with the emotional tone: mental health apps, journaling apps, culturally relevant brands
 - Brand placements take the form of **themed duels** or **sponsored confession prompts** — not banners
-- Example: *"This week's duel is brought to you by [mental health app]: 'Be honest — have you ever actually used a breathing exercise when anxious? A / No, I just suffered.'"*
+- Example: _"This week's duel is brought to you by [mental health app]: 'Be honest — have you ever actually used a breathing exercise when anxious? A / No, I just suffered.'"_
 
 The community interacts with the brand placement as content, not as an ad.
 
@@ -409,14 +432,14 @@ Phase 5 (Day 120+):    Cultural moat. Ethical monetization. Membership. Brand pa
 
 ## The KPIs to Track at Each Phase Gate
 
-| Phase | Gate Metric | Target |
-|-------|------------|--------|
-| 0 | Wall posts seeded | 150 posts, 5 categories |
-| 1 | D1 retention | ≥ 40% (they return within 24 hours) |
-| 2 | D7 retention | ≥ 25% (the north star) |
-| 3 | Viral coefficient (K-factor) | ≥ 0.5 (every 2 users bring 1 new user) |
-| 4 | Spam rate | < 2% of all posts |
-| 5 | D30 retention | ≥ 12% |
+| Phase | Gate Metric                  | Target                                 |
+| ----- | ---------------------------- | -------------------------------------- |
+| 0     | Wall posts seeded            | 150 posts, 5 categories                |
+| 1     | D1 retention                 | ≥ 40% (they return within 24 hours)    |
+| 2     | D7 retention                 | ≥ 25% (the north star)                 |
+| 3     | Viral coefficient (K-factor) | ≥ 0.5 (every 2 users bring 1 new user) |
+| 4     | Spam rate                    | < 2% of all posts                      |
+| 5     | D30 retention                | ≥ 12%                                  |
 
 ---
 

@@ -37,4 +37,3 @@ export interface DbProfile {
     read: boolean;
   };
 }
-

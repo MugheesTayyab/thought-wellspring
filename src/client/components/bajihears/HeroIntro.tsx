@@ -16,7 +16,9 @@ export const HeroIntro: React.FC = () => {
     setCollapsed(next);
     try {
       localStorage.setItem("bh:hero-collapsed", next ? "1" : "0");
-    } catch {}
+    } catch {
+      // Intro stays expanded when local storage is unavailable.
+    }
   };
 
   if (collapsed) {
@@ -50,7 +52,8 @@ export const HeroIntro: React.FC = () => {
           </h2>
 
           <p className="font-sans text-xs sm:text-[13px] text-[#9C8F87] leading-relaxed max-w-md">
-            This is where an anonymous confession can reach thousands of kindred people without ever exposing who you are. No followers required. No identity attached.
+            This is where an anonymous confession can reach thousands of kindred people without ever
+            exposing who you are. No followers required. No identity attached.
           </p>
 
           <div className="pt-2 border-t border-white/[0.06] space-y-2">
@@ -58,7 +61,8 @@ export const HeroIntro: React.FC = () => {
               The Path to Bajislays
             </p>
             <p className="text-[11px] font-sans text-[#9C8F87] leading-relaxed">
-              Every cycle, one post chosen by both community resonance and our editorial curators is crowned Cycle Champion and featured on Bajislays (@bajihears).
+              Every cycle, one post chosen by both community resonance and our editorial curators is
+              crowned Cycle Champion and featured on Bajislays (@bajihears).
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 font-sans">

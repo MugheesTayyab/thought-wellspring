@@ -136,9 +136,7 @@ export function BajiReadCard({
             <Flame className="size-3 shrink-0" />
             <span>Telemetry Verification</span>
           </div>
-          <p className="font-sans text-[11px] text-[#9C8F87] leading-relaxed">
-            {evidenceSummary}
-          </p>
+          <p className="font-sans text-[11px] text-[#9C8F87] leading-relaxed">{evidenceSummary}</p>
         </div>
       )}
 
@@ -153,7 +151,9 @@ export function BajiReadCard({
           <div>
             <div className="flex justify-between text-[11px] mb-1">
               <span className="text-[#9C8F87]">Empathy Radar</span>
-              <span className="font-sans font-bold tabular-nums text-[#F5EFE9]">{resolvedTraits.empathy}%</span>
+              <span className="font-sans font-bold tabular-nums text-[#F5EFE9]">
+                {resolvedTraits.empathy}%
+              </span>
             </div>
             <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
               <div
@@ -166,7 +166,9 @@ export function BajiReadCard({
           <div>
             <div className="flex justify-between text-[11px] mb-1">
               <span className="text-[#9C8F87]">Intuition / Perception</span>
-              <span className="font-sans font-bold tabular-nums text-[#F5EFE9]">{resolvedTraits.intuition}%</span>
+              <span className="font-sans font-bold tabular-nums text-[#F5EFE9]">
+                {resolvedTraits.intuition}%
+              </span>
             </div>
             <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
               <div
@@ -179,7 +181,9 @@ export function BajiReadCard({
           <div>
             <div className="flex justify-between text-[11px] mb-1">
               <span className="text-[#9C8F87]">Chaos / Main Character Energy</span>
-              <span className="font-sans font-bold tabular-nums text-[#F5EFE9]">{resolvedTraits.chaos}%</span>
+              <span className="font-sans font-bold tabular-nums text-[#F5EFE9]">
+                {resolvedTraits.chaos}%
+              </span>
             </div>
             <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
               <div
@@ -192,7 +196,9 @@ export function BajiReadCard({
           <div>
             <div className="flex justify-between text-[11px] mb-1">
               <span className="text-[#9C8F87]">Emotional Depth</span>
-              <span className="font-sans font-bold tabular-nums text-[#F5EFE9]">{resolvedTraits.depth}%</span>
+              <span className="font-sans font-bold tabular-nums text-[#F5EFE9]">
+                {resolvedTraits.depth}%
+              </span>
             </div>
             <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
               <div
@@ -223,7 +229,9 @@ export function BajiReadCard({
                 <Flame className="size-3.5 text-[#E8552E]" />
                 <span>Unlock deeper insight</span>
               </span>
-              <span className="font-sans font-bold tabular-nums text-xs text-[#E8552E]">{totalWarmth} pts</span>
+              <span className="font-sans font-bold tabular-nums text-xs text-[#E8552E]">
+                {totalWarmth} pts
+              </span>
             </div>
             <p className="font-sans text-xs text-[#9C8F87] leading-relaxed">
               Spend 30 points to unlock the deepest observation Baji has on you.

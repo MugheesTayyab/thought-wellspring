@@ -13,7 +13,7 @@ export interface ReportPostInput {
  */
 export async function reportPost(
   env: DatabaseEnv | undefined,
-  input: ReportPostInput
+  input: ReportPostInput,
 ): Promise<{ reported: boolean; message: string }> {
   const token = validateDeviceToken(input.deviceToken);
 
@@ -29,6 +29,7 @@ export async function reportPost(
 
   return {
     reported: true,
-    message: "Thank you for looking out for the community. The confession has been flagged for review.",
+    message:
+      "Thank you for looking out for the community. The confession has been flagged for review.",
   };
 }

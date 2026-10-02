@@ -1,6 +1,8 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import "@fontsource-variable/manrope";
+@import "@fontsource-variable/newsreader";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -39,10 +41,10 @@
   --color-ember: var(--ember);
   --color-flame: var(--flame);
   --color-warn: var(--warn);
-  --font-display: "Outfit", "Plus Jakarta Sans", system-ui, sans-serif;
-  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
-  --font-vibe: "Plus Jakarta Sans", system-ui, sans-serif;
-  --font-quote: "Playfair Display", Georgia, serif;
+  --font-display: "Newsreader Variable", serif;
+  --font-sans: "Manrope Variable", sans-serif;
+  --font-vibe: "Manrope Variable", sans-serif;
+  --font-quote: "Newsreader Variable", serif;
   --font-script: "Sachiko", cursive;
 }
 
@@ -59,44 +61,36 @@
 }
 
 :root {
-  --radius: 1.25rem;
-  --background: #0D0906;
-  --foreground: #F5EFE9;
-  --card: #17110D;
-  --card-foreground: #F5EFE9;
-  --popover: #1c1510;
-  --popover-foreground: #F5EFE9;
-  --primary: #E8552E;
-  --primary-foreground: #ffffff;
-  --secondary: #221813;
-  --secondary-foreground: #F5EFE9;
-  --muted: #1e1611;
-  --muted-foreground: #9C8F87;
-  --accent: #281c15;
-  --accent-foreground: #F5EFE9;
-  --destructive: #e0453d;
+  --radius: 0.875rem;
+  --background: #0c0c0b;
+  --foreground: #f3f0e9;
+  --card: #151513;
+  --card-foreground: #f3f0e9;
+  --popover: #1a1a17;
+  --popover-foreground: #f3f0e9;
+  --primary: #d85b36;
+  --primary-foreground: #160d09;
+  --secondary: #1d2422;
+  --secondary-foreground: #f3f0e9;
+  --muted: #20201d;
+  --muted-foreground: #aaa79f;
+  --accent: #233531;
+  --accent-foreground: #f3f0e9;
+  --destructive: #e05b52;
   --destructive-foreground: #ffffff;
-  --border: rgba(255, 255, 255, 0.05);
-  --border-subtle: rgba(255, 255, 255, 0.03);
-  --input: rgba(255, 255, 255, 0.07);
-  --ring: #E8552E;
-  --ember: #E8552E;
-  --flame: #d9451e;
-  --warn: #f59e0b;
+  --border: rgba(243, 240, 233, 0.16);
+  --border-subtle: rgba(243, 240, 233, 0.09);
+  --input: rgba(243, 240, 233, 0.11);
+  --ring: #f07a55;
+  --ember: #d85b36;
+  --flame: #b94429;
+  --warn: #e0a94f;
+  --mineral: #4f8c80;
 
-  --gradient-brand: linear-gradient(135deg, var(--ember), var(--flame));
-  --gradient-hero: linear-gradient(
-    160deg,
-    color-mix(in oklab, var(--ember) 18%, var(--card)),
-    var(--card) 70%
-  );
-  --shadow-glow:
-    0 0 0 1px color-mix(in oklab, var(--ember) 35%, transparent),
-    0 12px 40px -10px color-mix(in oklab, var(--flame) 40%, transparent),
-    0 30px 90px -30px color-mix(in oklab, var(--ember) 45%, transparent);
-  --shadow-card:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 0 rgba(0, 0, 0, 0.5),
-    0 16px 36px -16px rgba(0, 0, 0, 0.95), 0 2px 8px -2px rgba(0, 0, 0, 0.7);
+  --gradient-brand: linear-gradient(90deg, var(--ember), var(--ember));
+  --gradient-hero: linear-gradient(160deg, #1b1b18, #141412 70%);
+  --shadow-glow: 0 0 0 1px var(--border);
+  --shadow-card: 0 12px 32px -24px rgba(0, 0, 0, 0.85);
 }
 
 @layer base {
@@ -112,20 +106,43 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-tap-highlight-color: transparent;
+    min-width: 20rem;
+    line-height: 1.6;
   }
 
   h1,
   h2,
   h3 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
+    line-height: 1.08;
+  }
+
+  button,
+  a,
+  input,
+  textarea,
+  select {
+    &:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 3px;
+    }
+  }
+
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--ember) 48%, transparent);
+    color: var(--foreground);
   }
 }
 
 @utility text-brand-gradient {
-  background-image: var(--gradient-brand);
-  background-clip: text;
-  color: transparent;
+  background: none;
+  color: var(--primary);
 }
 
 @utility bg-brand-gradient {
@@ -227,50 +244,33 @@
   }
 }
 
-/* Infinite hardware-accelerated backdrop. Fixed GPU layer for 60fps mobile scrolling. */
+/* Quiet editorial center rule keeps wide layouts anchored. */
 @utility wall-backdrop {
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
   background-color: var(--background);
-  background-image:
-    radial-gradient(
-      700px 500px at 20% 200px,
-      color-mix(in oklab, var(--ember) 26%, transparent),
-      transparent 75%
-    ),
-    radial-gradient(
-      650px 650px at 85% 650px,
-      color-mix(in oklab, var(--flame) 24%, transparent),
-      transparent 75%
-    ),
-    radial-gradient(
-      800px 550px at 50% 1050px,
-      color-mix(in oklab, var(--ember) 20%, transparent),
-      transparent 75%
-    );
-  background-repeat: repeat-y;
-  background-size: 100% 1200px;
-  transform: translate3d(0, 0, 0);
+  background-image: linear-gradient(
+    to right,
+    transparent calc(50% - 1px),
+    rgba(243, 240, 233, 0.035) 50%,
+    transparent calc(50% + 1px)
+  );
 }
 
 @utility wall-3d {
-  perspective: 1100px;
-  perspective-origin: 50% 45%;
+  perspective: none;
 }
 
 @utility tilt-card {
-  transform-style: preserve-3d;
-  animation: card-rise linear both;
-  animation-timeline: view();
-  animation-range: entry 0% entry 85%;
+  animation: card-rise 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes card-rise {
   from {
-    opacity: 0.35;
-    transform: perspective(1100px) translate3d(0, 34px, -120px) rotateX(7deg) scale(0.95);
+    opacity: 0;
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -493,7 +493,7 @@
   position: absolute;
   pointer-events: none;
   border-radius: 9999px;
-  background: radial-gradient(circle, #ffcc66 0%, #E8552E 70%, transparent 100%);
+  background: radial-gradient(circle, #ffcc66 0%, #e8552e 70%, transparent 100%);
   box-shadow: 0 0 10px 2px rgba(232, 85, 46, 0.65);
   animation: hearth-ember-rise 0.95s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
 }
@@ -594,7 +594,8 @@
 
 /* Subtle 3D floaty motion for winner badge: light and physical */
 @keyframes winnerBadgeFloat {
-  0%, 100% {
+  0%,
+  100% {
     transform: perspective(600px) translateZ(12px) translateY(0px) rotate(0deg);
   }
   50% {

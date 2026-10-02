@@ -75,7 +75,8 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
 
         {/* Clear, immediate explanation of points system */}
         <p className="text-xs text-[#9C8F87] leading-relaxed pt-2.5 pb-0.5 font-sans">
-          Points you earn by sharing thoughts and voting, used to unlock personality reads and special perks.
+          Points you earn by sharing thoughts and voting, used to unlock personality reads and
+          special perks.
         </p>
 
         {/* Scrollable Body: HUD, Earn Strip, Tabs & Details */}
@@ -99,7 +100,9 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
                 </span>
                 <div className="text-xl font-bold font-sans tabular-nums text-amber-400 flex items-center justify-end gap-1 mt-0.5">
                   <Zap className="size-4 text-amber-400 fill-amber-400" />
-                  <span>{streakCount} {streakCount === 1 ? "Day" : "Days"}</span>
+                  <span>
+                    {streakCount} {streakCount === 1 ? "Day" : "Days"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -112,7 +115,8 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
                     Rank: <strong className="text-[#F5EFE9]">{currentTier.name}</strong>
                   </span>
                   <span>
-                    Next: <strong className="text-[#F5EFE9]">{nextTier.name}</strong> ({remaining} pts left)
+                    Next: <strong className="text-[#F5EFE9]">{nextTier.name}</strong> ({remaining}{" "}
+                    pts left)
                   </span>
                 </div>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
@@ -136,7 +140,9 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
               <div className="flex items-center justify-between text-[11px] mb-2">
                 <span className="text-[#9C8F87] font-medium">10 Day Streak Milestone</span>
                 <span className="font-mono text-amber-300 font-semibold">
-                  {daysToFollow === 0 ? "Baji Follow Unlocked 👑" : `${daysToFollow} days to Baji follow`}
+                  {daysToFollow === 0
+                    ? "Baji Follow Unlocked 👑"
+                    : `${daysToFollow} days to Baji follow`}
                 </span>
               </div>
               {/* 10-step micro bar */}
@@ -222,7 +228,9 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
               {/* Daily Reaction Limit (Clean, minimal progress bar) */}
               <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 space-y-1.5">
                 <div className="flex justify-between text-xs">
-                  <span className="text-[#F5EFE9] font-medium">Daily reaction limit (resets midnight)</span>
+                  <span className="text-[#F5EFE9] font-medium">
+                    Daily reaction limit (resets midnight)
+                  </span>
                   <span className="font-mono text-white/60">
                     {dailyCap.amountEarned} / {DAILY_PASSIVE_CAP} pts
                   </span>
@@ -236,7 +244,8 @@ export const WarmthSheet: React.FC<WarmthSheetProps> = ({
                   />
                 </div>
                 <p className="text-[11px] text-[#9C8F87]">
-                  Tapping reactions caps at 30/day to prevent spam. Spilling tea (+10) and echoes (+3) are always unlimited.
+                  Tapping reactions caps at 30/day to prevent spam. Spilling tea (+10) and echoes
+                  (+3) are always unlimited.
                 </p>
               </div>
 

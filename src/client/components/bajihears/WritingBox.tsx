@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Instagram } from "lucide-react";
+import { AlertTriangle, Instagram, Send, ShieldCheck } from "lucide-react";
 import { cn, formatCountdown, stripHandle } from "@/shared/utils";
 import type { Category } from "@/shared/types/unsaid";
 import { CATEGORIES } from "@/shared/constants/categories";
@@ -16,7 +16,7 @@ type Props = {
     handle: string | null;
     category: Category;
     preset: string;
-  }) => void | Promise<any>;
+  }) => void | Promise<unknown>;
   onUnlock: () => void;
   isSubmitting?: boolean;
   submitError?: string | null;
@@ -55,30 +55,31 @@ export function WritingBox({
     if (text.length >= 250) return "text-warn";
     return "text-muted-foreground";
   }, [text.length]);
+  const profanityCheck = useMemo(() => detectProfanity(text), [text]);
 
   if (locked) {
     return (
-      <section className="bg-gradient-to-b from-[#1f1510] to-[#140e0a] border border-[#E8552E]/30 rounded-2xl sm:rounded-3xl p-5 text-center shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs font-mono font-semibold mb-2">
-          <span>👑 Competing for Today's Crown</span>
+      <section className="border-l-2 border-primary bg-card p-5 sm:p-6" aria-live="polite">
+        <div className="mb-3 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-primary">
+          <ShieldCheck className="size-4" aria-hidden />
+          <span>Your post is live</span>
         </div>
-        <p className="font-quote text-lg sm:text-xl font-bold text-[#F5EFE9]">
-          Your confession is live on the wall
+        <p className="font-quote text-xl font-semibold text-foreground sm:text-2xl">
+          It is on the wall now.
         </p>
-        <p className="text-[#E8552E] font-mono text-xs font-medium mt-1">
-          Next confession drop unlocks in {formatCountdown(unlockAt! - now)}
+        <p className="mt-1 text-sm text-muted-foreground">
+          You can write again in{" "}
+          <span className="font-semibold tabular-nums text-foreground">
+            {formatCountdown(unlockAt! - now)}
+          </span>
+          .
         </p>
-        <div className="mt-3 pt-3 border-t border-white/[0.08] text-[#9C8F87] text-xs max-w-xs mx-auto space-y-1">
-          <p>Top confession of each 12 hour cycle is pinned & featured on <strong className="text-[#F5EFE9]">@bajihears</strong>.</p>
-          <p className="text-amber-400/90 font-medium">Daily visits build your 10 day streak: Baji follows active regulars back.</p>
-        </div>
       </section>
     );
   }
 
   const open = focused || text.length > 0;
   const cleanIg = stripHandle(igHandle);
-  const profanityCheck = useMemo(() => detectProfanity(text), [text]);
   const valid =
     text.trim().length >= MIN_LEN &&
     !profanityCheck.hasProfanity &&
@@ -96,7 +97,19 @@ export function WritingBox({
         : "var(--color-primary)";
 
   return (
-    <section className="bg-[#17110D] border border-white/[0.08] rounded-2xl sm:rounded-3xl p-4 sm:p-5 transition-all">
+    <section
+      className="border-l-2 border-primary bg-card p-4 sm:p-6"
+      aria-labelledby="write-heading"
+    >
+      <div className="mb-4 flex items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Your turn</p>
+          <h2 id="write-heading" className="mt-1 font-display text-2xl font-medium sm:text-3xl">
+            What went unsaid?
+          </h2>
+        </div>
+        <span className="text-xs text-muted-foreground">Anonymous by default</span>
+      </div>
       <div>
         <div className="mb-2 flex flex-row gap-2">
           {PRESETS.map((p) => (
@@ -119,17 +132,21 @@ export function WritingBox({
             />
           ))}
         </div>
-        <p className="text-[#9C8F87] mb-2 text-[10px] tracking-wide font-medium">
+        <p className="mb-2 text-xs font-medium text-muted-foreground">
           {PRESETS.find((p) => p.key === preset)!.name}
         </p>
 
+        <label htmlFor="unsaid-text" className="sr-only">
+          Your Unsaid
+        </label>
         <textarea
+          id="unsaid-text"
           value={text}
           onFocus={() => setFocused(true)}
           onChange={(e) => setText(e.target.value.slice(0, MAX_LEN))}
           rows={2}
-          placeholder="Spill the tea... something you couldn't say out loud."
-          className="bg-white/[0.03] border-white/10 placeholder:text-[#9C8F87]/60 focus:border-[#E8552E]/60 focus:ring-[#E8552E]/20 w-full resize-none rounded-2xl border p-3.5 text-sm sm:text-base leading-relaxed outline-none focus:ring-2 transition-all font-sans text-[#F5EFE9]"
+          placeholder="Write the sentence you keep editing in your head…"
+          className="min-h-28 w-full resize-none rounded-lg border border-border bg-background p-4 text-base leading-relaxed text-foreground outline-none placeholder:text-muted-foreground focus:border-primary"
         />
         <div
           className={cn(
@@ -176,10 +193,10 @@ export function WritingBox({
                 setAnonymous(true);
               }}
               className={cn(
-                "rounded-2xl border px-3 py-2.5 text-[13px] font-semibold transition-all active:scale-95 min-h-[44px]",
+                "min-h-11 rounded-lg border px-3 text-sm font-semibold transition-colors",
                 anonymous
-                  ? "border-primary/60 bg-primary/20 text-primary shadow-[0_0_10px_rgba(249,115,22,0.15)]"
-                  : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.07] hover:text-foreground",
+                  ? "border-primary bg-primary/12 text-primary"
+                  : "border-border bg-background text-muted-foreground hover:text-foreground",
               )}
             >
               Anonymous
@@ -191,19 +208,19 @@ export function WritingBox({
                 setAnonymous(false);
               }}
               className={cn(
-                "flex items-center justify-center gap-1.5 rounded-2xl border px-3 py-2.5 text-[13px] font-semibold transition-all active:scale-95 min-h-[44px]",
+                "flex min-h-11 items-center justify-center gap-1.5 rounded-lg border px-3 text-sm font-semibold transition-colors",
                 !anonymous
-                  ? "border-primary/60 bg-primary/20 text-primary shadow-[0_0_10px_rgba(249,115,22,0.15)]"
-                  : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.07] hover:text-foreground",
+                  ? "border-primary bg-primary/12 text-primary"
+                  : "border-border bg-background text-muted-foreground hover:text-foreground",
               )}
             >
               <Instagram className="size-3.5" aria-hidden />
-              <span>Drop Handle</span>
+              <span>Use my handle</span>
             </button>
           </div>
 
           {!anonymous && (
-            <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2">
+            <div className="flex min-h-11 items-center gap-2 rounded-lg border border-border bg-background px-3">
               <span className="text-muted-foreground text-sm font-semibold">@</span>
               <input
                 type="text"
@@ -225,10 +242,10 @@ export function WritingBox({
                   setCategory(c);
                 }}
                 className={cn(
-                  "shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition-all",
+                  "min-h-11 shrink-0 rounded-lg border px-3 text-xs font-semibold transition-colors",
                   category === c
-                    ? "border-primary/60 bg-primary/20 text-primary"
-                    : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground",
+                    ? "border-primary bg-primary/12 text-primary"
+                    : "border-border bg-background text-muted-foreground hover:text-foreground",
                 )}
               >
                 {c}
@@ -239,21 +256,20 @@ export function WritingBox({
       )}
 
       {profanityCheck.hasProfanity && (
-        <div className="mt-3 rounded-2xl border border-rose-500/40 bg-rose-500/10 p-3 text-center text-xs text-rose-300 font-medium flex items-center justify-center gap-2 animate-[pulse_2s_infinite]">
-          <span className="text-sm">⚠️</span>
-          <span>Baji keeps it warm & honest, not dirty. Inappropriate words (like f-words, s-words) are not allowed.</span>
+        <div
+          className="mt-3 flex items-start gap-2 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-foreground"
+          role="alert"
+        >
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden />
+          <span>
+            That wording cannot be posted here. Remove abusive or explicit language and try again.
+          </span>
         </div>
       )}
 
       {submitError && (
         <div className="mt-3 rounded-xl border border-destructive/40 bg-destructive/10 p-2.5 text-center text-xs text-destructive">
           {submitError}
-        </div>
-      )}
-
-      {open && (
-        <div className="mt-2.5 flex items-center justify-center gap-1.5 text-[11px] text-[#9C8F87]">
-          <span>👑 Top whisper of each cycle is featured on @bajihears</span>
         </div>
       )}
 
@@ -284,13 +300,14 @@ export function WritingBox({
             }
           }}
           className={cn(
-            "spring-press w-full rounded-2xl py-3 text-[15px] font-bold tracking-wide transition-opacity font-vibe min-h-[44px]",
+            "spring-press flex min-h-12 w-full items-center justify-center gap-2 rounded-lg px-4 text-sm font-bold transition-colors",
             valid && !sending
-              ? "bg-brand-gradient text-primary-foreground shadow-md"
+              ? "bg-primary text-primary-foreground hover:bg-flame"
               : "bg-secondary text-muted-foreground",
           )}
         >
-          {sending ? "Posting anonymously…" : "Post Anonymously 🔒"}
+          <Send className="size-4" aria-hidden />
+          {sending ? "Posting…" : anonymous ? "Post anonymously" : "Post with handle"}
         </button>
       </div>
     </section>

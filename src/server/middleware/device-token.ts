@@ -31,14 +31,14 @@ export function validateDeviceToken(token?: string | null): string {
   if (normalized.length !== 16) {
     throw new DeviceTokenError(
       `Device token must be exactly 16 characters. Received: ${normalized.length}`,
-      "INVALID_DEVICE_TOKEN_LENGTH"
+      "INVALID_DEVICE_TOKEN_LENGTH",
     );
   }
 
   if (!/^[0-9a-f]{16}$/.test(normalized)) {
     throw new DeviceTokenError(
       "Device token must be a valid 16-character lowercase hex string",
-      "INVALID_DEVICE_TOKEN_FORMAT"
+      "INVALID_DEVICE_TOKEN_FORMAT",
     );
   }
 
@@ -48,7 +48,9 @@ export function validateDeviceToken(token?: string | null): string {
 /**
  * Extract and validate device token from Request or Headers
  */
-export function extractDeviceToken(reqOrHeaders: Request | Headers | Record<string, string | undefined>): string {
+export function extractDeviceToken(
+  reqOrHeaders: Request | Headers | Record<string, string | undefined>,
+): string {
   let token: string | null | undefined;
 
   if (typeof Request !== "undefined" && reqOrHeaders instanceof Request) {

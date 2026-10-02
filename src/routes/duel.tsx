@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Flame, Loader2, Swords } from "lucide-react";
 import { DuelCard } from "@/client/components/bajihears/DuelCard";
 import { WarmthOrb } from "@/client/components/bajihears/WarmthOrb";
 import { BottomNav } from "@/client/components/bajihears/BottomNav";
@@ -28,51 +28,37 @@ export const Route = createFileRoute("/duel")({
 
 function DuelPage() {
   const { totalWarmth, openWarmthSheet, isFlashingOrb } = useWarmth();
-  const {
-    duel,
-    alreadyVoted,
-    userChoice,
-    pctA,
-    pctB,
-    isLoading,
-    vote,
-    answeredCount,
-  } = useDuel();
+  const { duel, alreadyVoted, userChoice, pctA, pctB, isLoading, vote, answeredCount } = useDuel();
 
   const answeredState =
-    alreadyVoted && userChoice !== undefined
-      ? { choiceIndex: userChoice, pctA, pctB }
-      : null;
+    alreadyVoted && userChoice !== undefined ? { choiceIndex: userChoice, pctA, pctB } : null;
 
   return (
-    <div className="relative min-h-screen w-full bg-[#0F0A0A] text-white flex flex-col items-center p-4 pb-32 sm:pb-36 md:p-8 md:pb-36">
-      {/* Background Glow */}
-      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent opacity-60" />
-
+    <div className="relative flex min-h-screen w-full flex-col items-center bg-background p-4 pb-32 text-foreground sm:pb-36 md:p-8 md:pb-36">
       {/* Top Header */}
-      <header className="relative z-10 w-full max-w-2xl flex items-center justify-between py-3 border-b border-white/10">
+      <header className="relative z-10 flex w-full max-w-3xl items-center justify-between border-b border-border py-3">
         <Link
           to="/"
-          className="flex items-center gap-1.5 text-xs font-semibold text-white/70 hover:text-white transition-colors"
+          className="flex min-h-11 items-center gap-1.5 rounded-md px-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Back to Wall</span>
         </Link>
 
-        <h1 className="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
+        <h1 className="flex items-center gap-2 font-display text-xl font-medium text-foreground sm:text-2xl">
+          <Swords className="size-5 text-primary" aria-hidden />
           <span>The Duel</span>
-          <span className="text-xs text-primary font-mono">⚔️</span>
         </h1>
 
         <WarmthOrb totalWarmth={totalWarmth} mini onClick={openWarmthSheet} />
       </header>
 
       {/* Main Duel Content */}
-      <main className="relative z-10 my-auto py-5 sm:py-8 w-full flex flex-col items-center justify-center min-h-[420px]">
+      <main className="relative z-10 my-auto flex min-h-[420px] w-full flex-col items-center justify-center py-8 sm:py-12">
         {isLoading && !duel ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-white/60">
             <Loader2 className="size-6 animate-spin text-primary" />
-            <p className="text-xs tracking-wide">Summoning the daily duel…</p>
+            <p className="text-sm">Loading today&apos;s duel…</p>
           </div>
         ) : duel ? (
           <DuelCard
@@ -82,9 +68,9 @@ function DuelPage() {
             onNext={() => {}}
           />
         ) : (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center max-w-md">
-            <p className="text-base font-bold text-white mb-1">No Active Duel Today</p>
-            <p className="text-xs text-white/60">
+          <div className="max-w-md border-l-2 border-primary bg-card p-8 text-center">
+            <p className="mb-1 font-display text-2xl font-medium">No duel right now</p>
+            <p className="text-sm text-muted-foreground">
               The daily duel resets every 24 hours. Check back soon for the next choice.
             </p>
           </div>
@@ -92,18 +78,17 @@ function DuelPage() {
       </main>
 
       {/* Bottom Footer Stats */}
-      <footer className="relative z-10 w-full max-w-2xl mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-white/50">
+      <footer className="relative z-10 mt-4 flex w-full max-w-3xl items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground">
         <span>
-          Duels Answered:{" "}
-          <strong className="text-white font-mono">{answeredCount}</strong>
+          Duels Answered: <strong className="text-white font-mono">{answeredCount}</strong>
         </span>
         <button
           type="button"
           onClick={openWarmthSheet}
-          className="hover:text-primary transition-colors flex items-center gap-1 cursor-pointer font-mono"
+          className="flex min-h-11 items-center gap-1 rounded-md px-2 font-mono transition-colors hover:text-primary"
         >
           <span>Earned {totalWarmth} Warmth</span>
-          <span>🔥</span>
+          <Flame className="size-4" aria-hidden />
         </button>
       </footer>
 

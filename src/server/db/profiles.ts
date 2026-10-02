@@ -25,7 +25,9 @@ export function mapRowToProfile(row: any): DbProfile {
     id: row.id,
     handle: row.handle,
     avatarSeed: row.avatar_seed ?? 1,
-    memberSince: row.member_since ? String(row.member_since) : (new Date().toISOString().split("T")[0] ?? ""),
+    memberSince: row.member_since
+      ? String(row.member_since)
+      : (new Date().toISOString().split("T")[0] ?? ""),
     deviceToken: row.device_token ?? null,
     visitStreak: row.visit_streak ?? 0,
     lastVisit: row.last_visit ? String(row.last_visit) : null,
@@ -43,13 +45,15 @@ export function mapRowToProfile(row: any): DbProfile {
  */
 export async function fetchProfileById(
   env: DatabaseEnv | undefined,
-  userId: string
+  userId: string,
 ): Promise<{ data: DbProfile | null; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAdminClient(env);
     const { data, error } = await client
       .from("profiles")
-      .select("id, handle, avatar_seed, member_since, visit_streak, last_visit, streak_freeze_used, total_actions, warmth_total, warmth_log, purchased_items, tabs_unlocked")
+      .select(
+        "id, handle, avatar_seed, member_since, visit_streak, last_visit, streak_freeze_used, total_actions, warmth_total, warmth_log, purchased_items, tabs_unlocked",
+      )
       .eq("id", userId)
       .maybeSingle();
 
@@ -68,8 +72,11 @@ export async function fetchProfileById(
  */
 export async function fetchProfileByDeviceToken(
   env: DatabaseEnv | undefined,
-  deviceToken: string
-): Promise<{ data: { id: string; handle: string } | null; error: { code: string; message: string } | null }> {
+  deviceToken: string,
+): Promise<{
+  data: { id: string; handle: string } | null;
+  error: { code: string; message: string } | null;
+}> {
   try {
     const client = getSupabaseAdminClient(env);
     const { data, error } = await client
@@ -99,7 +106,7 @@ export async function upsertProfile(
     handle: string;
     avatarSeed?: number;
     deviceToken?: string | null;
-  }
+  },
 ): Promise<{ data: { id: string } | null; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAdminClient(env);
@@ -114,7 +121,7 @@ export async function upsertProfile(
           device_token: profileData.deviceToken ?? null,
           updated_at: new Date().toISOString(),
         },
-        { onConflict: "id" }
+        { onConflict: "id" },
       )
       .select("id")
       .single();
@@ -136,8 +143,11 @@ export async function incrementWarmth(
   env: DatabaseEnv | undefined,
   userId: string,
   amount: number,
-  logEntry: WarmthLogEntry
-): Promise<{ data: { warmthTotal: number; warmthLog: WarmthLogEntry[] } | null; error: { code: string; message: string } | null }> {
+  logEntry: WarmthLogEntry,
+): Promise<{
+  data: { warmthTotal: number; warmthLog: WarmthLogEntry[] } | null;
+  error: { code: string; message: string } | null;
+}> {
   try {
     const client = getSupabaseAdminClient(env);
 
@@ -155,7 +165,9 @@ export async function incrementWarmth(
     }
 
     const newTotal = (current.warmth_total ?? 0) + amount;
-    const currentLog: WarmthLogEntry[] = Array.isArray(current.warmth_log) ? current.warmth_log : [];
+    const currentLog: WarmthLogEntry[] = Array.isArray(current.warmth_log)
+      ? current.warmth_log
+      : [];
     // Prepend new entry and cap at 50
     const newLog = [logEntry, ...currentLog].slice(0, 50);
 
@@ -184,8 +196,11 @@ export async function updateVisitStreak(
   env: DatabaseEnv | undefined,
   userId: string,
   newStreak: number,
-  lastVisitDate: string
-): Promise<{ data: { visitStreak: number; lastVisit: string } | null; error: { code: string; message: string } | null }> {
+  lastVisitDate: string,
+): Promise<{
+  data: { visitStreak: number; lastVisit: string } | null;
+  error: { code: string; message: string } | null;
+}> {
   try {
     const client = getSupabaseAdminClient(env);
     const { error } = await client
@@ -211,8 +226,11 @@ export async function updateVisitStreak(
  */
 export async function incrementTotalActions(
   env: DatabaseEnv | undefined,
-  userId: string
-): Promise<{ data: { totalActions: number; tabsUnlocked: { duel: boolean; read: boolean } } | null; error: { code: string; message: string } | null }> {
+  userId: string,
+): Promise<{
+  data: { totalActions: number; tabsUnlocked: { duel: boolean; read: boolean } } | null;
+  error: { code: string; message: string } | null;
+}> {
   try {
     const client = getSupabaseAdminClient(env);
 
@@ -260,7 +278,7 @@ export async function incrementTotalActions(
 export async function savePushSubscription(
   env: DatabaseEnv | undefined,
   userId: string,
-  subscription: any
+  subscription: any,
 ): Promise<{ success: boolean; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAdminClient(env);
@@ -275,6 +293,9 @@ export async function savePushSubscription(
 
     return { success: true, error: null };
   } catch (err: any) {
-    return { success: false, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
+    return {
+      success: false,
+      error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) },
+    };
   }
 }
