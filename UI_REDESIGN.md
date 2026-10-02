@@ -101,4 +101,27 @@ The UI/UX recommendation tool proposed purple, Roboto, invented community metric
 
 ## Verification log
 
-Final results will be appended after implementation. No completion claim is valid without command output, route screenshots, console/network logs, and accessibility results.
+### Implemented
+
+- Rebuilt the visual system around local Newsreader and Manrope variable fonts, ink/ember/mineral tokens, an editorial rule, restrained radii, and reduced-motion-safe state transitions.
+- Removed the blocking intro, remote font dependency, zoom restriction, glow-heavy surfaces, exposed diagnostics details, emoji status language, and the desktop bottom-nav collision.
+- Reworked Wall hierarchy, writing, feed controls, confession cards, Read locked state, Duel/Read shells, Corner header/tabs/empty state, shared navigation, root error/404 treatment, focus, touch sizing, and status copy.
+- Fixed the existing TypeScript failures across client/server boundaries, restored an executable Vitest setup, and excluded generated output from linting without inline suppressions or skipped unit suites.
+
+### Final evidence
+
+- `npm.cmd install` — exit 0; lockfile current.
+- `npm.cmd run build` — exit 0. Application route-file and dynamic-import warnings were fixed. The Lovable-owned Vite wrapper still emits upstream plugin timing/deprecation notices and Nitro reports its generated Cloudflare overrides; no warning points to application UI source.
+- `npm.cmd run typecheck` — exit 0.
+- `npm.cmd run lint` — exit 0, 0 errors and 0 warnings.
+- `npm.cmd test` — exit 0; 5 files and 36 tests passed.
+- Playwright route matrix — 35 renders: `/`, `/duel`, `/read`, `/corner`, `/diagnostics`, `/auth/callback`, and `/missing-page` at 360, 390, 768, 1024, and 1440 px.
+- Matrix result — 0 serious/critical axe violations, 0 failed subresource requests, 0 horizontal overflow, and 0 broken images. Reduced motion was active and the first keyboard target had a visible 2 px focus outline on every render.
+- Console — 0 application warnings/errors. The deliberate `/missing-page` navigation produces one browser document-level `404` entry per viewport, which is correct HTTP behavior for the tested 404 route.
+- Evidence: `screenshots/before/`, `screenshots/after/`, and `screenshots/after/audit.json`.
+
+### Deferred or environment-limited
+
+- Authenticated Corner/profile backup, real push permission delivery, and Supabase write-path integration could not be exercised without changing external data or credentials. The two live database integration suites remain explicit under `npm.cmd run test:integration`; they are not hidden in the unit result.
+- No new bitmap imagery was invented because the product is text-led and no verified people/outcome photography exists in the repository. Existing brand mascot/logo assets were retained.
+- No backend contract, schema, auth, payment, or route behavior was changed. Server edits are type-safety/verification fixes only; diagnostics now intentionally reveals less public configuration detail.
