@@ -1,15 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  X,
-  Sparkles,
-  Flame,
-  CheckCircle2,
-  Gift,
-  MessageCircle,
-  Heart,
-  Share2,
-  Award,
-} from "lucide-react";
+import { X, Sparkles, Flame, CheckCircle2, Gift, MessageCircle, Heart, Share2, Award } from "lucide-react";
 import { CornerAvatar } from "./CornerAvatar";
 import { apiFetchPublicProfile } from "@/routes/api/wall";
 import { getTier, compactCount, relativeTime, stripHandle } from "@/shared/utils";
@@ -33,7 +23,11 @@ interface ProfileData {
   totalActions: number;
 }
 
-export function PublicProfileModal({ identifier, isOpen, onClose }: PublicProfileModalProps) {
+export function PublicProfileModal({
+  identifier,
+  isOpen,
+  onClose,
+}: PublicProfileModalProps) {
   const { totalWarmth, spendWarmth, awardWarmth } = useWarmth();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -131,7 +125,9 @@ export function PublicProfileModal({ identifier, isOpen, onClose }: PublicProfil
 
               <div className="mt-1 flex items-center justify-center gap-1.5 text-xs text-[#9C8F87]">
                 <CheckCircle2 className="size-3.5 text-emerald-400" />
-                <span className="font-sans font-medium text-[11px]">Verified Baji Member</span>
+                <span className="font-sans font-medium text-[11px]">
+                  Verified Baji Member
+                </span>
                 <span>•</span>
                 <span className="font-mono text-[11px] text-[#E8552E] font-semibold">
                   {tier.name}
@@ -143,12 +139,16 @@ export function PublicProfileModal({ identifier, isOpen, onClose }: PublicProfil
             <div className="grid grid-cols-3 gap-2 text-center font-mono">
               <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-2.5">
                 <p className="text-[10px] text-[#9C8F87] uppercase">Streak</p>
-                <p className="text-sm font-bold text-[#F5EFE9] mt-0.5">{profile.visitStreak}d 🔥</p>
+                <p className="text-sm font-bold text-[#F5EFE9] mt-0.5">
+                  {profile.visitStreak}d 🔥
+                </p>
               </div>
 
               <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-2.5">
                 <p className="text-[10px] text-[#9C8F87] uppercase">Thoughts</p>
-                <p className="text-sm font-bold text-[#F5EFE9] mt-0.5">{posts.length}</p>
+                <p className="text-sm font-bold text-[#F5EFE9] mt-0.5">
+                  {posts.length}
+                </p>
               </div>
 
               <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-2.5">
@@ -171,7 +171,9 @@ export function PublicProfileModal({ identifier, isOpen, onClose }: PublicProfil
               }`}
             >
               <Gift className="size-3.5" />
-              <span>{gifted ? "10 Warmth Gifted! 🔥" : "Send 10 Warmth to @author 🔥"}</span>
+              <span>
+                {gifted ? "10 Warmth Gifted! 🔥" : "Send 10 Warmth to @author 🔥"}
+              </span>
             </button>
 
             {/* Published Thoughts Section */}

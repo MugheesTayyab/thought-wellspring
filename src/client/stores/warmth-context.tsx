@@ -6,7 +6,11 @@ import type {
   StreakState,
   GiftMilestone,
 } from "@/shared/types/warmth";
-import { AWARD_VALUES, DAILY_PASSIVE_CAP, GIFT_MILESTONES } from "@/shared/constants/warmth";
+import {
+  AWARD_VALUES,
+  DAILY_PASSIVE_CAP,
+  GIFT_MILESTONES,
+} from "@/shared/constants/warmth";
 import { getTodayKey, randomSeed } from "@/shared/utils";
 import {
   readWarmth,

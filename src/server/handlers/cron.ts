@@ -1,6 +1,9 @@
 import { wrapServerFn } from "@/server/lib/wrap-server-fn";
 import { getServerEnv } from "@/server/lib/get-env";
-import { executeWinnerSelection, type WinnerSelectionResult } from "@/server/jobs/winner-selection";
+import {
+  executeWinnerSelection,
+  type WinnerSelectionResult,
+} from "@/server/jobs/winner-selection";
 import type { ServerFnResult } from "@/shared/types/api";
 
 export async function handleTriggerWinnerSelection(data?: {

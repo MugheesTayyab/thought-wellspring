@@ -14,8 +14,7 @@ import * as pushDb from "../db/push-subscriptions";
 describe("Phase 7: Web Push Native WebCrypto Engine", () => {
   const testVapid: VapidDetails = {
     subject: "mailto:admin@bajihears.com",
-    publicKey:
-      "BC2J76RtDSeeFuYN3VnrvChrz3qKHVD_bhO1eKaFHl3RO5dz3CUA8JOMIoicqBQG5XBrE1WvriUXP5RDAOmugsI",
+    publicKey: "BC2J76RtDSeeFuYN3VnrvChrz3qKHVD_bhO1eKaFHl3RO5dz3CUA8JOMIoicqBQG5XBrE1WvriUXP5RDAOmugsI",
     privateKey: "6IdFNGeTGKN_FA6gGG2JRDl-BD00sq0MtieScMuD8mo",
   };
 
@@ -35,10 +34,10 @@ describe("Phase 7: Web Push Native WebCrypto Engine", () => {
     expect(parts.length).toBe(3);
 
     // Decode header & payload
-    const header = JSON.parse(new TextDecoder().decode(base64UrlToUint8Array(parts[0]!)));
+    const header = JSON.parse(new TextDecoder().decode(base64UrlToUint8Array(parts[0])));
     expect(header).toEqual({ typ: "JWT", alg: "ES256" });
 
-    const payload = JSON.parse(new TextDecoder().decode(base64UrlToUint8Array(parts[1]!)));
+    const payload = JSON.parse(new TextDecoder().decode(base64UrlToUint8Array(parts[1])));
     expect(payload.aud).toBe(audience);
     expect(payload.sub).toBe(testVapid.subject);
     expect(payload.exp).toBeGreaterThan(Math.floor(Date.now() / 1000));
@@ -49,11 +48,9 @@ describe("Phase 7: Web Push Native WebCrypto Engine", () => {
     const subscriberKeyPair = await crypto.subtle.generateKey(
       { name: "ECDH", namedCurve: "P-256" },
       true,
-      ["deriveBits"],
+      ["deriveBits"]
     );
-    const pubRaw = new Uint8Array(
-      await crypto.subtle.exportKey("raw", subscriberKeyPair.publicKey),
-    );
+    const pubRaw = new Uint8Array(await crypto.subtle.exportKey("raw", subscriberKeyPair.publicKey));
     const authRaw = crypto.getRandomValues(new Uint8Array(16));
 
     const subscription: WebPushSubscription = {
@@ -80,11 +77,9 @@ describe("Phase 7: Web Push Native WebCrypto Engine", () => {
     const subscriberKeyPair = await crypto.subtle.generateKey(
       { name: "ECDH", namedCurve: "P-256" },
       true,
-      ["deriveBits"],
+      ["deriveBits"]
     );
-    const pubRaw = new Uint8Array(
-      await crypto.subtle.exportKey("raw", subscriberKeyPair.publicKey),
-    );
+    const pubRaw = new Uint8Array(await crypto.subtle.exportKey("raw", subscriberKeyPair.publicKey));
     const authRaw = crypto.getRandomValues(new Uint8Array(16));
 
     const sub: WebPushSubscription = {

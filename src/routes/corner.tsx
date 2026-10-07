@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -14,7 +14,6 @@ import {
   Layers,
   Smile,
   RefreshCw,
-  Sparkles,
   Image as ImageIcon,
 } from "lucide-react";
 import { CornerAvatar } from "@/client/components/bajihears/CornerAvatar";
@@ -155,10 +154,10 @@ function CornerPage() {
     if (user?.email && !email) {
       setEmail(user.email);
     }
-  }, [email, user]);
+  }, [user]);
 
   // Load user's activity (their thoughts, reactions received, who echoed, and liked posts)
-  const loadActivity = useCallback(() => {
+  const loadActivity = () => {
     if (!deviceToken) return;
     setIsLoadingActivity(true);
     apiFetchUserActivity({
@@ -178,11 +177,11 @@ function CornerPage() {
       .finally(() => {
         setIsLoadingActivity(false);
       });
-  }, [deviceToken, user?.id]);
+  };
 
   useEffect(() => {
     loadActivity();
-  }, [loadActivity]);
+  }, [user?.id, deviceToken]);
 
   const reroll = () => {
     triggerHaptic("selection");
@@ -205,13 +204,13 @@ function CornerPage() {
   const totalLikes = activity?.totalLikesReceived ?? 0;
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 pb-32 pt-5 sm:px-6 sm:pt-8">
+    <main className="mx-auto w-full max-w-md px-4 pb-32 pt-5">
       {/* Top Bar Navigation */}
       <div className="flex items-center justify-between">
         <Link
           to="/"
           onClick={() => triggerHaptic("selection")}
-          className="inline-flex min-h-11 items-center gap-2 rounded-md px-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm font-semibold transition-colors cursor-pointer"
         >
           <ArrowLeft className="size-4" aria-hidden />
           <span>The Wall</span>
@@ -233,7 +232,7 @@ function CornerPage() {
       </div>
 
       {/* Header Profile Identity Banner */}
-      <div className="mt-5 flex items-center gap-4 border-l-2 border-primary bg-card p-5 sm:p-6">
+      <div className="mt-5 flex items-center gap-4 bg-gradient-to-b from-[#1f1612] to-[#17110D] border border-white/[0.08] p-4 rounded-3xl shadow-lg">
         <div className="relative">
           <CornerAvatar seed={seed} photoUrl={customPhoto} size={58} />
           {user && (
@@ -246,17 +245,13 @@ function CornerPage() {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h1 className="font-display truncate text-xl font-bold text-[#F5EFE9]">
-              {handle
-                ? `@${stripHandle(handle)}`
-                : user?.email
-                  ? user.email.split("@")[0]
-                  : "Your Corner"}
+              {handle ? `@${stripHandle(handle)}` : user?.email ? user.email.split("@")[0] : "Your Corner"}
             </h1>
             {user && (
-              <span title="Verified account">
-                <CheckCircle2 className="size-4 shrink-0 text-emerald-400" aria-hidden />
-                <span className="sr-only">Verified account</span>
-              </span>
+              <CheckCircle2
+                className="size-4 text-emerald-400 shrink-0"
+                title="Verified Account"
+              />
             )}
           </div>
           <p className="text-[#9C8F87] text-xs font-sans mt-0.5">
@@ -266,25 +261,23 @@ function CornerPage() {
       </div>
 
       {/* Metrics Bar */}
-      <div className="mt-4 grid grid-cols-3 divide-x divide-border border-y border-border py-4 text-center font-sans">
-        <div className="px-2">
-          <p className="text-xs text-muted-foreground">Whispers</p>
-          <p className="mt-1 text-lg font-bold text-foreground tabular-nums">{myPostsCount}</p>
+      <div className="mt-3 grid grid-cols-3 gap-2 text-center font-sans">
+        <div className="bg-[#17110D] border border-white/[0.06] rounded-2xl p-2.5">
+          <p className="text-[11px] text-[#9C8F87]">Whispers</p>
+          <p className="text-base font-bold text-[#F5EFE9] font-mono mt-0.5">{myPostsCount}</p>
         </div>
-        <div className="px-2">
-          <p className="text-xs text-muted-foreground">Reactions</p>
-          <p className="mt-1 flex items-center justify-center gap-1 text-lg font-bold text-primary tabular-nums">
-            <Heart className="size-4" aria-hidden /> {totalLikes}
-          </p>
+        <div className="bg-[#17110D] border border-white/[0.06] rounded-2xl p-2.5">
+          <p className="text-[11px] text-[#9C8F87]">Reactions</p>
+          <p className="text-base font-bold text-[#E8552E] font-mono mt-0.5">❤️ {totalLikes}</p>
         </div>
-        <div className="px-2">
-          <p className="text-xs text-muted-foreground">Saved</p>
-          <p className="mt-1 text-lg font-bold text-foreground tabular-nums">{likedPostsCount}</p>
+        <div className="bg-[#17110D] border border-white/[0.06] rounded-2xl p-2.5">
+          <p className="text-[11px] text-[#9C8F87]">Liked Tea</p>
+          <p className="text-base font-bold text-[#F5EFE9] font-mono mt-0.5">{likedPostsCount}</p>
         </div>
       </div>
 
       {/* Modern Segmented Navigation Tabs */}
-      <div className="mt-5 flex items-center justify-between rounded-lg bg-muted p-1 font-sans">
+      <div className="mt-5 flex items-center justify-between rounded-2xl bg-white/[0.04] p-1 border border-white/[0.08] font-sans">
         <button
           type="button"
           onClick={() => {
@@ -292,10 +285,10 @@ function CornerPage() {
             setActiveTab("whispers");
           }}
           className={cn(
-            "flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-md px-2 text-xs font-semibold transition-colors",
+            "flex flex-1 items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer",
             activeTab === "whispers"
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground",
+              ? "bg-[#E8552E] text-white shadow-sm"
+              : "text-[#9C8F87] hover:text-[#F5EFE9]",
           )}
         >
           <MessageCircle className="size-3.5" />
@@ -319,10 +312,10 @@ function CornerPage() {
             setActiveTab("liked");
           }}
           className={cn(
-            "flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-md px-2 text-xs font-semibold transition-colors",
+            "flex flex-1 items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer",
             activeTab === "liked"
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground",
+              ? "bg-[#E8552E] text-white shadow-sm"
+              : "text-[#9C8F87] hover:text-[#F5EFE9]",
           )}
         >
           <Heart className="size-3.5" />
@@ -346,10 +339,10 @@ function CornerPage() {
             setActiveTab("settings");
           }}
           className={cn(
-            "flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-md px-2 text-xs font-semibold transition-colors",
+            "flex flex-1 items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer",
             activeTab === "settings"
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground",
+              ? "bg-[#E8552E] text-white shadow-sm"
+              : "text-[#9C8F87] hover:text-[#F5EFE9]",
           )}
         >
           <Settings2 className="size-3.5" />
@@ -371,8 +364,8 @@ function CornerPage() {
                 triggerHaptic("selection");
                 loadActivity();
               }}
-              aria-label="Refresh your activity"
-              className="flex size-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              title="Refresh your activity"
+              className="text-[#9C8F87] hover:text-[#F5EFE9] transition-colors p-1"
             >
               <RefreshCw className={cn("size-3.5", isLoadingActivity && "animate-spin")} />
             </button>
@@ -388,16 +381,16 @@ function CornerPage() {
               ))}
             </div>
           ) : myPostsCount === 0 ? (
-            <div className="border-l-2 border-primary bg-card p-6 text-center">
+            <div className="rounded-3xl border border-white/[0.08] bg-[#17110D] p-6 text-center">
+              <p className="text-2xl mb-2">☕</p>
               <h3 className="font-display text-base font-bold text-[#F5EFE9]">No whispers yet</h3>
               <p className="text-xs text-[#9C8F87] mt-1 max-w-xs mx-auto">
-                Spill something you could never say out loud. When people react or echo, their
-                responses appear right here.
+                Spill something you could never say out loud. When people react or echo, their responses appear right here.
               </p>
               <Link
                 to="/"
                 onClick={() => triggerHaptic("selection")}
-                className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-md bg-primary px-4 py-2 text-xs font-bold text-primary-foreground transition hover:bg-primary/90 active:scale-[0.98]"
+                className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#E8552E] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#fa541c] active:scale-95"
               >
                 Go to The Wall
               </Link>
@@ -480,10 +473,7 @@ function CornerPage() {
                           <span className="flex items-center gap-1.5">
                             <MessageCircle className="size-3.5" />
                             <span>
-                              {post.echoes.length}{" "}
-                              {post.echoes.length === 1
-                                ? "echo from community"
-                                : "echoes from community"}
+                              {post.echoes.length} {post.echoes.length === 1 ? "echo from community" : "echoes from community"}
                             </span>
                           </span>
                           <span className="text-[10px] text-[#9C8F87]">
@@ -551,8 +541,7 @@ function CornerPage() {
               <p className="text-2xl mb-2">❤️</p>
               <h3 className="font-display text-base font-bold text-[#F5EFE9]">No liked tea yet</h3>
               <p className="text-xs text-[#9C8F87] mt-1 max-w-xs mx-auto">
-                Double-tap or react to any whispers on the wall. The ones that resonate will be
-                saved here for you.
+                Double-tap or react to any whispers on the wall. The ones that resonate will be saved here for you.
               </p>
               <Link
                 to="/"
@@ -635,9 +624,7 @@ function CornerPage() {
               <div>
                 <p className="text-sm font-semibold text-foreground">Cloud Identity Backup</p>
                 <p className="text-muted-foreground text-xs mt-0.5">
-                  {user
-                    ? "Your whispers, warmth, and unlocked tabs are backed up."
-                    : "Sign in to keep your streak & badges across browsers."}
+                  {user ? "Your whispers, warmth, and unlocked tabs are backed up." : "Sign in to keep your streak & badges across browsers."}
                 </p>
               </div>
               {user && <CheckCircle2 className="size-5 text-emerald-400 shrink-0" />}
@@ -692,13 +679,9 @@ function CornerPage() {
                   <Award className="size-4 text-[#E8552E]" />
                   <span>Daily Streaks & Rewards</span>
                 </h3>
-                <p className="text-muted-foreground text-xs mt-0.5">
-                  Post tea consistently to unlock exclusive perks.
-                </p>
+                <p className="text-muted-foreground text-xs mt-0.5">Post tea consistently to unlock exclusive perks.</p>
               </div>
-              <span className="text-xs font-mono font-bold text-[#E8552E] bg-[#E8552E]/10 px-2 py-0.5 rounded-full">
-                Perks
-              </span>
+              <span className="text-xs font-mono font-bold text-[#E8552E] bg-[#E8552E]/10 px-2 py-0.5 rounded-full">Perks</span>
             </div>
 
             <div className="mt-3 space-y-2">

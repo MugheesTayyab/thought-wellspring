@@ -1,5 +1,9 @@
 import type { DatabaseEnv } from "../db/client";
-import { fetchProfileById, incrementWarmth, updateVisitStreak } from "../db/profiles";
+import {
+  fetchProfileById,
+  incrementWarmth,
+  updateVisitStreak,
+} from "../db/profiles";
 import { AWARD_VALUES, STORE_ITEMS } from "@/shared/constants/warmth";
 import type { WarmthLogEntry } from "@/shared/types/warmth";
 
@@ -8,7 +12,7 @@ import type { WarmthLogEntry } from "@/shared/types/warmth";
  */
 export async function claimDailyBonus(
   env: DatabaseEnv | undefined,
-  userId: string,
+  userId: string
 ): Promise<{
   warmthTotal: number;
   visitStreak: number;
@@ -74,7 +78,7 @@ export async function claimDailyBonus(
 export async function purchaseStoreItem(
   env: DatabaseEnv | undefined,
   userId: string,
-  itemId: string,
+  itemId: string
 ): Promise<{
   warmthTotal: number;
   purchasedItems: string[];
@@ -98,7 +102,7 @@ export async function purchaseStoreItem(
 
   if (profile.warmthTotal < item.cost) {
     throw new Error(
-      `Insufficient warmth. Required: ${item.cost}, Available: ${profile.warmthTotal}`,
+      `Insufficient warmth. Required: ${item.cost}, Available: ${profile.warmthTotal}`
     );
   }
 
@@ -120,7 +124,10 @@ export async function purchaseStoreItem(
   const updatedPurchasedItems = [...profile.purchasedItems, itemId];
   const { getSupabaseAdminClient } = await import("../db/client");
   const client = getSupabaseAdminClient(env);
-  await client.from("profiles").update({ purchased_items: updatedPurchasedItems }).eq("id", userId);
+  await client
+    .from("profiles")
+    .update({ purchased_items: updatedPurchasedItems })
+    .eq("id", userId);
 
   return {
     warmthTotal: updateRes.data.warmthTotal,
@@ -138,7 +145,7 @@ export async function syncWarmth(
     deviceToken: string;
     localWarmth: number;
     profileId?: string | null;
-  },
+  }
 ): Promise<{ serverTotal: number }> {
   const { validateDeviceToken } = await import("../middleware/device-token");
   const token = validateDeviceToken(input.deviceToken);
@@ -165,7 +172,10 @@ export async function syncWarmth(
     const finalTotal = Math.max(serverWarmth, localWarmth);
 
     if (finalTotal > serverWarmth) {
-      await client.from("profiles").update({ warmth_total: finalTotal }).eq("id", existing.id);
+      await client
+        .from("profiles")
+        .update({ warmth_total: finalTotal })
+        .eq("id", existing.id);
     }
 
     return { serverTotal: finalTotal };

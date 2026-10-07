@@ -12,7 +12,14 @@ export interface TierInfo {
 }
 
 export type ActionType =
-  "react" | "echo" | "post" | "share" | "duel" | "visit" | "spend" | "daily_bonus";
+  | "react"
+  | "echo"
+  | "post"
+  | "share"
+  | "duel"
+  | "visit"
+  | "spend"
+  | "daily_bonus";
 
 export interface WarmthLogEntry {
   id: string;

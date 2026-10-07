@@ -14,7 +14,10 @@ export interface BottomNavProps {
   archetypeColor?: string;
 }
 
-export function BottomNav({ readState: propReadState, archetypeColor: propColor }: BottomNavProps) {
+export function BottomNav({
+  readState: propReadState,
+  archetypeColor: propColor,
+}: BottomNavProps) {
   const location = useLocation();
   const pathname = location.pathname;
 
@@ -76,27 +79,30 @@ export function BottomNav({ readState: propReadState, archetypeColor: propColor 
   return (
     <>
       <nav
-        aria-label="Primary"
-        className="fixed bottom-2 left-1/2 z-40 w-[calc(100%-1rem)] max-w-xl -translate-x-1/2 rounded-xl border border-border bg-card px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-1 shadow-soft select-none lg:bottom-auto lg:left-[calc(50%+23rem)] lg:top-1/2 lg:w-20 lg:translate-x-0 lg:-translate-y-1/2 lg:p-1"
+        aria-label="Main Navigation"
+        className="fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-[#0d0909]/92 backdrop-blur-2xl px-6 pt-2 pb-[max(env(safe-area-inset-bottom),0.75rem)] shadow-[0_-8px_30px_rgba(0,0,0,0.6)] select-none"
       >
-        <div className="mx-auto flex items-center justify-around lg:flex-col">
+        <div className="mx-auto flex max-w-sm items-center justify-between">
           {/* Wall Tab */}
           <Link
             to="/"
             aria-current={isWallActive ? "page" : undefined}
             onClick={() => triggerHaptic("selection")}
-            className={`spring-press flex min-h-14 min-w-20 flex-col items-center justify-center gap-0.5 rounded-lg px-4 text-xs font-semibold transition-colors ${
-              isWallActive
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
+            className={`spring-press flex flex-col items-center gap-1 py-1 px-4 text-[11px] font-medium transition-all ${
+              isWallActive ? "text-primary scale-105" : "text-white/50 hover:text-white/80"
             }`}
           >
             <div className="relative flex items-center justify-center">
               <Flame
-                className={`size-5 ${isWallActive ? "text-primary-foreground" : "text-muted-foreground"}`}
+                className={`size-5 transition-transform ${isWallActive ? "text-primary fill-primary/20" : "text-white/60"}`}
               />
             </div>
-            <span>Wall</span>
+            <span className="font-mono text-[11px] tracking-tight">Wall</span>
+            <span
+              className={`h-0.5 w-4 rounded-full transition-all duration-300 ${
+                isWallActive ? "bg-primary shadow-[0_0_8px_rgba(250,84,28,0.8)]" : "bg-transparent"
+              }`}
+            />
           </Link>
 
           {/* Read Tab */}
@@ -105,25 +111,30 @@ export function BottomNav({ readState: propReadState, archetypeColor: propColor 
               to="/read"
               aria-current={isReadActive ? "page" : undefined}
               onClick={() => triggerHaptic("selection")}
-              className={`spring-press relative flex min-h-14 min-w-20 flex-col items-center justify-center gap-0.5 rounded-lg px-4 text-xs font-semibold transition-colors ${
-                isReadActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+              className={`spring-press relative flex flex-col items-center gap-1 py-1 px-4 text-[11px] font-medium transition-all animate-[popIn_0.3s_cubic-bezier(0.34,1.56,0.64,1)] ${
+                isReadActive ? "text-primary scale-105" : "text-white/50 hover:text-white/80"
               }`}
             >
               <div className="relative flex items-center justify-center">
                 <Compass
-                  className={`size-5 ${isReadActive ? "text-primary-foreground" : "text-muted-foreground"}`}
+                  className={`size-5 transition-transform ${isReadActive ? "text-primary" : "text-white/60"}`}
                 />
                 {state.status === "ready" && (
                   <span
-                    className="absolute -right-1.5 -top-1 size-2 rounded-full bg-primary ring-2 ring-card"
+                    className="absolute -top-1 -right-1.5 size-2 rounded-full nav-dot-pulse ring-2 ring-[#0d0909]"
                     style={{ backgroundColor: state.color || "#fa541c" }}
                     aria-label="New Read result ready"
                   />
                 )}
               </div>
-              <span>Read</span>
+              <span className="font-mono text-[11px] tracking-tight">Read</span>
+              <span
+                className={`h-0.5 w-4 rounded-full transition-all duration-300 ${
+                  isReadActive
+                    ? "bg-primary shadow-[0_0_8px_rgba(250,84,28,0.8)]"
+                    : "bg-transparent"
+                }`}
+              />
             </Link>
           ) : (
             <button
@@ -132,14 +143,14 @@ export function BottomNav({ readState: propReadState, archetypeColor: propColor 
                 triggerHaptic("warning");
                 setLockedModalType("read");
               }}
-              className="spring-press flex min-h-14 min-w-20 flex-col items-center justify-center gap-0.5 rounded-lg px-4 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
-              aria-label="Read, locked"
+              className="spring-press flex flex-col items-center gap-1 py-1 px-4 text-[11px] font-medium opacity-50 transition-opacity hover:opacity-85 cursor-pointer"
             >
               <div className="relative flex items-center justify-center">
-                <Compass className="size-5" />
+                <Compass className="size-5 text-white/50" />
                 <Lock className="absolute -top-1 -right-1.5 size-2.5 text-primary" />
               </div>
-              <span>Read</span>
+              <span className="font-mono text-[11px] tracking-tight text-white/50">Read</span>
+              <span className="h-0.5 w-4 rounded-full bg-transparent" />
             </button>
           )}
 
@@ -149,18 +160,23 @@ export function BottomNav({ readState: propReadState, archetypeColor: propColor 
               to="/duel"
               aria-current={isDuelActive ? "page" : undefined}
               onClick={() => triggerHaptic("selection")}
-              className={`spring-press flex min-h-14 min-w-20 flex-col items-center justify-center gap-0.5 rounded-lg px-4 text-xs font-semibold transition-colors ${
-                isDuelActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+              className={`spring-press flex flex-col items-center gap-1 py-1 px-4 text-[11px] font-medium transition-all animate-[popIn_0.3s_cubic-bezier(0.34,1.56,0.64,1)] ${
+                isDuelActive ? "text-primary scale-105" : "text-white/50 hover:text-white/80"
               }`}
             >
               <div className="relative flex items-center justify-center">
                 <Swords
-                  className={`size-5 ${isDuelActive ? "text-primary-foreground" : "text-muted-foreground"}`}
+                  className={`size-5 transition-transform ${isDuelActive ? "text-primary" : "text-white/60"}`}
                 />
               </div>
-              <span>Duel</span>
+              <span className="font-mono text-[11px] tracking-tight">Duel</span>
+              <span
+                className={`h-0.5 w-4 rounded-full transition-all duration-300 ${
+                  isDuelActive
+                    ? "bg-primary shadow-[0_0_8px_rgba(250,84,28,0.8)]"
+                    : "bg-transparent"
+                }`}
+              />
             </Link>
           ) : (
             <button
@@ -169,14 +185,14 @@ export function BottomNav({ readState: propReadState, archetypeColor: propColor 
                 triggerHaptic("warning");
                 setLockedModalType("duel");
               }}
-              className="spring-press flex min-h-14 min-w-20 flex-col items-center justify-center gap-0.5 rounded-lg px-4 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
-              aria-label="Duel, locked"
+              className="spring-press flex flex-col items-center gap-1 py-1 px-4 text-[11px] font-medium opacity-50 transition-opacity hover:opacity-85 cursor-pointer"
             >
               <div className="relative flex items-center justify-center">
-                <Swords className="size-5" />
+                <Swords className="size-5 text-white/50" />
                 <Lock className="absolute -top-1 -right-1.5 size-2.5 text-primary" />
               </div>
-              <span>Duel</span>
+              <span className="font-mono text-[11px] tracking-tight text-white/50">Duel</span>
+              <span className="h-0.5 w-4 rounded-full bg-transparent" />
             </button>
           )}
         </div>

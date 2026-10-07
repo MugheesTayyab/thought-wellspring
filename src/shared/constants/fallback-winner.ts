@@ -11,8 +11,7 @@ const r = (heart: number, sad: number, fire: number, hug: number) => ({
 });
 
 export function getFallbackWinner(): { unsaid: Unsaid; hook: string } {
-  const currentNow =
-    typeof Date !== "undefined" && Date.now() > 1_000_000 ? Date.now() : 1790268707000;
+  const currentNow = typeof Date !== "undefined" && Date.now() > 1_000_000 ? Date.now() : 1790268707000;
   return {
     hook: "This one left everyone speechless.",
     unsaid: {

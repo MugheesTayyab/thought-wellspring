@@ -1,16 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
-import {
-  Settings2,
-  Share2,
-  X,
-  LogIn,
-  LogOut,
-  CheckCircle2,
-  MessageCircle,
-  Image as ImageIcon,
-} from "lucide-react";
+import { Settings2, Share2, X, LogIn, LogOut, CheckCircle2, MessageCircle, Image as ImageIcon } from "lucide-react";
 import { CornerAvatar } from "./CornerAvatar";
 import { useAuth } from "@/client/stores/auth-context";
 import { readAvatarPhoto, writeAvatarPhoto } from "@/client/lib/local-storage";
@@ -115,8 +106,7 @@ export function CornerMenu({ seed }: { seed: string }) {
                   <CornerAvatar seed={seed} photoUrl={customPhoto} size={42} />
                   <div className="min-w-0">
                     <p className="font-display truncate text-base font-bold">
-                      {profile?.handle ||
-                        (user?.email ? user.email.split("@")[0] : "Your Public Corner")}
+                      {profile?.handle || (user?.email ? user.email.split("@")[0] : "Your Public Corner")}
                     </p>
                     <p className="font-sans text-[11px] text-muted-foreground flex items-center gap-1">
                       {user ? (
@@ -158,10 +148,7 @@ export function CornerMenu({ seed }: { seed: string }) {
               {!user ? (
                 <div className="mt-3.5 rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-center">
                   <p className="font-sans text-xs text-[#F5EFE9]/80 mb-2.5 leading-snug">
-                    Sign in to secure your Corner and keep your streak safe.{" "}
-                    <span className="text-[#E8552E] font-medium">
-                      10-day streak gets followed by Baji! 👑
-                    </span>
+                    Sign in to secure your Corner and keep your streak safe. <span className="text-[#E8552E] font-medium">10-day streak gets followed by Baji! 👑</span>
                   </p>
                   <button
                     type="button"
@@ -196,9 +183,7 @@ export function CornerMenu({ seed }: { seed: string }) {
               ) : (
                 <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3 text-left">
                   <p className="font-vibe text-[11px] text-muted-foreground">Connected Email</p>
-                  <p className="font-vibe text-xs font-medium text-foreground truncate">
-                    {user.email}
-                  </p>
+                  <p className="font-vibe text-xs font-medium text-foreground truncate">{user.email}</p>
                 </div>
               )}
 

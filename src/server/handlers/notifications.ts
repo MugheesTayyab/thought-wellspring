@@ -1,5 +1,8 @@
 import { getServerEnv } from "@/server/lib/get-env";
-import { wrapServerFn, extractBearerJwt } from "@/server/lib/wrap-server-fn";
+import {
+  wrapServerFn,
+  extractBearerJwt,
+} from "@/server/lib/wrap-server-fn";
 import type { ServerFnResult } from "@/shared/types/api";
 import { getSupabaseAnonClient } from "@/server/db/client";
 import {
@@ -39,15 +42,13 @@ export async function handleSavePushSubscription(data: {
 
     // 2. Ensure at least deviceToken or userId is present
     if (!userId && !data.deviceToken) {
-      throw new Error(
-        "Either deviceToken or authenticated session is required to save push subscription.",
-      );
+      throw new Error("Either deviceToken or authenticated session is required to save push subscription.");
     }
 
     return savePushSubscription(env, {
-      ...(userId ? { userId } : {}),
-      ...(data.deviceToken ? { deviceToken: data.deviceToken } : {}),
-      ...(data.userAgent ? { userAgent: data.userAgent } : {}),
+      userId,
+      deviceToken: data.deviceToken,
+      userAgent: data.userAgent,
       subscription: data.subscription,
     });
   });

@@ -4,7 +4,11 @@ import { X, Check, Flame, ArrowRight } from "lucide-react";
 import type { StoreItem, StoreItemCategory } from "@/shared/types/warmth";
 import { STORE_ITEMS } from "@/shared/constants/warmth";
 import { randomSeed } from "@/shared/utils";
-import { getPurchasedItems, recordPurchase, writeAvatarSeed } from "@/client/lib/local-storage";
+import {
+  getPurchasedItems,
+  recordPurchase,
+  writeAvatarSeed,
+} from "@/client/lib/local-storage";
 import { useWarmth } from "@/client/stores/warmth-context";
 import { triggerHaptic } from "@/client/lib/haptics";
 
@@ -61,9 +65,7 @@ export const WarmthStore: React.FC<WarmthStoreProps> = ({ isOpen, onClose }) => 
             <h2 className="text-lg font-bold tracking-tight text-[#F5EFE9] flex items-center gap-2">
               <span>Perks & Store</span>
             </h2>
-            <p className="text-xs text-[#9C8F87]">
-              Use your earned points to unlock exclusive perks
-            </p>
+            <p className="text-xs text-[#9C8F87]">Use your earned points to unlock exclusive perks</p>
           </div>
 
           <div className="flex items-center gap-2.5">

@@ -16,7 +16,7 @@ export function mapRowToEcho(row: any): Echo {
  */
 export async function fetchEchoesForPost(
   env: DatabaseEnv | undefined,
-  postId: string,
+  postId: string
 ): Promise<{ data: Echo[]; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAnonClient(env);
@@ -48,11 +48,8 @@ export async function insertEcho(
     handle?: string | null;
     deviceToken: string;
     profileId?: string | null;
-  },
-): Promise<{
-  data: { id: string; createdAt: number } | null;
-  error: { code: string; message: string } | null;
-}> {
+  }
+): Promise<{ data: { id: string; createdAt: number } | null; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAdminClient(env);
 
@@ -67,13 +64,7 @@ export async function insertEcho(
     }
 
     if ((count ?? 0) >= 50) {
-      return {
-        data: null,
-        error: {
-          code: "ECHO_LIMIT_REACHED",
-          message: "This confession has reached the maximum of 50 echoes",
-        },
-      };
+      return { data: null, error: { code: "ECHO_LIMIT_REACHED", message: "This confession has reached the maximum of 50 echoes" } };
     }
 
     const { data, error } = await client
@@ -110,7 +101,7 @@ export async function insertEcho(
 export async function countDeviceEchoesInWindow(
   env: DatabaseEnv | undefined,
   deviceToken: string,
-  windowMinutes: number = 30,
+  windowMinutes: number = 30
 ): Promise<number> {
   try {
     const client = getSupabaseAdminClient(env);

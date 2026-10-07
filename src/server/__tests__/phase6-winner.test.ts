@@ -42,8 +42,7 @@ describe("Phase 6: Winner Pipeline & Scheduled Scoring Verification", () => {
         createdAt: cycleEnd - 8 * 3600 * 1000,
         category: "Silent Thoughts",
         preset: "midnight-static",
-        reactions: { heart: 4, fire: 0, hug: 0, sad: 0 }, // raw = 10.0
-        echoes: [],
+        reactions: { heart: 4 }, // raw = 10.0
       };
 
       const score = computeCycleScore(post8hOld, cycleEnd);
@@ -56,7 +55,7 @@ describe("Phase 6: Winner Pipeline & Scheduled Scoring Verification", () => {
       const penalty3 = computeVetoPenalty(3);
 
       expect(penalty1).toBe(0.85);
-      expect(penalty2).toBe(0.6);
+      expect(penalty2).toBe(0.60);
       expect(penalty3).toBe(0.0);
     });
 
@@ -67,10 +66,9 @@ describe("Phase 6: Winner Pipeline & Scheduled Scoring Verification", () => {
         text: "Reported post",
         handle: null,
         createdAt: cycleEnd - 1000,
-        category: "Spill The Tea",
+        category: "Confessions",
         preset: "midnight-static",
-        reactions: { heart: 100, fire: 0, hug: 0, sad: 0 },
-        echoes: [],
+        reactions: { heart: 100 },
         vetoCount: 3,
       };
 
@@ -87,20 +85,18 @@ describe("Phase 6: Winner Pipeline & Scheduled Scoring Verification", () => {
         text: "Post A",
         handle: null,
         createdAt: cycleEnd - 1000,
-        category: "Spill The Tea",
+        category: "Confessions",
         preset: "midnight-static",
-        reactions: { heart: 10, fire: 0, hug: 0, sad: 0 },
-        echoes: [],
+        reactions: { heart: 10 },
       };
       const postB: Unsaid = {
         id: "post-b",
         text: "Post B",
         handle: null,
         createdAt: cycleEnd - 1000,
-        category: "Spill The Tea",
+        category: "Confessions",
         preset: "midnight-static",
-        reactions: { heart: 5, fire: 0, hug: 0, sad: 0 },
-        echoes: [],
+        reactions: { heart: 5 },
       };
 
       const ranked = rankCycleCandidates([postB, postA], cycleEnd);
@@ -114,19 +110,18 @@ describe("Phase 6: Winner Pipeline & Scheduled Scoring Verification", () => {
         text: "Post without echoes",
         handle: null,
         createdAt: cycleEnd - 1000,
-        category: "Spill The Tea",
+        category: "Confessions",
         preset: "midnight-static",
-        reactions: { heart: 0, fire: 2, hug: 0, sad: 0 },
-        echoes: [],
+        reactions: { fire: 2 },
       };
       const postTieWithEcho: Unsaid = {
         id: "post-with-echo",
         text: "Post with echoes",
         handle: null,
         createdAt: cycleEnd - 1000,
-        category: "Spill The Tea",
+        category: "Confessions",
         preset: "midnight-static",
-        reactions: { heart: 0, fire: 2, hug: 0, sad: 0 },
+        reactions: { fire: 2 },
         echoes: [{ id: "e1", text: "I agree", handle: null, createdAt: Date.now() }],
       };
 
@@ -142,13 +137,12 @@ describe("Phase 6: Winner Pipeline & Scheduled Scoring Verification", () => {
         text: "Test post",
         handle: null,
         createdAt: Date.now(),
-        category: "Silent Thoughts",
+        category: "3 AM Regrets",
         preset: "midnight-static",
-        reactions: { heart: 5, fire: 0, hug: 0, sad: 0 },
-        echoes: [],
+        reactions: { heart: 5 },
       };
       const hook = generateWinnerHook({
-        category: "Silent Thoughts",
+        category: "3 AM Regrets",
         createdAt: 12345,
         reactions: { heart: 5, fire: 0, hug: 0, sad: 0 },
         echoCount: 0,
@@ -164,10 +158,9 @@ describe("Phase 6: Winner Pipeline & Scheduled Scoring Verification", () => {
         text: "Feeling lost today",
         handle: null,
         createdAt: Date.now(),
-        category: "Hard Truth",
+        category: "Hostel Thoughts",
         preset: "midnight-static",
-        reactions: { sad: 15, heart: 2, fire: 0, hug: 0 },
-        echoes: [],
+        reactions: { sad: 15, heart: 2 },
       };
       const hook = getHookForPost(mockSadPost, 12345);
       expect(hook).toBe("A quiet grief that the entire community held together today.");

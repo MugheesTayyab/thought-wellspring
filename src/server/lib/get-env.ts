@@ -31,10 +31,7 @@ function extractString(val: unknown): string | undefined {
   return undefined;
 }
 
-function searchRecord(
-  record: Record<string, any> | undefined | null,
-  targetKey: string,
-): string | undefined {
+function searchRecord(record: Record<string, any> | undefined | null, targetKey: string): string | undefined {
   if (!record || typeof record !== "object") return undefined;
 
   // 1. Direct match

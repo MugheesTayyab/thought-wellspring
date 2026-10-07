@@ -36,7 +36,11 @@ export function CornerAvatar({
         style={{ width: size, height: size }}
         className="border-white/15 relative flex shrink-0 overflow-hidden rounded-full border bg-[#17110D] shadow-sm select-none"
       >
-        <img src={activePhoto} alt="Avatar" className="w-full h-full object-cover rounded-full" />
+        <img
+          src={activePhoto}
+          alt="Avatar"
+          className="w-full h-full object-cover rounded-full"
+        />
       </span>
     );
   }

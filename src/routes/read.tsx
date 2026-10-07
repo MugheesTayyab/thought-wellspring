@@ -132,18 +132,28 @@ function ReadPage() {
   const currentArchetype = result.unlocked ? getArchetype(result.archetype) : null;
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center bg-background p-4 pb-32 text-foreground sm:pb-36 md:p-8 md:pb-36">
+    <div className="relative min-h-screen w-full bg-[#0F0A0A] text-white flex flex-col items-center p-4 pb-32 sm:pb-36 md:p-8 md:pb-36">
+      {/* Background Radial Glow */}
+      <div
+        className="fixed inset-0 pointer-events-none opacity-50"
+        style={{
+          background: currentArchetype
+            ? `radial-gradient(ellipse at top, ${currentArchetype.color}25 0%, transparent 70%)`
+            : "radial-gradient(ellipse at top, rgba(250,84,28,0.15) 0%, transparent 70%)",
+        }}
+      />
+
       {/* Top Header */}
-      <header className="relative z-10 flex w-full max-w-3xl items-center justify-between border-b border-border py-3">
+      <header className="relative z-10 w-full max-w-md flex items-center justify-between py-3 border-b border-white/10">
         <Link
           to="/"
-          className="flex min-h-11 items-center gap-1.5 rounded-md px-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+          className="flex items-center gap-1.5 text-xs font-semibold text-white/70 hover:text-white transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Back to Wall</span>
         </Link>
 
-        <h1 className="font-display text-xl font-medium text-foreground sm:text-2xl">
+        <h1 className="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
           <span>Baji Read</span>
         </h1>
 
@@ -151,7 +161,7 @@ function ReadPage() {
       </header>
 
       {/* Main Content Area */}
-      <main className="relative z-10 my-auto flex w-full flex-col items-center justify-center py-8 sm:py-12">
+      <main className="relative z-10 my-auto py-6 sm:py-8 w-full flex flex-col items-center justify-center">
         {!mounted ? (
           <BajiReadLockedCard totalActions={0} actionsNeeded={5} />
         ) : result.unlocked && currentArchetype ? (

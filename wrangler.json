@@ -2,7 +2,9 @@
   "name": "bajihears",
   "main": ".output/server/index.mjs",
   "compatibility_date": "2026-09-25",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "assets": {
     "binding": "ASSETS",
     "directory": ".output/public"
@@ -14,6 +16,8 @@
     "VAPID_SUBJECT": "mailto:admin@bajihears.com"
   },
   "triggers": {
-    "crons": ["0 0,12 * * *"]
+    "crons": [
+      "0 0,12 * * *"
+    ]
   }
 }

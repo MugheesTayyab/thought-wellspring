@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = async (jwt: string) => {
     try {
       const res = await apiRefreshProfile({ data: { jwt } });
-      if (res.ok && res.data.profile) {
+      if (res.success && res.data?.profile) {
         setProfile(res.data.profile);
       }
     } catch (err) {

@@ -1,8 +1,6 @@
 # Phase 3 — Exhaustive Implementation Plan
-
 ## Route Handler Layer — TanStack Start Server Functions & HTTP API Endpoints
-
-_BajiHears · Bulk client-facing production standard · No code — pure specification_
+*BajiHears · Bulk client-facing production standard · No code — pure specification*
 
 ---
 
@@ -20,7 +18,6 @@ _BajiHears · Bulk client-facing production standard · No code — pure specifi
 ## What Phase 3 Delivers
 
 At the end of Phase 3:
-
 - Every Phase 2 server function is callable via a typed TanStack Start `createServerFn`
 - Every endpoint is secured with: device token validation, CSRF protection, rate limit headers
 - The error contract between server and client is defined and consistent across all endpoints
@@ -61,7 +58,6 @@ Static assets (CSS, JS)   Cloudflare edge cache / Nitro   .output/public/
 
 `createServerFn` from `@tanstack/react-start` is the idiomatic way to create server endpoints
 in this stack. It:
-
 - Generates a typed callable function on the client that returns the server result
 - Automatically handles serialization and deserialization between client and server
 - Works with TanStack Router's `loader` and `action` patterns for progressive enhancement
@@ -73,7 +69,6 @@ in this stack. It:
 
 An alternative is writing raw `fetch` handlers in `src/server.ts` that pattern-match on URL paths.
 This is valid but loses:
-
 - TypeScript end-to-end type safety
 - Automatic serialization
 - CSRF integration
@@ -127,24 +122,24 @@ Phase 3 defines exactly which error codes map to which HTTP status codes.
 This table is the contract. The client (Phase 4) interprets status codes — not error messages.
 Error messages may change; status codes are immutable.
 
-| Error Code               | HTTP Status | Client Interpretation                           |
-| ------------------------ | ----------- | ----------------------------------------------- |
-| `MISSING_DEVICE_TOKEN`   | 400         | Device token not present — regenerate identity  |
-| `INVALID_DEVICE_TOKEN_*` | 400         | Malformed token — regenerate identity           |
-| `VALIDATION_ERROR`       | 400         | Input is malformed — show field error           |
-| `ALREADY_REACTED`        | 409         | Duplicate tap — update UI immediately, no toast |
-| `ALREADY_VOTED`          | 409         | Already voted — show "You voted" state          |
-| `ALREADY_REPORTED`       | 409         | Already reported — show "Already flagged"       |
-| `SELF_VETO_FORBIDDEN`    | 403         | Own post — show "Can't report own post"         |
-| `NOT_FOUND`              | 404         | Post/duel gone — show "No longer available"     |
-| `RATE_LIMIT_EXCEEDED`    | 429         | Show countdown using `X-RateLimit-Reset` header |
-| `ALREADY_CLAIMED_TODAY`  | 409         | Daily bonus — update UI to "See you tomorrow"   |
-| `ALREADY_PURCHASED`      | 409         | Show "Already owned"                            |
-| `INSUFFICIENT_WARMTH`    | 402         | Show current warmth balance, highlight deficit  |
-| `PROFILE_NOT_FOUND`      | 404         | Profile gone — trigger re-auth                  |
-| `ECHO_LIMIT_REACHED`     | 422         | Show "This post has reached its echo limit"     |
-| `UNAUTHORIZED`           | 401         | JWT missing or expired — trigger sign-in flow   |
-| `UNEXPECTED_ERROR`       | 500         | Generic "Something went wrong, try again"       |
+| Error Code                 | HTTP Status | Client Interpretation                         |
+|----------------------------|-------------|-----------------------------------------------|
+| `MISSING_DEVICE_TOKEN`     | 400         | Device token not present — regenerate identity|
+| `INVALID_DEVICE_TOKEN_*`   | 400         | Malformed token — regenerate identity         |
+| `VALIDATION_ERROR`         | 400         | Input is malformed — show field error         |
+| `ALREADY_REACTED`          | 409         | Duplicate tap — update UI immediately, no toast|
+| `ALREADY_VOTED`            | 409         | Already voted — show "You voted" state        |
+| `ALREADY_REPORTED`         | 409         | Already reported — show "Already flagged"     |
+| `SELF_VETO_FORBIDDEN`      | 403         | Own post — show "Can't report own post"       |
+| `NOT_FOUND`                | 404         | Post/duel gone — show "No longer available"   |
+| `RATE_LIMIT_EXCEEDED`      | 429         | Show countdown using `X-RateLimit-Reset` header|
+| `ALREADY_CLAIMED_TODAY`    | 409         | Daily bonus — update UI to "See you tomorrow" |
+| `ALREADY_PURCHASED`        | 409         | Show "Already owned"                          |
+| `INSUFFICIENT_WARMTH`      | 402         | Show current warmth balance, highlight deficit |
+| `PROFILE_NOT_FOUND`        | 404         | Profile gone — trigger re-auth                |
+| `ECHO_LIMIT_REACHED`       | 422         | Show "This post has reached its echo limit"   |
+| `UNAUTHORIZED`             | 401         | JWT missing or expired — trigger sign-in flow |
+| `UNEXPECTED_ERROR`         | 500         | Generic "Something went wrong, try again"     |
 
 ### Standard Response Envelope
 
@@ -185,35 +180,29 @@ These headers are added in `src/start.ts` via a global middleware wrapper, not p
 ### Headers That Must Be Present on Every Response
 
 **`Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`**
-
 - HSTS: forces all future connections to HTTPS. `max-age=63072000` is 2 years.
 - `preload`: submits the domain to browser HSTS preload lists (eliminates first-visit downgrade attack).
 - Applied after first HTTPS deploy. In local dev (HTTP), this header is omitted.
 
 **`X-Content-Type-Options: nosniff`**
-
 - Prevents browsers from MIME-sniffing a response's content type.
 - Protects against attacks where a user-uploaded file is served as JavaScript.
 - Always applied — zero exceptions.
 
 **`X-Frame-Options: DENY`**
-
 - Prevents the page from being embedded in `<iframe>`, `<frame>`, or `<object>`.
 - Eliminates clickjacking attacks entirely.
 - Applied to all HTML responses. API JSON responses also carry this header (defense in depth).
 
 **`Referrer-Policy: strict-origin-when-cross-origin`**
-
 - Sends full referrer for same-origin requests, only the origin for cross-origin HTTPS.
 - Prevents user session data (URL parameters, tokens) from leaking in referrer headers.
 
 **`Permissions-Policy: camera=(), microphone=(), geolocation=()`**
-
 - Explicitly disables browser APIs this app does not use.
 - Prevents permission escalation attacks even if JavaScript is compromised.
 
 **`Content-Security-Policy` (CSP)**
-
 - This is the most important header. Defines exactly where scripts, styles, and resources can load from.
 - Phase 3 CSP (permissive — tightened in Phase 5):
   - `default-src 'self'`
@@ -226,7 +215,6 @@ These headers are added in `src/start.ts` via a global middleware wrapper, not p
   - `report-uri /api/csp-report` (Phase 5 — for now, omitted)
 
 **`X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`**
-
 - These are per-server-function response headers, not global.
 - Added by the `checkRateLimit()` call in each server function.
 - Client reads `X-RateLimit-Reset` (Unix timestamp) to show the countdown timer.
@@ -238,13 +226,11 @@ These headers are added in `src/start.ts` via a global middleware wrapper, not p
 BajiHears is a Single-Page App served from its own domain. CORS configuration:
 
 **Allowed origins:**
-
 - `https://bajihears.com` (production)
 - `https://*.pages.dev` (Cloudflare Pages preview deploys)
 - `http://localhost:3000` and `http://localhost:5173` (local development)
 
 **CORS headers on API responses:**
-
 - `Access-Control-Allow-Origin`: matches the request origin from the allowed list, or denied
 - `Access-Control-Allow-Methods: GET, POST, OPTIONS`
 - `Access-Control-Allow-Headers: Content-Type, X-Device-Token, Authorization`
@@ -268,7 +254,6 @@ server functions. The pattern for doing this in TanStack Start with Nitro:
 (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY etc.).
 
 **What this means in practice:**
-
 - A helper utility is created at `src/server/lib/get-env.ts`
 - It calls `getEvent()` internally and extracts `cloudflare.env`
 - Every `createServerFn` implementation calls this helper at its very first line
@@ -301,7 +286,6 @@ By convention, non-page server utility files in `src/routes/` that do not export
 are not treated as pages — they are just modules.
 
 The `src/routes/api/` subfolder is chosen because:
-
 - It mirrors the pattern of Next.js/Remix API routes — developers instantly understand it
 - It keeps all server-callable functions discoverable in one place
 - It is physically adjacent to the route files that will call them (Phase 4)
@@ -374,7 +358,6 @@ validation), returning `{ ok: false }` is sufficient — the client interprets `
 **HTTP method:** GET (implied by TanStack Start for non-mutating server functions)
 **Input shape:** `{ category?: string, page?: number, limit?: number }`
 **Validation:**
-
 - `page` must be a non-negative integer if provided; default 0
 - `limit` must be between 1 and 50 if provided; default 20; server caps at 50 regardless
 - `category` must be one of the 5 valid values if provided; otherwise omit category filter
@@ -384,7 +367,6 @@ validation), returning `{ ok: false }` is sufficient — the client interprets `
 **Delegation:** `fetchFeed(env, { category, page, limit })`
 
 **Response shape:**
-
 ```
 {
   ok: true,
@@ -415,7 +397,6 @@ and again on the client side for pagination and category filtering.
 **Delegation:** `fetchWinner(env)`
 
 **Response shape:**
-
 ```
 {
   ok: true,
@@ -442,7 +423,6 @@ still collapses ~99% of repeated loads.
 **Authentication level:** Anonymous (device token required, no JWT needed)
 
 **Input shape:**
-
 ```
 {
   text: string,
@@ -454,7 +434,6 @@ still collapses ~99% of repeated loads.
 ```
 
 **Validation at this layer (before delegating to Phase 2):**
-
 - `text` is present and is a string (Phase 2 handles length and content)
 - `category` is present (Phase 2 handles validity against CATEGORIES constant)
 - `deviceToken` is present (Phase 2 middleware handles format validation)
@@ -464,7 +443,6 @@ still collapses ~99% of repeated loads.
 **Delegation:** `submitPost(env, input)`
 
 **Response shape:**
-
 ```
 {
   ok: true,
@@ -478,7 +456,6 @@ still collapses ~99% of repeated loads.
 ```
 
 **Error cases handled:**
-
 - `DeviceTokenError` → returns `{ ok: false, error: { code: "MISSING/INVALID_DEVICE_TOKEN", message } }`
 - `RateLimitError` → returns `{ ok: false, error: { code: "RATE_LIMIT_EXCEEDED", message } }` with rate limit headers
 - Spam shadow review is NOT an error — it returns `ok: true` with `status: "review"`
@@ -494,7 +471,6 @@ TanStack Start handles this automatically on the client side — no manual token
 
 **Type:** `createServerFn` with `method: 'POST'`
 **Input shape:**
-
 ```
 {
   postId: string,
@@ -504,7 +480,6 @@ TanStack Start handles this automatically on the client side — no manual token
 ```
 
 **Validation:**
-
 - `postId` must be a non-empty string (UUID format validation is done in Phase 2)
 - `reactionKey` must be one of the 4 valid values
 - `deviceToken` must be present
@@ -512,7 +487,6 @@ TanStack Start handles this automatically on the client side — no manual token
 **Delegation:** `reactToPost(env, input)`
 
 **Response shape (success):**
-
 ```
 {
   ok: true,
@@ -523,7 +497,6 @@ TanStack Start handles this automatically on the client side — no manual token
 ```
 
 **Error cases:**
-
 - `ALREADY_REACTED` → `{ ok: false, error: { code: "ALREADY_REACTED" } }` — client silently treats as success (the tap already happened)
 - `RATE_LIMIT_EXCEEDED` → 429 pattern with `X-RateLimit-Reset`
 - `NOT_FOUND` → post no longer visible; client removes the card from the feed
@@ -543,7 +516,6 @@ This pattern makes reactions feel instant even on slow connections.
 **Delegation:** `fetchPostById(env, id)`
 
 **Response shape:**
-
 ```
 {
   ok: true,
@@ -571,7 +543,6 @@ share URL (`/c/{id-fragment}`), this function fetches the specific post.
 **Delegation:** `fetchActiveDuel(env, deviceToken)`
 
 **Response shape:**
-
 ```
 {
   ok: true,
@@ -591,7 +562,6 @@ share URL (`/c/{id-fragment}`), this function fetches the specific post.
 
 **Type:** `createServerFn` with `method: 'POST'`
 **Input shape:**
-
 ```
 {
   duelId: string,
@@ -601,14 +571,12 @@ share URL (`/c/{id-fragment}`), this function fetches the specific post.
 ```
 
 **Validation:**
-
 - `choiceIndex` must be exactly `0` or `1` — no other value accepted
 - `duelId` must be a non-empty string
 
 **Delegation:** `submitDuelVote(env, input)`
 
 **Response shape:**
-
 ```
 {
   ok: true,
@@ -621,7 +589,6 @@ share URL (`/c/{id-fragment}`), this function fetches the specific post.
 ```
 
 **Error cases:**
-
 - `ALREADY_VOTED` → `{ ok: false, error: { code: "ALREADY_VOTED" } }` — client shows "You voted" state
 - `INVALID_DEVICE_TOKEN_*` → prompt user to refresh
 
@@ -639,7 +606,6 @@ share URL (`/c/{id-fragment}`), this function fetches the specific post.
 **Authentication level:** JWT required (user just signed in via Google OAuth)
 
 **Input shape:**
-
 ```
 {
   deviceToken: string,
@@ -657,7 +623,6 @@ to verify and extract `userId`.
 **Important distinction:** Phase 3 is responsible for extracting the JWT from the HTTP request.
 Phase 2's `migrateGuestToAccount` expects the userId already extracted. So Phase 3's auth server
 function:
-
 1. Reads the `Authorization` header
 2. Calls the Supabase anon client's `getUser(jwt)` to verify and extract `userId`
 3. Passes `userId` + `deviceToken` to `migrateGuestToAccount(env, { userId, deviceToken, handle, avatarSeed })`
@@ -667,7 +632,6 @@ The client stores it and passes it as `Authorization: Bearer <token>` in the `cr
 TanStack Start's serialization layer preserves custom headers.
 
 **Response shape:**
-
 ```
 {
   ok: true,
@@ -678,7 +642,6 @@ TanStack Start's serialization layer preserves custom headers.
 ```
 
 **Error cases:**
-
 - `UNAUTHORIZED` (no JWT or invalid JWT) → 401, client triggers re-sign-in
 - `PROFILE_NOT_FOUND` after creation → 500, client shows generic error and re-signs in
 
@@ -694,7 +657,6 @@ TanStack Start's serialization layer preserves custom headers.
 **Delegation:** `refreshProfile(env, userId)`
 
 **Response shape:**
-
 ```
 {
   ok: true,
@@ -726,7 +688,6 @@ the client updates its in-memory state.
 **Delegation:** `claimDailyBonus(env, userId)`
 
 **Response shape:**
-
 ```
 {
   ok: true,
@@ -741,7 +702,6 @@ the client updates its in-memory state.
 ```
 
 **Error cases:**
-
 - `ALREADY_CLAIMED_TODAY` → `{ ok: false, error: { code: "ALREADY_CLAIMED_TODAY" } }`
   Client updates the warmth orb text to "See you tomorrow" without an error toast
 - `UNAUTHORIZED` → 401
@@ -759,7 +719,6 @@ to the server response instead).
 **Authentication level:** JWT required
 
 **Input shape:**
-
 ```
 {
   itemId: string   // must be one of the STORE_ITEMS ids
@@ -769,7 +728,6 @@ to the server response instead).
 **Delegation:** `purchaseStoreItem(env, userId, itemId)`
 
 **Response shape:**
-
 ```
 {
   ok: true,
@@ -782,7 +740,6 @@ to the server response instead).
 ```
 
 **Error cases:**
-
 - `ALREADY_PURCHASED` → `{ ok: false, error: { code: "ALREADY_PURCHASED" } }` — show "Already owned" badge
 - `INSUFFICIENT_WARMTH` → `{ ok: false, error: { code: "INSUFFICIENT_WARMTH", message: "Need X more warmth" } }`
 - `UNAUTHORIZED` → 401
@@ -801,7 +758,6 @@ to the server response instead).
 **Authentication level:** Anonymous (device token only — reporting does not require sign-in)
 
 **Input shape:**
-
 ```
 {
   postId: string,
@@ -812,7 +768,6 @@ to the server response instead).
 **Delegation:** `reportPost(env, input)`
 
 **Response shape:**
-
 ```
 {
   ok: true,
@@ -824,7 +779,6 @@ to the server response instead).
 ```
 
 **Error cases:**
-
 - `SELF_VETO_FORBIDDEN` → `{ ok: false, error: { code: "SELF_VETO_FORBIDDEN" } }` — show "Can't report your own post"
 - `ALREADY_REPORTED` → `{ ok: false, error: { code: "ALREADY_REPORTED" } }` — show "Already flagged"
 - `RATE_LIMIT_EXCEEDED` → show countdown
@@ -843,7 +797,6 @@ to the server response instead).
 **Authentication level:** JWT required
 
 **Input shape:**
-
 ```
 {
   subscription: {
@@ -861,7 +814,6 @@ to the server response instead).
 **Delegation:** `savePushSubscription(env, { userId, subscription })`
 
 **Response shape:**
-
 ```
 {
   ok: true,
@@ -870,7 +822,6 @@ to the server response instead).
 ```
 
 **Error cases:**
-
 - Missing or malformed `endpoint` → 400 validation error
 - `UNAUTHORIZED` → 401
 
@@ -884,7 +835,6 @@ to the server response instead).
 Every server function in `src/routes/api/` imports this utility.
 
 **What it does:**
-
 1. Attempts to call `getEvent()` from `vinxi/http` (TanStack Start's server context accessor)
 2. Reads `event.context.cloudflare?.env` from the Cloudflare runtime context
 3. If `cloudflare.env` is not available (local dev), reads from `import.meta.env` (Vite's env)
@@ -910,7 +860,6 @@ The 3-zone import rule (from Phase 1) enforces this.
 to provide consistent error catching and response envelope formatting.
 
 **What it does:**
-
 1. Accepts an async handler function as its argument
 2. Calls the handler in a try/catch
 3. On success: returns `{ ok: true, data: result }`
@@ -924,7 +873,6 @@ surface as a 500 with no useful body. With the wrapper, every error becomes `{ o
 The client always gets a structured response it can handle. No silent failures for users.
 
 **The error mapping logic:**
-
 ```
 DeviceTokenError → MISSING_DEVICE_TOKEN / INVALID_DEVICE_TOKEN_* (status 400)
 RateLimitError   → RATE_LIMIT_EXCEEDED (status 429), also attaches rate limit headers
@@ -960,18 +908,18 @@ the Phase 3 wrapper directly, verifying:
 
 **What Phase 3 verification tests:**
 
-| Test ID | Target Layer             | Verification                                                                      |
-| ------- | ------------------------ | --------------------------------------------------------------------------------- |
-| V-01    | `wrapServerFn` utility   | Clean result returns `{ ok: true, data: ... }`                                    |
-| V-02    | `wrapServerFn` utility   | DeviceTokenError returns `{ ok: false, error: { code: "MISSING_DEVICE_TOKEN" } }` |
-| V-03    | `wrapServerFn` utility   | RateLimitError returns `{ ok: false, error: { code: "RATE_LIMIT_EXCEEDED" } }`    |
-| V-04    | `apiFetchFeed` handler   | Returns `{ ok: true, data: { posts: [], page: 0, hasMore: false } }`              |
-| V-05    | `apiSubmitPost` handler  | Returns `{ ok: true, data: { id, status, createdAt } }` on valid input            |
-| V-06    | `apiSubmitPost` handler  | Returns `{ ok: false, error: { code: "MISSING_DEVICE_TOKEN" } }` on missing token |
-| V-07    | `apiFetchWinner` handler | Returns `{ ok: true, data: { winner, hook, isFallback } }`                        |
-| V-08    | `apiReactToPost` handler | Returns `{ ok: true, data: { reactions } }` on first reaction                     |
-| V-09    | `apiReactToPost` handler | Returns `{ ok: false, error: { code: "ALREADY_REACTED" } }` on duplicate          |
-| V-10    | `apiSubmitDuelVote`      | Returns `{ ok: true, data: { choiceIndex, votesA, votesB } }`                     |
+| Test ID | Target Layer | Verification |
+|---------|-------------|--------------|
+| V-01 | `wrapServerFn` utility | Clean result returns `{ ok: true, data: ... }` |
+| V-02 | `wrapServerFn` utility | DeviceTokenError returns `{ ok: false, error: { code: "MISSING_DEVICE_TOKEN" } }` |
+| V-03 | `wrapServerFn` utility | RateLimitError returns `{ ok: false, error: { code: "RATE_LIMIT_EXCEEDED" } }` |
+| V-04 | `apiFetchFeed` handler  | Returns `{ ok: true, data: { posts: [], page: 0, hasMore: false } }` |
+| V-05 | `apiSubmitPost` handler | Returns `{ ok: true, data: { id, status, createdAt } }` on valid input |
+| V-06 | `apiSubmitPost` handler | Returns `{ ok: false, error: { code: "MISSING_DEVICE_TOKEN" } }` on missing token |
+| V-07 | `apiFetchWinner` handler| Returns `{ ok: true, data: { winner, hook, isFallback } }` |
+| V-08 | `apiReactToPost` handler| Returns `{ ok: true, data: { reactions } }` on first reaction |
+| V-09 | `apiReactToPost` handler| Returns `{ ok: false, error: { code: "ALREADY_REACTED" } }` on duplicate |
+| V-10 | `apiSubmitDuelVote`     | Returns `{ ok: true, data: { choiceIndex, votesA, votesB } }` |
 
 **10 verification tests, all passing, before Phase 4 begins.**
 
@@ -984,7 +932,7 @@ the Phase 3 wrapper directly, verifying:
 ```
 src/server/lib/get-env.ts             ← Cloudflare env binding extractor
 src/server/lib/wrap-server-fn.ts      ← Error catching + response envelope utility
-src/routes/api/wall.ts               ← apiFetchFeed, apiFetchWinner, apiSubmitPost,
+src/routes/api/wall.ts               ← apiFetchFeed, apiFetchWinner, apiSubmitPost, 
                                          apiReactToPost, apiFetchPostById
 src/routes/api/duels.ts              ← apiFetchActiveDuel, apiSubmitDuelVote
 src/routes/api/auth.ts               ← apiMigrateGuestToAccount, apiRefreshProfile
@@ -1016,7 +964,6 @@ src/routes/*.tsx              ← Route files unchanged until Phase 4
 Phase 4 is the **Client Wiring Layer** — replacing localStorage data access with server function calls.
 
 In Phase 4:
-
 - `src/routes/index.tsx` imports `apiFetchFeed`, `apiFetchWinner` from `src/routes/api/wall.ts`
 - The route `loader()` function calls these server functions for SSR data pre-loading
 - TanStack Query client wraps the server function calls for caching, background refresh, and optimistic updates
@@ -1037,7 +984,6 @@ React codebases.
 > There are no Supabase migrations. No new credentials. No manual steps.
 >
 > When you say "proceed", I execute Phase 3 completely:
->
 > - Create all files
 > - Run the 10 verification tests against your live Supabase database
 > - Run `npm run build` to confirm Cloudflare Worker compiles cleanly
@@ -1050,13 +996,11 @@ However, one **optional decision** I would like your input on:
 Standard API versioning adds `/v1/` to paths for future compatibility: e.g., `api/wall` becomes `/api/v1/wall`.
 
 **Option A — No versioning (recommended for Phase 3):**
-
 - Simpler. All paths stay as `api/wall`, `api/duels`, etc.
 - Easy to add `/v1/` in a later phase when needed
 - No overhead in Phase 3
 
 **Option B — Version immediately:**
-
 - Paths become `/api/v1/wall`, `/api/v1/duels`, etc.
 - More future-proof if you expect third-party clients
 - Slightly more boilerplate now
@@ -1068,5 +1012,5 @@ For an app you expect to expose as a public API to third parties eventually, Opt
 
 ---
 
-_End of Phase 3 Plan_
-_Next: Phase 4 — Client Wiring Layer (replace localStorage with server function calls, TanStack Query integration)_
+*End of Phase 3 Plan*
+*Next: Phase 4 — Client Wiring Layer (replace localStorage with server function calls, TanStack Query integration)*

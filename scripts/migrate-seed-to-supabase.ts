@@ -56,7 +56,7 @@ async function migrate() {
     console.warn(`[Seed Migration] Could not verify existing count: ${countErr.message}`);
   } else if ((count ?? 0) >= 50) {
     console.log(
-      `[Seed Migration] Database already has ${count} confessions. Skipping duplicate migration.`,
+      `[Seed Migration] Database already has ${count} confessions. Skipping duplicate migration.`
     );
     return;
   }
@@ -83,17 +83,19 @@ async function migrate() {
       };
     });
 
-    const { error: upsertErr } = await supabase.from("unsaids").upsert(batch, { onConflict: "id" });
+    const { error: upsertErr } = await supabase
+      .from("unsaids")
+      .upsert(batch, { onConflict: "id" });
 
     if (upsertErr) {
       console.error(
         `[Seed Migration] Error inserting batch ${i / BATCH_SIZE + 1}:`,
-        upsertErr.message,
+        upsertErr.message
       );
     } else {
       migrated += batch.length;
       console.log(
-        `[Seed Migration] Migrated batch ${i / BATCH_SIZE + 1} (${migrated}/${SEED_DATA.length} records)`,
+        `[Seed Migration] Migrated batch ${i / BATCH_SIZE + 1} (${migrated}/${SEED_DATA.length} records)`
       );
     }
   }

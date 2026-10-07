@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUp, Clock3, Flame } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 import { UnsaidCard } from "@/client/components/bajihears/UnsaidCard";
 import { sortPostsByPsychologicalIntrigue } from "@/shared/lib/psychological-ranking";
 import { FeedSkeleton } from "@/client/components/bajihears/FeedSkeleton";
@@ -12,6 +12,9 @@ import { WarmthOrb } from "@/client/components/bajihears/WarmthOrb";
 import { BottomNav } from "@/client/components/bajihears/BottomNav";
 import { CommunityRegulars } from "@/client/components/bajihears/CommunityRegulars";
 import { FeedWritingPrompt } from "@/client/components/bajihears/FeedWritingPrompt";
+import { HeroIntro } from "@/client/components/bajihears/HeroIntro";
+import { NightPresence } from "@/client/components/bajihears/NightPresence";
+import { BajiIntroSplash } from "@/client/components/bajihears/BajiIntroSplash";
 import { ScrollMascot } from "@/client/components/bajihears/ScrollMascot";
 import { PushPermissionSheet } from "@/client/components/bajihears/PushPermissionSheet";
 import { shouldShowPushPrompt } from "@/client/lib/notifications";
@@ -94,6 +97,12 @@ function Home() {
   const [shareTarget, setShareTarget] = useState<Unsaid | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showPushSheet, setShowPushSheet] = useState(false);
+  const [introCompleted, setIntroCompleted] = useState(() => {
+    if (typeof window !== "undefined") {
+      return Boolean(sessionStorage.getItem("bh:introPlayed"));
+    }
+    return false;
+  });
   const backdrop = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -173,13 +182,14 @@ function Home() {
 
       <div
         className={cn(
-          "mx-auto w-full max-w-2xl px-4 sm:px-6 pb-[calc(7.5rem+env(safe-area-inset-bottom,0px))]",
+          "mx-auto w-full max-w-md px-4 sm:px-5 pb-[calc(7.5rem+env(safe-area-inset-bottom,0px))] transition-opacity duration-500 ease-out",
+          introCompleted ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
       >
-        <header className="sticky top-0 z-30 -mx-4 flex items-center justify-between border-b border-border bg-background/96 px-4 py-3 sm:-mx-6 sm:px-6">
+        <header className="bg-background/85 border-b border-white/8 sticky top-0 z-30 -mx-4 sm:-mx-5 flex items-center justify-between px-4 sm:px-5 py-3 backdrop-blur-xl shadow-xs">
           <div className="flex items-center gap-2 shrink-0">
             <Logo size={28} />
-            <span className="font-display text-brand-gradient text-xl font-semibold">
+            <span className="font-display text-brand-gradient text-lg tracking-tight font-bold">
               BajiHears
             </span>
           </div>
@@ -195,19 +205,15 @@ function Home() {
           </div>
         </header>
 
-        <div className="py-7 sm:py-9">
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">
-            The wall
-          </p>
-          <h1 className="max-w-xl font-display text-4xl font-medium text-balance sm:text-5xl">
-            Say the part you keep rehearsing.
-          </h1>
-          <p className="mt-3 max-w-lg text-sm text-muted-foreground sm:text-base">
-            Post anonymously, or stay awhile and read what other people could not say out loud.
-          </p>
-        </div>
+        <h1 className="sr-only">BajiHears: The Wall of Unsaids</h1>
 
-        <div className="wall-3d space-y-5 sm:space-y-7">
+        <div className="wall-3d mt-2 sm:mt-3 space-y-3.5 sm:space-y-5">
+          {/* Living Late-Night Pulse */}
+          <NightPresence />
+
+          {/* 5-Second Comprehension Hero Banner */}
+          <HeroIntro />
+
           {/* Winner Card */}
           {winner && (
             <UnsaidCard
@@ -215,7 +221,11 @@ function Home() {
               hero
               isWinner
               hook={winnerHook}
-              mine={winnerUserReaction ? [winnerUserReaction] : (myReactions[winner.id] ?? [])}
+              mine={
+                winnerUserReaction
+                  ? [winnerUserReaction]
+                  : myReactions[winner.id] ?? []
+              }
               echoed={myEchoedIds.includes(winner.id)}
               reported={myReports.includes(winner.id)}
               myHandle={handle}
@@ -257,9 +267,8 @@ function Home() {
 
           {/* Feed Sort & Psychological Ranking Filter */}
           <div className="pt-2">
-            <div className="mb-5 flex items-center justify-between gap-3 border-b border-border pb-4">
-              <h2 className="font-display text-2xl font-medium">Latest on the wall</h2>
-              <div className="flex items-center justify-center gap-1 rounded-lg bg-muted p-1">
+            <div className="flex flex-col items-center justify-center gap-1.5 px-1 mb-3">
+              <div className="flex items-center justify-center gap-1 bg-white/[0.04] p-1 rounded-2xl border border-white/8 shadow-xs">
                 <button
                   type="button"
                   onClick={() => {
@@ -267,14 +276,14 @@ function Home() {
                     setFeedSort("spicy");
                   }}
                   className={cn(
-                    "flex min-h-11 items-center gap-1.5 rounded-md px-3 text-xs font-semibold transition-colors",
+                    "px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer",
                     feedSort === "spicy"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground",
+                      ? "bg-[#E8552E] text-white shadow-[0_0_12px_rgba(232,85,46,0.35)]"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  <Flame className="size-4" aria-hidden />
-                  <span>For you</span>
+                  <span>🔥</span>
+                  <span>Spicy</span>
                 </button>
                 <button
                   type="button"
@@ -283,21 +292,27 @@ function Home() {
                     setFeedSort("latest");
                   }}
                   className={cn(
-                    "flex min-h-11 items-center gap-1.5 rounded-md px-3 text-xs font-semibold transition-colors",
+                    "px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer",
                     feedSort === "latest"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground",
+                      ? "bg-[#E8552E] text-white shadow-[0_0_12px_rgba(232,85,46,0.35)]"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  <Clock3 className="size-4" aria-hidden />
-                  <span>Newest</span>
+                  <span>⚡</span>
+                  <span>Latest</span>
                 </button>
               </div>
+
+              <span className="text-[11px] text-[#9C8F87] font-sans text-center">
+                {feedSort === "spicy" ? "Most addictive first" : "Chronological"}
+              </span>
             </div>
 
             {/* Category Filter Pills */}
             <div className="flex items-center justify-between gap-3 px-1 mb-2 font-vibe">
-              <span className="text-foreground text-sm font-semibold">Filter by topic</span>
+              <span className="text-[#D5CAC2] text-xs font-semibold tracking-wide uppercase">
+                Filter by vibe
+              </span>
               {filters.length > 0 && (
                 <button
                   type="button"
@@ -308,7 +323,7 @@ function Home() {
                 </button>
               )}
             </div>
-            <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 font-vibe">
+            <div className="no-scrollbar -mx-4 sm:-mx-5 flex gap-2 overflow-x-auto px-4 sm:px-5 pb-1 font-vibe">
               {CATEGORIES.map((c) => {
                 const on = filters.includes(c);
                 return (
@@ -321,10 +336,10 @@ function Home() {
                       toggleFilter(c);
                     }}
                     className={cn(
-                      "min-h-11 shrink-0 rounded-lg border px-3 text-xs font-semibold transition-colors",
+                      "shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-all active:scale-95 cursor-pointer",
                       on
-                        ? "border-primary bg-primary/12 text-primary"
-                        : "border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground",
+                        ? "border-primary/60 bg-primary/20 text-primary shadow-[0_0_10px_rgba(249,115,22,0.2)]"
+                        : "border-white/8 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.07] hover:border-white/15 hover:text-foreground",
                     )}
                   >
                     {c}
@@ -357,9 +372,7 @@ function Home() {
           {/* Empty State with Introvert Value Proposition */}
           {!isFeedLoading && !isFeedError && visiblePosts.length === 0 && (
             <div className="bg-[#17110D] border border-white/[0.08] rounded-3xl p-6 text-center font-sans space-y-3">
-              <p className="font-display text-xl font-bold text-[#F5EFE9]">
-                A quiet moment on the wall
-              </p>
+              <p className="font-display text-xl font-bold text-[#F5EFE9]">A quiet moment on the wall</p>
               <p className="text-[#9C8F87] text-xs max-w-sm mx-auto leading-relaxed [text-wrap:pretty]">
                 {filters.length > 0
                   ? "No confessions found in this category. Try selecting another filter."
@@ -368,8 +381,7 @@ function Home() {
               <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3 max-w-sm mx-auto text-left text-[11px] text-[#9C8F87] space-y-1">
                 <span className="font-semibold text-amber-300 block">The Featured Path:</span>
                 <p className="leading-relaxed">
-                  Posts resonating strongly with the community and chosen by curators for raw
-                  authenticity get crowned Cycle Champion and featured on Bajislays.
+                  Posts resonating strongly with the community and chosen by curators for raw authenticity get crowned Cycle Champion and featured on Bajislays.
                 </p>
               </div>
             </div>
@@ -433,6 +445,8 @@ function Home() {
       <ScrollMascot />
 
       {/* 2-Second Smooth Intro Splash on First Load */}
+      <BajiIntroSplash onComplete={() => setIntroCompleted(true)} />
+
       {/* Shared Frosted Glassmorphic Bottom Navigation Bar */}
       <BottomNav
         totalWarmth={totalWarmth}

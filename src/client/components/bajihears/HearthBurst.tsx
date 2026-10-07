@@ -15,11 +15,17 @@ const PARTICLES = [
   { size: 3, driftX: -16, delay: 0.05 },
 ];
 
-export const HearthBurst: React.FC<HearthBurstProps> = ({ originX = 50, originY = 85 }) => {
+export const HearthBurst: React.FC<HearthBurstProps> = ({
+  originX = 50,
+  originY = 85,
+}) => {
   const idPrefix = useId();
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-30 overflow-hidden" aria-hidden="true">
+    <div
+      className="pointer-events-none absolute inset-0 z-30 overflow-hidden"
+      aria-hidden="true"
+    >
       {PARTICLES.map((p, i) => (
         <span
           key={`${idPrefix}-${i}`}

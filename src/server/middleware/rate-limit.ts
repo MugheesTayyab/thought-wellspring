@@ -63,7 +63,7 @@ export interface RateLimitResult {
 export async function checkRateLimit(
   env: DatabaseEnv | undefined,
   action: RateLimitAction,
-  deviceToken: string,
+  deviceToken: string
 ): Promise<RateLimitResult> {
   const config = RATE_LIMIT_CONFIGS[action];
   if (!config) {
@@ -82,12 +82,7 @@ export async function checkRateLimit(
     if (error) {
       console.error("Rate limit check RPC failed:", error);
       // Fallback in case of DB error
-      return {
-        allowed: true,
-        limit: config.limit,
-        remaining: 1,
-        resetTime: Date.now() + config.windowMinutes * 60000,
-      };
+      return { allowed: true, limit: config.limit, remaining: 1, resetTime: Date.now() + config.windowMinutes * 60000 };
     }
 
     if (!data.allowed) {
@@ -95,7 +90,7 @@ export async function checkRateLimit(
         config.errorMessage,
         data.limit,
         0,
-        Date.now() + data.retry_after_seconds * 1000,
+        Date.now() + (data.retry_after_seconds * 1000)
       );
     }
 
@@ -108,11 +103,7 @@ export async function checkRateLimit(
   } catch (err) {
     if (err instanceof RateLimitError) throw err;
     console.error("Rate limit evaluation error:", err);
-    return {
-      allowed: true,
-      limit: config.limit,
-      remaining: 1,
-      resetTime: Date.now() + config.windowMinutes * 60000,
-    };
+    return { allowed: true, limit: config.limit, remaining: 1, resetTime: Date.now() + config.windowMinutes * 60000 };
   }
 }
+

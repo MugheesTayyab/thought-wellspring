@@ -72,7 +72,7 @@ export function scorePost(post: Unsaid): number {
  */
 export function rankCycleCandidates(
   posts: Unsaid[],
-  cycleEndMs: number,
+  cycleEndMs: number
 ): { post: Unsaid; score: number }[] {
   return posts
     .map((p) => ({ post: p, score: computeCycleScore(p, cycleEndMs) }))

@@ -28,7 +28,7 @@ export function mapRowToDuel(row: any): Duel {
  * Fetch the currently active duel
  */
 export async function fetchActiveDuel(
-  env?: DatabaseEnv,
+  env?: DatabaseEnv
 ): Promise<{ data: Duel | null; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAnonClient(env);
@@ -55,11 +55,15 @@ export async function fetchActiveDuel(
  */
 export async function fetchDuelById(
   env: DatabaseEnv | undefined,
-  duelId: string,
+  duelId: string
 ): Promise<{ data: Duel | null; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAnonClient(env);
-    const { data, error } = await client.from("duels").select("*").eq("id", duelId).maybeSingle();
+    const { data, error } = await client
+      .from("duels")
+      .select("*")
+      .eq("id", duelId)
+      .maybeSingle();
 
     if (error) {
       return { data: null, error: { code: error.code, message: error.message } };
@@ -77,7 +81,7 @@ export async function fetchDuelById(
 export async function hasDeviceVotedOnDuel(
   env: DatabaseEnv | undefined,
   duelId: string,
-  deviceToken: string,
+  deviceToken: string
 ): Promise<{ voted: boolean; choiceIndex?: 0 | 1 }> {
   try {
     const client = getSupabaseAdminClient(env);
@@ -106,11 +110,8 @@ export async function recordDuelVote(
   env: DatabaseEnv | undefined,
   duelId: string,
   deviceToken: string,
-  choiceIndex: 0 | 1,
-): Promise<{
-  data: { choiceIndex: 0 | 1; votesA: number; votesB: number } | null;
-  error: { code: string; message: string } | null;
-}> {
+  choiceIndex: 0 | 1
+): Promise<{ data: { choiceIndex: 0 | 1; votesA: number; votesB: number } | null; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAdminClient(env);
 
@@ -134,10 +135,7 @@ export async function recordDuelVote(
       }
       return {
         data: null,
-        error: {
-          code: rpcData.code || "VOTE_FAILED",
-          message: rpcData.message || "Failed to record vote",
-        },
+        error: { code: rpcData.code || "VOTE_FAILED", message: rpcData.message || "Failed to record vote" },
       };
     }
 
@@ -150,10 +148,7 @@ export async function recordDuelVote(
 
     if (insertErr) {
       if (insertErr.code === "23505") {
-        return {
-          data: null,
-          error: { code: "ALREADY_VOTED", message: "You have already voted on this duel" },
-        };
+        return { data: null, error: { code: "ALREADY_VOTED", message: "You have already voted on this duel" } };
       }
       return { data: null, error: { code: insertErr.code, message: insertErr.message } };
     }

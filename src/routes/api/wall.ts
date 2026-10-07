@@ -7,7 +7,12 @@ import type {
   PostResponseData,
 } from "@/shared/types/api";
 
-export type { FeedResponseData, WinnerResponseData, ReactResponseData, PostResponseData };
+export type {
+  FeedResponseData,
+  WinnerResponseData,
+  ReactResponseData,
+  PostResponseData,
+};
 
 export interface SubmitPostClientInput {
   text: string;
@@ -25,10 +30,11 @@ export const apiFetchFeed = createServerFn({ method: "GET" })
     return handleFetchFeed(data);
   });
 
-export const apiFetchWinner = createServerFn({ method: "GET" }).handler(async () => {
-  const { handleFetchWinner } = await import("@/server/handlers/wall");
-  return handleFetchWinner();
-});
+export const apiFetchWinner = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const { handleFetchWinner } = await import("@/server/handlers/wall");
+    return handleFetchWinner();
+  });
 
 export const apiSubmitPost = createServerFn({ method: "POST" })
   .validator((data: SubmitPostClientInput) => data)
@@ -44,7 +50,7 @@ export const apiReactToPost = createServerFn({ method: "POST" })
       reactionKey: ReactionKey;
       deviceToken: string;
       profileId?: string | null;
-    }) => data,
+    }) => data
   )
   .handler(async ({ data }) => {
     const { handleReactToPost } = await import("@/server/handlers/wall");
@@ -58,7 +64,7 @@ export const apiUnreactToPost = createServerFn({ method: "POST" })
       reactionKey: ReactionKey;
       deviceToken: string;
       profileId?: string | null;
-    }) => data,
+    }) => data
   )
   .handler(async ({ data }) => {
     const { handleUnreactToPost } = await import("@/server/handlers/wall");
@@ -73,7 +79,7 @@ export const apiAddEcho = createServerFn({ method: "POST" })
       deviceToken: string;
       handle?: string | null;
       profileId?: string | null;
-    }) => data,
+    }) => data
   )
   .handler(async ({ data }) => {
     const { handleAddEcho } = await import("@/server/handlers/wall");
@@ -100,3 +106,4 @@ export const apiFetchPublicProfile = createServerFn({ method: "GET" })
     const { handleFetchPublicProfile } = await import("@/server/handlers/wall");
     return handleFetchPublicProfile(data);
   });
+

@@ -7,7 +7,7 @@ const BLOCKED_PATTERNS = [
   { regex: /www\.[a-z0-9-]+/i, message: "Links & social handles are not allowed." },
   { regex: /wa\.me|t\.me|discord\.gg/i, message: "Links & social handles are not allowed." },
   { regex: /0?3[0-4]\d{1}[\s.-]?\d{3}[\s.-]?\d{4}/, message: "Contact numbers are not allowed." },
-  { regex: /(?:\+|00)92/i, message: "Contact numbers are not allowed." },
+  { regex: /(?:\+|00)92/i, message: "Contact numbers are not allowed." }
 ];
 
 const MIN_WORDS = 3;

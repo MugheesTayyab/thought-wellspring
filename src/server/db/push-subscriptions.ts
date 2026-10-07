@@ -23,23 +23,25 @@ export interface PushDeliveryStats {
  */
 export async function upsertAnonymousSubscription(
   env: DatabaseEnv | undefined,
-  record: AnonymousSubscriptionRecord,
+  record: AnonymousSubscriptionRecord
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const supabase = getSupabaseClient(env);
-    const { error } = await supabase.from("anonymous_subscriptions").upsert(
-      {
-        device_token: record.device_token,
-        endpoint: record.endpoint,
-        p256dh: record.p256dh,
-        auth: record.auth,
-        user_agent: record.user_agent,
-        is_active: true,
-        failure_count: 0,
-        created_at: new Date().toISOString(),
-      },
-      { onConflict: "endpoint" },
-    );
+    const { error } = await supabase
+      .from("anonymous_subscriptions")
+      .upsert(
+        {
+          device_token: record.device_token,
+          endpoint: record.endpoint,
+          p256dh: record.p256dh,
+          auth: record.auth,
+          user_agent: record.user_agent,
+          is_active: true,
+          failure_count: 0,
+          created_at: new Date().toISOString(),
+        },
+        { onConflict: "endpoint" }
+      );
 
     if (error) {
       console.error("[PushDB] Error upserting anonymous subscription:", error);
@@ -59,7 +61,7 @@ export async function upsertAnonymousSubscription(
 export async function getActiveSubscriptions(
   env: DatabaseEnv | undefined,
   limit = 500,
-  offset = 0,
+  offset = 0
 ): Promise<WebPushSubscription[]> {
   try {
     const supabase = getSupabaseClient(env);
@@ -103,12 +105,7 @@ export async function getActiveSubscriptions(
     if (!profErr && profileData) {
       for (const row of profileData) {
         const sub = row.push_subscription as WebPushSubscription | null;
-        if (
-          sub?.endpoint &&
-          sub.keys?.p256dh &&
-          sub.keys?.auth &&
-          !seenEndpoints.has(sub.endpoint)
-        ) {
+        if (sub?.endpoint && sub.keys?.p256dh && sub.keys?.auth && !seenEndpoints.has(sub.endpoint)) {
           seenEndpoints.add(sub.endpoint);
           subscriptions.push(sub);
         }
@@ -128,7 +125,7 @@ export async function getActiveSubscriptions(
 export async function deactivateDeadSubscription(
   env: DatabaseEnv | undefined,
   endpoint: string,
-  errorReason: string,
+  errorReason: string
 ): Promise<void> {
   try {
     const supabase = getSupabaseClient(env);
@@ -151,7 +148,7 @@ export async function deactivateDeadSubscription(
  */
 export async function hasCyclePushDispatched(
   env: DatabaseEnv | undefined,
-  cycleTimestamp: number,
+  cycleTimestamp: number
 ): Promise<boolean> {
   try {
     const supabase = getSupabaseClient(env);
@@ -175,7 +172,7 @@ export async function logPushDelivery(
   env: DatabaseEnv | undefined,
   cycleTimestamp: number,
   winnerId: string | undefined,
-  stats: PushDeliveryStats,
+  stats: PushDeliveryStats
 ): Promise<void> {
   try {
     const supabase = getSupabaseClient(env);

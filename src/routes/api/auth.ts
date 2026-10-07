@@ -5,7 +5,12 @@ export type { MigrateGuestData, RefreshProfileData };
 
 export const apiMigrateGuestToAccount = createServerFn({ method: "POST" })
   .validator(
-    (data: { deviceToken: string; handle: string; avatarSeed?: number; jwt?: string }) => data,
+    (data: {
+      deviceToken: string;
+      handle: string;
+      avatarSeed?: number;
+      jwt?: string;
+    }) => data
   )
   .handler(async ({ data }) => {
     const { handleMigrateGuestToAccount } = await import("@/server/handlers/auth");

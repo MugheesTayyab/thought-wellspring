@@ -1,7 +1,11 @@
 export type ReactionKey = "heart" | "sad" | "fire" | "hug";
 
 export type Category =
-  "Spill The Tea" | "Silent Thoughts" | "Plot Twist" | "Hard Truth" | "Vibe Check";
+  | "Spill The Tea"
+  | "Silent Thoughts"
+  | "Plot Twist"
+  | "Hard Truth"
+  | "Vibe Check";
 
 export type Preset = {
   key: string;
@@ -47,14 +51,12 @@ export type Unsaid = {
   winnerScore?: number | null | undefined;
   pinnedUntil?: number | null | undefined;
   type?: "confession" | "which_one" | undefined;
-  whichOne?:
-    | {
-        optionA: string;
-        optionB: string;
-        votesA: number;
-        votesB: number;
-      }
-    | undefined;
+  whichOne?: {
+    optionA: string;
+    optionB: string;
+    votesA: number;
+    votesB: number;
+  } | undefined;
 };
 
 export type MyReactions = Record<string, ReactionKey[]>;

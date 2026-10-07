@@ -27,10 +27,7 @@ export interface WinnerSelectionResult {
  * Calculates the exact bounds of the just-closed 12-hour cycle window.
  * Aligned to 00:00 UTC and 12:00 UTC boundaries.
  */
-export function getCycleBounds(referenceTime: Date = new Date()): {
-  cycleStart: Date;
-  cycleEnd: Date;
-} {
+export function getCycleBounds(referenceTime: Date = new Date()): { cycleStart: Date; cycleEnd: Date } {
   const utcHours = referenceTime.getUTCHours();
   const cycleEnd = new Date(referenceTime);
   cycleEnd.setUTCMinutes(0, 0, 0);
@@ -53,13 +50,12 @@ export function getCycleBounds(referenceTime: Date = new Date()): {
  */
 export async function executeWinnerSelection(
   env?: DatabaseEnv,
-  options?: WinnerSelectionOptions,
+  options?: WinnerSelectionOptions
 ): Promise<WinnerSelectionResult> {
   const startTime = Date.now();
-  const bounds =
-    options?.cycleStart && options?.cycleEnd
-      ? { cycleStart: options.cycleStart, cycleEnd: options.cycleEnd }
-      : getCycleBounds();
+  const bounds = options?.cycleStart && options?.cycleEnd
+    ? { cycleStart: options.cycleStart, cycleEnd: options.cycleEnd }
+    : getCycleBounds();
 
   const cycleStartIso = bounds.cycleStart.toISOString();
   const cycleEndIso = bounds.cycleEnd.toISOString();
@@ -89,23 +85,20 @@ export async function executeWinnerSelection(
 
       // If a winner was crowned or manually overridden, queue push notifications
       if (result.status === "crowned" && result.postId && result.hook) {
-        dispatchWinnerPushNotification(
-          {
-            winnerId: result.postId,
-            hook: result.hook,
-            excerpt: "",
-            category: result.category || "Confession",
-            cycleTimestamp: bounds.cycleStart.getTime(),
-          },
-          env,
-        ).catch((err) => console.error("[WinnerSelection] Push dispatch error:", err));
+        dispatchWinnerPushNotification({
+          winnerId: result.postId,
+          hook: result.hook,
+          excerpt: "",
+          category: result.category || "Confession",
+          cycleTimestamp: bounds.cycleStart.getTime(),
+        }, env).catch((err) => console.error("[WinnerSelection] Push dispatch error:", err));
       }
 
       return result;
     }
   } catch (err: any) {
     console.warn(
-      `[WinnerSelection] Stored procedure call failed (${err.message}); initiating application scoring fallback.`,
+      `[WinnerSelection] Stored procedure call failed (${err.message}); initiating application scoring fallback.`
     );
   }
 
@@ -211,16 +204,13 @@ export async function executeWinnerSelection(
     }
 
     // 6. Asynchronously trigger push notification
-    dispatchWinnerPushNotification(
-      {
-        winnerId: topPost.id,
-        hook,
-        excerpt: topPost.text.slice(0, 120),
-        category: topPost.category,
-        cycleTimestamp: bounds.cycleStart.getTime(),
-      },
-      env,
-    ).catch((err) => console.error("[WinnerSelection] Push dispatch error:", err));
+    dispatchWinnerPushNotification({
+      winnerId: topPost.id,
+      hook,
+      excerpt: topPost.text.slice(0, 120),
+      category: topPost.category,
+      cycleTimestamp: bounds.cycleStart.getTime(),
+    }, env).catch((err) => console.error("[WinnerSelection] Push dispatch error:", err));
 
     return {
       status: "crowned",

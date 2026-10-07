@@ -17,44 +17,44 @@ const CATEGORY_HOOKS: Record<Category, string[]> = {
     "The confession the whole wall was waiting to hear.",
     "Unfiltered truth that left everyone speechless.",
     "Said in secret, echoed across every corner.",
-    "The drama everyone knew about but nobody dared to post.",
+    "The drama everyone knew about but nobody dared to post."
   ],
   "Silent Thoughts": [
     "Said in secret, felt by everyone.",
     "Late-night honesty that struck a chord across the city.",
     "The quietest words that carried the heaviest weight.",
-    "A confession kept inside for months, finally free.",
+    "A confession kept inside for months, finally free."
   ],
   "Plot Twist": [
     "The plot twist nobody saw coming.",
     "When life writes a script stranger than any campus rumour.",
     "The turn of events that had the entire wall talking.",
-    "Proof that everything can change in a single day.",
+    "Proof that everything can change in a single day."
   ],
   "Hard Truth": [
     "Some unsaids leave a silence that never ends.",
     "The heaviest words are always the ones kept quiet.",
     "A raw reality check that everyone needed to read.",
-    "The truth nobody wanted to admit, but everyone acknowledged.",
+    "The truth nobody wanted to admit, but everyone acknowledged."
   ],
   "Vibe Check": [
     "Pure warmth and truth on the wall today.",
     "A gentle reminder of what truly matters.",
     "The softest light in an otherwise chaotic week.",
-    "The wholesome confession that restored everyone's faith.",
-  ],
+    "The wholesome confession that restored everyone's faith."
+  ]
 };
 
 const DAWN_HOOKS = [
   "From the quiet midnight hours to the dawn light.",
   "2 AM thoughts that echoed across the entire community.",
-  "When the rest of the world was asleep, this truth woke us up.",
+  "When the rest of the world was asleep, this truth woke us up."
 ];
 
 const DUSK_HOOKS = [
   "As the day winds down, this is the thought that stays with us.",
   "Campus halls are quiet now, but this confession echoes.",
-  "The collective sigh of the day, written into words.",
+  "The collective sigh of the day, written into words."
 ];
 
 /**
@@ -65,7 +65,10 @@ export function generateWinnerHook(options: GenerateWinnerHookOptions): string {
 
   // 1. Dominant Reaction Check (Special Overrides)
   const totalReactions =
-    (reactions.heart || 0) + (reactions.fire || 0) + (reactions.hug || 0) + (reactions.sad || 0);
+    (reactions.heart || 0) +
+    (reactions.fire || 0) +
+    (reactions.hug || 0) +
+    (reactions.sad || 0);
 
   if (totalReactions > 0) {
     const hugRatio = (reactions.hug || 0) / totalReactions;
@@ -74,7 +77,7 @@ export function generateWinnerHook(options: GenerateWinnerHookOptions): string {
     if (hugRatio >= 0.45) {
       return "A community wrapped in comfort: the confession everyone held gently.";
     }
-    if (sadRatio >= 0.5) {
+    if (sadRatio >= 0.50) {
       return "A quiet grief that the entire community held together today.";
     }
   }
@@ -82,8 +85,7 @@ export function generateWinnerHook(options: GenerateWinnerHookOptions): string {
   // 2. Category Contextual Selection (Rotated deterministically by post creation time)
   const categoryPool = CATEGORY_HOOKS[category] || CATEGORY_HOOKS["Silent Thoughts"];
   const categoryIndex = Math.abs(Math.floor(options.createdAt / 1000)) % categoryPool.length;
-  const primaryHook: string =
-    categoryPool[categoryIndex] ?? categoryPool[0] ?? "The whole wall felt this confession.";
+  const primaryHook: string = categoryPool[categoryIndex] ?? categoryPool[0] ?? "The whole wall felt this confession.";
 
   // 3. Time of Cycle Flavor (1 out of 3 times, apply a Dawn or Dusk nuance)
   if (Math.abs(Math.floor(options.createdAt / 7000)) % 3 === 0) {
@@ -111,6 +113,6 @@ export function getHookForPost(post: Unsaid, cycleTimestamp: number = Date.now()
     createdAt: post.createdAt,
     reactions: post.reactions,
     echoCount: post.echoes?.length || 0,
-    cycleHourUtc,
+    cycleHourUtc
   });
 }

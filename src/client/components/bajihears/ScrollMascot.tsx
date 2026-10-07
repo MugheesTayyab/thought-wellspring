@@ -14,7 +14,7 @@ import { useEffect, useRef, useState } from "react";
  */
 
 const FRAMES = [
-  null, // 0 — hidden
+  null,             // 0 — hidden
   "/mascot/f1.png", // 1
   "/mascot/f2.png", // 2
   "/mascot/f3.png", // 3
@@ -46,16 +46,13 @@ export function ScrollMascot() {
 
   // Blink loop when idle (alternates f1 ↔ f2 every ~3.5-5.5s)
   const startBlinkLoop = () => {
-    blinkTimer.current = setTimeout(
-      () => {
-        setFrame(2); // close eyes
-        blinkTimer.current = setTimeout(() => {
-          setFrame(1); // open eyes
-          startBlinkLoop();
-        }, 220);
-      },
-      3500 + Math.random() * 2000,
-    );
+    blinkTimer.current = setTimeout(() => {
+      setFrame(2); // close eyes
+      blinkTimer.current = setTimeout(() => {
+        setFrame(1); // open eyes
+        startBlinkLoop();
+      }, 220);
+    }, 3500 + Math.random() * 2000);
   };
 
   const stopBlinkLoop = () => {

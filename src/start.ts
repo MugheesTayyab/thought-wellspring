@@ -31,7 +31,7 @@ const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => 
     if (isProd) {
       response.headers.set(
         "Strict-Transport-Security",
-        "max-age=63072000; includeSubDomains; preload",
+        "max-age=63072000; includeSubDomains; preload"
       );
     }
     response.headers.set("X-Content-Type-Options", "nosniff");
@@ -40,7 +40,7 @@ const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => 
     response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
     response.headers.set(
       "Content-Security-Policy",
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://qsloqqvdunfuyqqdmgil.supabase.co wss://qsloqqvdunfuyqqdmgil.supabase.co; frame-ancestors 'none';",
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://qsloqqvdunfuyqqdmgil.supabase.co wss://qsloqqvdunfuyqqdmgil.supabase.co; frame-ancestors 'none';"
     );
   }
   return response;

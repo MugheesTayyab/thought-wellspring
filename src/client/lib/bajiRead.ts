@@ -2,13 +2,19 @@ import type { Category, ReactionKey } from "@/shared/types/unsaid";
 import type { AnsweredDuelRecord } from "@/shared/types/duel";
 
 export type ArchetypeKey =
-  "overthinker" | "softie" | "chaos-main" | "quiet-storm" | "healer" | "nostalgic" | "truth-teller";
+  | "overthinker"
+  | "softie"
+  | "chaos-main"
+  | "quiet-storm"
+  | "healer"
+  | "nostalgic"
+  | "truth-teller";
 
 export interface TraitBreakdown {
-  empathy: number; // 0 - 100
+  empathy: number;   // 0 - 100
   intuition: number; // 0 - 100
-  chaos: number; // 0 - 100
-  depth: number; // 0 - 100
+  chaos: number;     // 0 - 100
+  depth: number;     // 0 - 100
 }
 
 export interface ArchetypeDefinition {
@@ -49,8 +55,7 @@ export const ARCHETYPES: ArchetypeDefinition[] = [
     key: "softie",
     name: "The Fierce Softie",
     tagline: "Tough exterior, crying at voice notes",
-    hookLine:
-      "Acts like a bodyguard for her friends, but secretly needs a forehead kiss and 12 hours of sleep.",
+    hookLine: "Acts like a bodyguard for her friends, but secretly needs a forehead kiss and 12 hours of sleep.",
     fullParagraph:
       "You are the ultimate paradox: protective older sister energy on the outside, fragile marshmallow on the inside. You'll publicly fight someone who disrespects your best friend, but you'll silently replay a harsh tone from your family for three consecutive days. You feel other people's pain before they even finish articulating it. That's not a weakness: it's rare gold.",
     howOthersSeeYou:
@@ -221,14 +226,11 @@ export function computeBajiRead(
           isTabForceUnlocked = true;
         }
       }
-    } catch {
-      // Ignore stale cache data and compute a fresh read.
-    }
+    } catch {}
   }
 
   // Unlock condition: forced unlock OR 5 total actions OR 3 duels + 1 reaction
-  const isUnlocked =
-    isTabForceUnlocked || totalActions >= 5 || (duelCount >= 3 && reactionCount >= 1);
+  const isUnlocked = isTabForceUnlocked || totalActions >= 5 || (duelCount >= 3 && reactionCount >= 1);
 
   if (!isUnlocked) {
     return {
@@ -363,20 +365,20 @@ export function computeBajiRead(
   // Answered Duels Telemetry
   Object.entries(answeredDuels).forEach(([duelId, choice]) => {
     if (duelId === "d1") {
-      if (choice.choiceIndex === 0) scores.nostalgic += 0.4;
-      if (choice.choiceIndex === 1) scores.overthinker += 0.4;
+      if (choice === "A") scores.nostalgic += 0.4;
+      if (choice === "B") scores.overthinker += 0.4;
     } else if (duelId === "d2") {
-      if (choice.choiceIndex === 0) scores.nostalgic += 0.35;
-      if (choice.choiceIndex === 1) {
+      if (choice === "A") scores.nostalgic += 0.35;
+      if (choice === "B") {
         scores.healer += 0.35;
         scores["truth-teller"] += 0.25;
       }
     } else if (duelId === "d3") {
-      if (choice.choiceIndex === 0) scores.overthinker += 0.4;
-      if (choice.choiceIndex === 1) scores.nostalgic += 0.35;
+      if (choice === "A") scores.overthinker += 0.4;
+      if (choice === "B") scores.nostalgic += 0.35;
     } else if (duelId === "d4") {
-      if (choice.choiceIndex === 0) scores["truth-teller"] += 0.35;
-      if (choice.choiceIndex === 1) scores.softie += 0.35;
+      if (choice === "A") scores["truth-teller"] += 0.35;
+      if (choice === "B") scores.softie += 0.35;
     }
   });
 
@@ -414,9 +416,7 @@ export function computeBajiRead(
       99,
       Math.max(
         48,
-        Math.round(
-          chosen.defaultTraits.empathy * 0.65 + (hugRatio + heartRatio) * 30 + echoCount * 4,
-        ),
+        Math.round(chosen.defaultTraits.empathy * 0.65 + (hugRatio + heartRatio) * 30 + echoCount * 4),
       ),
     ),
     intuition: Math.min(
@@ -428,7 +428,10 @@ export function computeBajiRead(
     ),
     chaos: Math.min(
       99,
-      Math.max(18, Math.round(chosen.defaultTraits.chaos * 0.6 + fireRatio * 45 + duelCount * 4)),
+      Math.max(
+        18,
+        Math.round(chosen.defaultTraits.chaos * 0.6 + fireRatio * 45 + duelCount * 4),
+      ),
     ),
     depth: Math.min(
       99,

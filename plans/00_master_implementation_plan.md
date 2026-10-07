@@ -1,6 +1,5 @@
 # BajiHears — Exhaustive Production Implementation Plan
-
-_Every detail. Nothing omitted. Optimized for bulk client-facing traffic._
+*Every detail. Nothing omitted. Optimized for bulk client-facing traffic.*
 
 ---
 
@@ -132,21 +131,21 @@ src/
 
 ### Migration Rules for Existing Files
 
-| Existing File                | Destination                                                                                                                                                         | Notes |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
-| `src/lib/bajihears.ts`       | Split: types → `shared/types/`, mocks → deleted, localStorage helpers → `client/stores/`, scoring → `server/lib/scoring.ts`, formatting utils → `shared/constants/` |
-| `src/lib/warmth.ts`          | Split: types → `shared/types/warmth.ts`, constants → `shared/constants/warmth.ts`, `claimDailyBonus` → `server/functions/warmth.ts`                                 |
-| `src/lib/warmth-context.tsx` | Move to `client/stores/warmth-context.tsx`                                                                                                                          |
-| `src/lib/identity.ts`        | Split: types → `shared/types/profile.ts`, generation logic → `client/stores/`, server mirror → `server/middleware/device-token.ts`                                  |
-| `src/lib/spamFilter.ts`      | Copy to `server/lib/spam-filter.ts`; client version stays for UX feedback only                                                                                      |
-| `src/lib/notifications.ts`   | Split: permission/SW code → `client/`, server delivery → `server/lib/vapid.ts`                                                                                      |
-| `src/lib/seedData.ts`        | Moves to `server/lib/seed-migration.ts` — runs once, then the file is deleted post-migration                                                                        |
-| `src/lib/warmthStore.ts`     | Types → `shared/types/`, constants → `shared/constants/`, purchase validation → `server/functions/warmth.ts`                                                        |
-| `src/lib/bajiRead.ts`        | Stays in `client/` — it's a client-side personality scoring engine using local behavior data                                                                        |
-| `src/lib/haptics.ts`         | Move to `client/lib/haptics.ts` — browser-only                                                                                                                      |
-| `src/lib/utils.ts`           | Move to `shared/`                                                                                                                                                   |
-| `src/components/bajihears/`  | Move all 24 files to `src/client/components/bajihears/`                                                                                                             |
-| `src/hooks/use-mobile.tsx`   | Move to `src/client/hooks/`                                                                                                                                         |
+| Existing File | Destination | Notes |
+|---|---|---|
+| `src/lib/bajihears.ts` | Split: types → `shared/types/`, mocks → deleted, localStorage helpers → `client/stores/`, scoring → `server/lib/scoring.ts`, formatting utils → `shared/constants/` |
+| `src/lib/warmth.ts` | Split: types → `shared/types/warmth.ts`, constants → `shared/constants/warmth.ts`, `claimDailyBonus` → `server/functions/warmth.ts` |
+| `src/lib/warmth-context.tsx` | Move to `client/stores/warmth-context.tsx` |
+| `src/lib/identity.ts` | Split: types → `shared/types/profile.ts`, generation logic → `client/stores/`, server mirror → `server/middleware/device-token.ts` |
+| `src/lib/spamFilter.ts` | Copy to `server/lib/spam-filter.ts`; client version stays for UX feedback only |
+| `src/lib/notifications.ts` | Split: permission/SW code → `client/`, server delivery → `server/lib/vapid.ts` |
+| `src/lib/seedData.ts` | Moves to `server/lib/seed-migration.ts` — runs once, then the file is deleted post-migration |
+| `src/lib/warmthStore.ts` | Types → `shared/types/`, constants → `shared/constants/`, purchase validation → `server/functions/warmth.ts` |
+| `src/lib/bajiRead.ts` | Stays in `client/` — it's a client-side personality scoring engine using local behavior data |
+| `src/lib/haptics.ts` | Move to `client/lib/haptics.ts` — browser-only |
+| `src/lib/utils.ts` | Move to `shared/` |
+| `src/components/bajihears/` | Move all 24 files to `src/client/components/bajihears/` |
+| `src/hooks/use-mobile.tsx` | Move to `src/client/hooks/` |
 
 ### The Import Rule (Enforced Forever)
 
@@ -179,7 +178,6 @@ If a server file imports from `client/`, the Worker build will fail because brow
 **Where:** [supabase.com/dashboard](https://supabase.com/dashboard) → New Project
 
 **Exact settings to use:**
-
 - Organization: your personal org or create one
 - Project name: `bajihears` (lowercase, no spaces)
 - Database password: generate a strong one — **save it in a password manager**
@@ -187,14 +185,12 @@ If a server file imports from `client/`, the Worker build will fail because brow
 - Plan: Free tier
 
 **After project creates (takes ~2 minutes), collect these four values:**
-
 1. `Project URL` — looks like `https://abcdefghijkl.supabase.co`
 2. `anon (public) key` — starts with `eyJ`, found under Settings → API
 3. `service_role key` — also under Settings → API — **treat this like a password**
 4. `Connection string (Transaction)` — under Settings → Database → Connection pooling → Transaction mode → copy the full URI
 
 **Settings to change in Supabase:**
-
 - Authentication → Settings → Email → Disable "Confirm email" toggle
 - Authentication → Settings → Email → Disable "Secure email change" toggle
 - Authentication → URL Configuration → Site URL → set to your Cloudflare Pages URL (you'll fill this after Step 0-C)
@@ -210,13 +206,12 @@ If a server file imports from `client/`, the Worker build will fail because brow
 **Where:** Antigravity → Settings → MCP Servers → Add Server
 
 **Config to enter:**
-
 - Server name: `supabase`
 - MCP endpoint: Supabase's official MCP URL (find under Supabase Dashboard → Integrations → MCP or use the public endpoint `mcp.supabase.com`)
 - Authentication: your `service_role key`
 
 **Verification:** After adding, in a new Antigravity chat, type:
-_"List all tables in my Supabase database"_
+*"List all tables in my Supabase database"*
 
 Expected response: it lists `auth.users` and a few default Supabase internal tables.
 If it times out or errors → the service_role key is wrong or MCP config URL is off.
@@ -231,7 +226,6 @@ If it times out or errors → the service_role key is wrong or MCP config URL is
 **Where:** [dash.cloudflare.com](https://dash.cloudflare.com) → Workers & Pages → Create application → Pages → Connect to Git
 
 **Exact settings:**
-
 - Git provider: GitHub → select `MugheesTayyab/thought-wellspring`
 - Production branch: `main`
 - Build system version: v2
@@ -240,7 +234,6 @@ If it times out or errors → the service_role key is wrong or MCP config URL is
 - Root directory: `/` (leave blank)
 
 **After project creates:**
-
 - Copy the assigned `*.pages.dev` URL — you need it for Step 0-D and for Supabase Auth settings
 
 > ⚠️ **Common failure:** Setting the output directory to `dist` (that's Vite default, not TanStack Start).
@@ -253,7 +246,6 @@ If it times out or errors → the service_role key is wrong or MCP config URL is
 **Where:** [console.cloud.google.com](https://console.cloud.google.com)
 
 **Exact steps:**
-
 1. Create a new project OR select an existing one
 2. APIs & Services → OAuth consent screen → External → Fill in:
    - App name: `BajiHears`
@@ -271,7 +263,6 @@ If it times out or errors → the service_role key is wrong or MCP config URL is
    - Create → copy `Client ID` and `Client Secret`
 
 **Then in Supabase:**
-
 - Authentication → Providers → Google → Enable
 - Paste Client ID and Client Secret
 - Save
@@ -289,14 +280,12 @@ If it times out or errors → the service_role key is wrong or MCP config URL is
 **Who:** Agent creates the file, you fill in the actual values.
 
 **Variables the file contains:**
-
 - `VITE_SUPABASE_URL` — your Project URL
 - `VITE_SUPABASE_ANON_KEY` — your anon key
 - `SUPABASE_SERVICE_ROLE_KEY` — your service role key (server-side only, never `VITE_` prefix)
 - `VITE_SUPABASE_REDIRECT_URL` — your `*.pages.dev/auth/callback` URL
 
 **What gets added to `.gitignore`:**
-
 - `.env.local` must already be in `.gitignore` — verify this before committing anything
 
 > 🔴 **What I need from you:** After you fill in `.env.local`, tell me "env is ready" so I can start Phase 1.
@@ -373,7 +362,6 @@ The most frequently read table — every page load queries it.
 - `created_at` / `updated_at` — timestamps, with `updated_at` trigger.
 
 **Indexes:**
-
 - `(status, created_at DESC)` — the primary index used by every wall feed query
 - `(category, status, created_at DESC)` — used by category filter queries
 - `(is_winner, winner_cycle DESC)` — used by `fetchWinner` to get the latest winner instantly
@@ -388,7 +376,6 @@ The most frequently read table — every page load queries it.
 echoes need their own timestamps, handles, and future features (likes on echoes, nested replies).
 
 **Columns:**
-
 - `id` — UUID
 - `unsaid_id` — UUID, foreign key to `unsaids(id)` with `ON DELETE CASCADE`. If a post is deleted, its echoes are deleted automatically.
 - `text` — text, 1–200 characters. Shorter than a post — echoes are reactions, not new posts.
@@ -408,7 +395,6 @@ The `reactions` JSONB column on `unsaids` stores the COUNT. This table stores WH
 Both are needed: the count column for fast reads without joining, this table for deduplication.
 
 **Columns:**
-
 - `id` — UUID
 - `unsaid_id` — UUID, foreign key to `unsaids(id)` with `ON DELETE CASCADE`
 - `device_token` — text, not null
@@ -427,7 +413,6 @@ Both are needed: the count column for fast reads without joining, this table for
 These get seeded from `MOCK_DUELS` into the database and future duels are added via the Supabase dashboard.
 
 **Columns:**
-
 - `id` — UUID
 - `format` — text, CHECK constraint: `self-relate` or `head-to-head`
 - `prompt` — text, nullable. The question above the two options.
@@ -447,7 +432,6 @@ These get seeded from `MOCK_DUELS` into the database and future duels are added 
 **Purpose:** Prevents a device from voting on the same duel twice. Same pattern as `reactions`.
 
 **Columns:**
-
 - `id` — UUID
 - `duel_id` — UUID, foreign key to `duels(id)` with `ON DELETE CASCADE`
 - `device_token` — text, not null
@@ -463,38 +447,32 @@ These get seeded from `MOCK_DUELS` into the database and future duels are added 
 **Philosophy for BajiHears:** Most operations are done via server functions that use the `service_role` key (which bypasses RLS entirely). RLS is a safety net — if someone calls the Supabase API directly with the `anon` key, RLS is the last line of defense.
 
 **`profiles` RLS:**
-
 - SELECT: anyone can read any profile (needed for Community Regulars, handle display)
 - INSERT: only `auth.uid() = id` — you can only create your own profile row
 - UPDATE: only `auth.uid() = id` — you can only update your own row
 - DELETE: disabled — profiles are not deleted through the app
 
 **`unsaids` RLS:**
-
 - SELECT: only `status = 'published'` rows are visible. Review/rejected/pending posts are invisible to anon callers.
 - INSERT: allowed with `true` check — but server function is the only real caller, and it validates everything before inserting
 - UPDATE: disabled for anon callers — only the service_role (server function) updates posts
 - DELETE: disabled entirely through the API
 
 **`echoes` RLS:**
-
 - SELECT: `true` — all echoes on published posts are visible
 - INSERT: `true` — server function validates before inserting
 - UPDATE/DELETE: disabled
 
 **`reactions` RLS:**
-
 - SELECT: `true`
 - INSERT: `true` — UNIQUE constraint handles deduplication
 - DELETE: only if `device_token` matches — so a device can un-react its own reaction
 
 **`duels` RLS:**
-
 - SELECT: `true` where `active = true`
 - INSERT/UPDATE/DELETE: disabled — only via Supabase dashboard (content management)
 
 **`duel_votes` RLS:**
-
 - SELECT: `true`
 - INSERT: `true` — server function validates, UNIQUE constraint deduplicates
 
@@ -511,7 +489,6 @@ These get seeded from `MOCK_DUELS` into the database and future duels are added 
 ### Verification Steps for You
 
 After agent completes Phase 1, open Supabase → Table Editor and confirm:
-
 - All 6 tables exist with the column names matching the above spec
 - RLS is shown as "Enabled" on each table (green indicator in Supabase UI)
 - Run in the SQL Editor: `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'` — should return all 6 table names
@@ -537,7 +514,6 @@ for public data (published posts list), but all writes must go through server fu
 
 **Reason:** Server functions run on the Cloudflare Worker, where `SUPABASE_SERVICE_ROLE_KEY`
 is available as an environment variable. The service role key bypasses RLS, which means:
-
 - Spam validation is in the same code that does the insert — it cannot be separated
 - Rate limiting reads the DB with full access — cannot be faked by a modified request
 - Reaction counter updates are atomic DB operations — no race conditions
@@ -563,7 +539,6 @@ The anon client is initialized with the anon key and used for public read querie
 Receives: text, handle (optional), category, preset, device_token
 
 Validation chain (in this exact order — each step is a hard stop if it fails):
-
 1. Device token format check — must be 16 hex characters, matching the format `identity.ts` generates. Rejects fabricated tokens.
 2. Rate limit check — query the `unsaids` table for posts from this `device_token` in the last 60 minutes. If count ≥ 3, reject with a specific error code and the minutes until the window resets.
 3. Text length check — must be between 3 and 280 characters (mirrors `MIN_LEN`, `MAX_LEN`).
@@ -573,14 +548,12 @@ Validation chain (in this exact order — each step is a hard stop if it fails):
 7. HTML/script injection strip — strip any `<`, `>`, `&` characters that could be rendered as HTML.
 
 If all checks pass:
-
 - Set `status = 'published'` for clean posts
 - Set `status = 'review'` for posts that pass basic spam but match secondary patterns
 - Insert into `unsaids` table
 - Return the created post object to the client
 
 Error response format (consistent for all server functions):
-
 - `{ success: false, code: 'RATE_LIMITED', message: '...', data: { waitMinutes: 23 } }`
 - `{ success: false, code: 'SPAM_DETECTED', message: '...', data: null }`
 - `{ success: true, code: 'OK', data: { post: {...} } }`
@@ -590,7 +563,6 @@ Error response format (consistent for all server functions):
 Receives: `filters` (array of Category), `cursor` (UUID or null for first page), `deviceToken`
 
 Returns:
-
 - Array of `published` posts, ordered by: pinned posts first (where `pinned_until > now()`), then by `created_at DESC`, with a secondary sort by score for the top 10 posts
 - For each post, includes whether the calling device has reacted (a left join to `reactions` on `device_token`)
 - `nextCursor` — the `id` of the last post in the page, used to fetch the next page
@@ -603,7 +575,6 @@ Why cursor not offset: With offset-based pagination, page 3 becomes slower as th
 Receives: nothing
 
 Logic:
-
 1. Query `unsaids` where `is_winner = true`, order by `winner_cycle DESC`, limit 1
 2. If no winner exists in DB yet → return the hardcoded `WINNER` fallback from your existing code
 3. Include all echoes for the winner post
@@ -615,8 +586,7 @@ Cache behavior: Response includes a `Cache-Control: max-age=300` header so Cloud
 Receives: `unsaidId`, `reactionKey`, `deviceToken`
 
 Logic (all in one DB transaction):
-
-1. Attempt `INSERT INTO reactions (unsaid_id, device_token, reaction_key)`
+1. Attempt `INSERT INTO reactions (unsaid_id, device_token, reaction_key)` 
 2. If it succeeds (no existing row) → also run `UPDATE unsaids SET reactions = jsonb_set(reactions, '{heart}', (reactions->>'heart')::int + 1)` for the relevant key
 3. If it fails with unique violation (already reacted) → DELETE the row, then UPDATE the counter with `-1`
 4. Return the new count for that reaction key
@@ -628,7 +598,6 @@ Why a transaction: Without a transaction, a race condition can occur where two r
 Receives: `unsaidId`, `text`, `deviceToken`, `handle` (optional)
 
 Validation:
-
 - Text: 1–200 characters
 - Spam patterns (lighter set — echoes are shorter, different patterns apply)
 - Rate limit: max 10 echoes per device per hour
@@ -650,7 +619,6 @@ Returns: All active duels with `votes_a`, `votes_b`, and whether the calling dev
 Receives: `duelId`, `choiceIndex` (0 or 1), `deviceToken`
 
 Logic (one transaction):
-
 1. INSERT into `duel_votes` — if unique constraint violation → device already voted, return existing vote
 2. If new vote: UPDATE `duels` to increment `votes_a` or `votes_b` based on `choiceIndex`
 3. Return updated vote totals
@@ -666,7 +634,6 @@ Note: The simulated percentage skew (`generateSplit` in your current `warmth.ts`
 Receives: `deviceToken`, `localWarmth` (the amount stored in localStorage)
 
 Logic:
-
 - Upsert a profile row for this device token if none exists
 - Set `warmth_total = GREATEST(warmth_total, localWarmth)` — always take the higher value, never reduce
 - Return the authoritative server total
@@ -692,7 +659,6 @@ Receives: `authUserId`, `deviceToken`, `localWarmth`, `localHandle`
 Called immediately after a user's first Google sign-in, before any other page action.
 
 Logic (in order):
-
 1. Check if a profile row already exists for `authUserId` — if yes, this is a returning signed-in user, skip migration
 2. Check if `deviceToken` is already linked to a different profile — if yes, the device was already migrated, link but don't duplicate warmth
 3. Insert profile row with `id = authUserId`, `device_token = deviceToken`, `handle = localHandle`, `warmth_total = localWarmth`
@@ -713,7 +679,6 @@ Validates handle uniqueness against the `profiles` table before updating. Return
 Receives: `unsaidId`, `deviceToken`
 
 Logic:
-
 1. Check `vetoed_by` array — if `deviceToken` is already in it, return "already reported"
 2. Check if post's `device_token` matches reporter's `deviceToken` — cannot report your own post
 3. Append `deviceToken` to `vetoed_by`, increment `veto_count`
@@ -755,7 +720,6 @@ Called by the winner cron job. Fetches all profiles where `push_subscription IS 
 There are exactly three states a user can be in:
 
 **State 1 — Pure Anonymous**
-
 - No Supabase session
 - Identity: `device_token` in localStorage
 - All actions work: post, react, echo, vote
@@ -763,14 +727,12 @@ There are exactly three states a user can be in:
 - Warmth: Stored in localStorage only
 
 **State 2 — Returning Guest (no account)**
-
 - No Supabase session
 - Device token exists from previous visit
 - Identity continuity via `device_token`
 - App loads prior reactions, warmth, history from localStorage
 
 **State 3 — Authenticated Account**
-
 - Active Supabase session (JWT in localStorage, managed by Supabase client)
 - Identity: `auth.users.id` + linked `device_token` in `profiles`
 - Warmth: Stored in `profiles.warmth_total`, synced to client on load
@@ -802,7 +764,6 @@ A new TanStack Start route at `src/routes/auth.callback.tsx`.
 This route has no visible UI — it's a redirect handler. It shows a brief "Signing you in..." message with the BajiIntroSplash logo while the session exchange and migration happen. Then it navigates to `/`.
 
 If the session exchange fails (user cancelled, network error, token expired):
-
 - Show an error state with a "Try again" button that restarts the Google OAuth flow
 - Log the error via `error-capture.ts`
 
@@ -813,7 +774,6 @@ If the session exchange fails (user cancelled, network error, token expired):
 A React context provider that lives alongside `warmth-context.tsx`.
 
 **Provides:**
-
 - `session` — the Supabase session object or null
 - `profile` — the `profiles` row for the signed-in user, or null
 - `isLoading` — true while the initial session check is running (prevents flash of wrong state)
@@ -822,7 +782,6 @@ A React context provider that lives alongside `warmth-context.tsx`.
 - `isAuthenticated` — boolean derived from session existence
 
 **Initialization sequence:**
-
 1. On mount, call `supabase.auth.getSession()` to check for existing session
 2. Set `isLoading = true` during this check
 3. Set session + profile when resolved
@@ -836,12 +795,10 @@ The `isLoading` flag prevents a flash where the header briefly shows "anonymous"
 ### Header Changes in `CornerMenu.tsx`
 
 When `isAuthenticated = false` (anonymous):
-
 - Show current auto-generated avatar + handle (existing behavior)
 - Add a subtle "Sign in" link — not a modal, not a forced prompt, just an unobtrusive option
 
 When `isAuthenticated = true`:
-
 - Show Google profile photo as the avatar (within the existing avatar circle)
 - Show profile handle
 - Menu options: Share, Adjust Profile, Sign Out
@@ -908,7 +865,6 @@ The component itself doesn't need to know where data comes from — that's the h
 Manages the wall feed. Uses `useInfiniteQuery` (TanStack Query) to fetch pages from `fetchWall`.
 
 Behavior:
-
 - First page loads immediately on component mount
 - Each subsequent page loads when the intersection sentinel enters the viewport (existing pattern preserved)
 - Filters (category selection) are part of the query key — changing filters resets to page 1
@@ -916,7 +872,6 @@ Behavior:
 - Stale time: 2 minutes — fresh data is prioritized but a very brief network interruption doesn't cause a blank feed
 
 **Optimistic reaction flow:**
-
 1. User taps a reaction emoji
 2. Hook immediately updates the local query cache — the count changes visually
 3. Mutation is called against the server function
@@ -932,7 +887,6 @@ Fetches the current cycle winner with `useQuery`. Stale time: 5 minutes (winner 
 Fetches active duels and the calling device's vote history. Manages the vote mutation.
 
 The vote mutation:
-
 1. Immediately marks the duel as "answered" in the cache (shows percentage bars)
 2. Calls `voteOnDuel` server function
 3. Updates cache with real vote totals from server response
@@ -951,7 +905,6 @@ This handles the case where the same user accumulated warmth on a different devi
 ### Files With MOCK_ constants that get deleted
 
 These exports from the current `bajihears.ts` are removed after Phase 4:
-
 - `MOCK_UNSAIDS` — replaced by `fetchWall` server function
 - `MOCK_DUELS` — replaced by `fetchDuels` server function
 - `WINNER` object — replaced by `fetchWinner` server function
@@ -960,7 +913,6 @@ These exports from the current `bajihears.ts` are removed after Phase 4:
 - `getWinner()` (the localStorage-cached version) — removed
 
 What stays in the shared layer:
-
 - All TypeScript type definitions
 - `scorePost()` and `getSortedFeed()` — moved to `server/lib/scoring.ts`, used by the server feed algorithm
 - Formatting utilities: `relativeTime`, `compactCount`, `formatCountdown`, `stripHandle`, etc. — moved to `shared/`
@@ -978,7 +930,6 @@ Winner card still appears at the top, but now data comes from `use-winner.ts`.
 Writing box behavior is unchanged — it still calls the `onSubmit` handler, which now calls the `submitPost` server function instead of doing a local state update.
 
 After a successful post:
-
 - Invalidate the `wall` query key so the feed refreshes
 - The new post appears when the query re-fetches
 - No optimistic post insertion for new posts (it's complex and the 400ms re-fetch is fast enough)
@@ -998,14 +949,12 @@ The "Duels Answered" footer count now reads from the hook's data.
 The Baji Read engine (`computeBajiRead` in `bajiRead.ts`) stays client-side — it computes an archetype from local behavioral signals. This is intentional: it's private personalization that doesn't need to be stored.
 
 However, the inputs change:
-
 - `readMyReactions()` — now comes from the wall query cache, not localStorage
 - `readMyEchoes()` — same
 - `readAnsweredDuels()` — now comes from the duel hook
 - `totalWarmth` — now comes from the sync'd server total via `useWarmth`
 
 The `bonusUnlocked` (spending 30 Warmth for the deeper insight line) gets stored in the profile:
-
 - Spending warmth calls `spendWarmth` client-side AND calls `awardServerWarmth` with a negative amount
 - The `bonusUnlocked` flag is saved to `profiles.purchased_items` via `server/functions/warmth.ts`
 
@@ -1017,7 +966,6 @@ The `bonusUnlocked` (spending 30 Warmth for the deeper insight line) gets stored
 These are inserted into the `unsaids` Supabase table as a one-time operation.
 
 Migration script behavior:
-
 - Reads all entries from `SEED_DATA`
 - Maps them to the `unsaids` table schema (adding `device_token = 'seed-device-001'`, `status = 'published'`)
 - Inserts in batches of 50 (Supabase has insert limits per request)
@@ -1188,7 +1136,6 @@ Run `npx web-push generate-vapid-keys` in your terminal (project root directory)
 This outputs two long base64 strings: the public key and the private key.
 
 Save them:
-
 - `VAPID_PUBLIC_KEY` → goes into Cloudflare Pages → Settings → Environment Variables (not a secret, safe to be in client JS)
 - `VAPID_PRIVATE_KEY` → goes into Cloudflare Pages → Settings → **Secrets** (encrypted, server-only)
 
@@ -1202,7 +1149,6 @@ Save them:
 ### Step 7-B — Subscription Storage Flow
 
 When the user sees `PushPermissionSheet.tsx` and grants permission:
-
 1. Client calls `requestPushPermission()` (existing in `notifications.ts`) → gets permission
 2. Client calls `navigator.serviceWorker.ready` → gets the service worker registration
 3. Client calls `registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: VAPID_PUBLIC_KEY })`
@@ -1219,7 +1165,6 @@ For anonymous users (no profile): subscription is stored in a new lightweight ta
 Every winner selection triggers a push to all subscribers.
 
 Notification payload (defined in `server/jobs/push-dispatch.ts`):
-
 - `title`: `"The new winner is in ✨"`
 - `body`: The winning post's text, truncated to 120 characters
 - `icon`: `/favicon.png`
@@ -1232,7 +1177,6 @@ Notification payload (defined in `server/jobs/push-dispatch.ts`):
 ### Step 7-D — Updated `public/sw.js`
 
 The service worker gains a `push` event handler. When a push arrives:
-
 1. Parse the notification payload from the push event data
 2. Show the notification using `self.registration.showNotification(title, options)`
 3. Add a `notificationclick` handler: when user taps notification, open (or focus) the app at `/`
@@ -1253,7 +1197,6 @@ The service worker gains a `push` event handler. When a push arrives:
 ### Build Verification (Before First Deploy)
 
 Agent runs `npm run build` locally and confirms:
-
 - Build exits with code 0
 - No TypeScript errors
 - No missing imports across the new folder structure
@@ -1267,14 +1210,12 @@ Agent runs `npm run build` locally and confirms:
 You add these in the Cloudflare Dashboard → Pages → your project → Settings → Environment Variables.
 
 **Production Variables (plain text, safe to see in build logs):**
-
 - `VITE_SUPABASE_URL` — your Supabase project URL
 - `VITE_SUPABASE_ANON_KEY` — your Supabase anon key
 - `VITE_SUPABASE_REDIRECT_URL` — `https://your-project.pages.dev/auth/callback`
 - `VAPID_PUBLIC_KEY` — your VAPID public key
 
 **Production Secrets (encrypted, never shown after saving):**
-
 - `SUPABASE_SERVICE_ROLE_KEY` — your service role key
 - `VAPID_PRIVATE_KEY` — your VAPID private key
 
@@ -1286,7 +1227,6 @@ You add these in the Cloudflare Dashboard → Pages → your project → Setting
 ### Post-Deploy Build Verification
 
 Agent checks the Cloudflare Pages deployment log for:
-
 - No build errors
 - Worker bundle size under 1MB (Cloudflare free tier limit — your current server bundle is ~1.4MB compressed, agent will split if needed)
 - All routes respond (agent makes HTTP requests to the deployed URL)
@@ -1298,7 +1238,6 @@ Agent checks the Cloudflare Pages deployment log for:
 Run this on your phone (not desktop — mobile Safari is the real test):
 
 **Anonymous flow:**
-
 - [ ] Open `https://your-project.pages.dev` — BajiIntroSplash plays 3 seconds, transitions to Wall
 - [ ] Winner card is visible at top with real post text from DB (not the hardcoded WINNER object)
 - [ ] Write a post → submit → loading state appears → post shows in feed within 1-2 seconds
@@ -1309,7 +1248,6 @@ Run this on your phone (not desktop — mobile Safari is the real test):
 - [ ] Open in a new Incognito tab → can browse, react, post — NO forced sign-in prompt
 
 **Auth flow:**
-
 - [ ] Tap "Sign in with Google" → redirected → Google sign-in screen appears
 - [ ] Sign in → redirected back to app → header shows Google avatar + your handle
 - [ ] Refresh the page → still logged in (session persisted)
@@ -1317,13 +1255,11 @@ Run this on your phone (not desktop — mobile Safari is the real test):
 - [ ] Check that warmth total in app matches `warmth_total` in your `profiles` row
 
 **Data integrity:**
-
 - [ ] Open Supabase → Table Editor → `unsaids` → see your test post with `status = 'published'`
 - [ ] React to a post → see a row in `reactions` table for your device_token
 - [ ] Report a post → see `veto_count` increment in `unsaids` table
 
 **Performance:**
-
 - [ ] Cold load (first visit) — page should be fully interactive in under 3 seconds on mobile data
 - [ ] Feed scroll — no jank, smooth 60fps
 - [ ] React to a post — UI response in under 100ms (optimistic update)
@@ -1346,7 +1282,6 @@ Run this on your phone (not desktop — mobile Safari is the real test):
 `src/lib/error-capture.ts` and `src/lib/lovable-error-reporting.ts` already exist.
 
 Extended coverage:
-
 - Server function errors are caught and logged to a new `error_log` Supabase table (columns: `timestamp`, `function_name`, `error_code`, `device_token`, `message`). This gives you a query-able error history.
 - Client-side React errors (caught by the existing `ErrorComponent` in `__root.tsx`) also log to this table.
 - Supabase errors with code `PGRST` (PostgREST network errors) are caught and shown as "Couldn't connect — check your connection" rather than crashing.
@@ -1357,14 +1292,14 @@ Extended coverage:
 
 These are the standards for a production bulk-audience website:
 
-| Metric                         | Target       | How Achieved                                       |
-| ------------------------------ | ------------ | -------------------------------------------------- |
-| LCP (Largest Contentful Paint) | < 2.5s on 4G | Edge caching of winner card, font preloading       |
-| FID / INP (Input delay)        | < 100ms      | Optimistic updates, reaction debounce              |
-| CLS (Layout shift)             | < 0.1        | Fixed-height skeleton loaders, no layout jumps     |
-| Bundle size (initial JS)       | < 200KB gzip | Lazy-load duel + read routes                       |
-| Time to Interactive            | < 3.5s on 4G | SSR from Cloudflare edge, minimal blocking scripts |
-| Cold Worker start              | < 200ms      | Lightweight Worker bundle                          |
+| Metric | Target | How Achieved |
+|---|---|---|
+| LCP (Largest Contentful Paint) | < 2.5s on 4G | Edge caching of winner card, font preloading |
+| FID / INP (Input delay) | < 100ms | Optimistic updates, reaction debounce |
+| CLS (Layout shift) | < 0.1 | Fixed-height skeleton loaders, no layout jumps |
+| Bundle size (initial JS) | < 200KB gzip | Lazy-load duel + read routes |
+| Time to Interactive | < 3.5s on 4G | SSR from Cloudflare edge, minimal blocking scripts |
+| Cold Worker start | < 200ms | Lightweight Worker bundle |
 
 **How lazy loading works:** The `/duel` and `/read` routes are code-split automatically by TanStack Start. Their JavaScript is only downloaded when the user navigates to them. The main Wall (`/`) loads only what it needs.
 
@@ -1389,7 +1324,6 @@ hit edge cache, not the Cloudflare Worker.
 The Cloudflare Pages project gets a `_headers` file in `.output/public/` that Cloudflare Pages automatically applies:
 
 **Headers to set:**
-
 - `Content-Security-Policy` — restricts which scripts/styles/fonts can load. Allows only: self, Google Fonts, and Supabase endpoint. Blocks inline scripts (except TanStack's nonce-based hydration scripts).
 - `X-Frame-Options: DENY` — prevents clickjacking (your app in an iframe)
 - `X-Content-Type-Options: nosniff` — prevents MIME type sniffing
@@ -1401,7 +1335,6 @@ The Cloudflare Pages project gets a `_headers` file in `.output/public/` that Cl
 ### Database Performance Verification
 
 Agent queries Supabase's built-in Query Performance dashboard (pg_stat_statements) to confirm:
-
 - The wall feed query (`fetchWall`) uses the `(status, created_at DESC)` index (not a seq scan)
 - The winner query uses the `(is_winner, winner_cycle)` index
 - No query takes more than 100ms at current data volume
@@ -1457,24 +1390,24 @@ Phase 0 (You, dashboard)
 
 # MASTER "WHAT I NEED FROM YOU" TABLE
 
-| Phase | Step | Your Action                                                   | Verification                                              |
-| ----- | ---- | ------------------------------------------------------------- | --------------------------------------------------------- |
-| 0     | A    | Create Supabase project in ap-south-1 or Singapore            | Project URL is accessible                                 |
-| 0     | B    | Add Supabase MCP in Antigravity settings                      | "list tables" returns auth.users                          |
-| 0     | C    | Create Cloudflare Pages project, connect GitHub               | Pages URL is generated                                    |
-| 0     | D    | Create Google OAuth credentials in GCP Console                | Client ID + Secret in hand                                |
-| 0     | D    | Paste Google credentials into Supabase Auth Providers         | Google shows as "enabled" in Supabase                     |
-| 0     | E    | Fill `.env.local` with your values                            | Tell me "env is ready"                                    |
-| 1     | —    | Review tables in Supabase Table Editor                        | 6 tables, RLS enabled on each                             |
-| 3     | —    | Decide on Scenario C behavior (device conflict on 2nd device) | Tell me your preference                                   |
-| 6     | —    | Add cron trigger `0 0,12 * * *` in Cloudflare Dashboard       | Cron shows as "active"                                    |
-| 7     | A    | Run `npx web-push generate-vapid-keys` in terminal            | Tell me the public key, add private to Cloudflare Secrets |
-| 8     | —    | Add 6 environment variables + 2 secrets to Cloudflare Pages   | Build succeeds, variables show as set                     |
-| 8     | —    | Run smoke test checklist on your phone                        | Report any ❌ items                                       |
+| Phase | Step | Your Action | Verification |
+|---|---|---|---|
+| 0 | A | Create Supabase project in ap-south-1 or Singapore | Project URL is accessible |
+| 0 | B | Add Supabase MCP in Antigravity settings | "list tables" returns auth.users |
+| 0 | C | Create Cloudflare Pages project, connect GitHub | Pages URL is generated |
+| 0 | D | Create Google OAuth credentials in GCP Console | Client ID + Secret in hand |
+| 0 | D | Paste Google credentials into Supabase Auth Providers | Google shows as "enabled" in Supabase |
+| 0 | E | Fill `.env.local` with your values | Tell me "env is ready" |
+| 1 | — | Review tables in Supabase Table Editor | 6 tables, RLS enabled on each |
+| 3 | — | Decide on Scenario C behavior (device conflict on 2nd device) | Tell me your preference |
+| 6 | — | Add cron trigger `0 0,12 * * *` in Cloudflare Dashboard | Cron shows as "active" |
+| 7 | A | Run `npx web-push generate-vapid-keys` in terminal | Tell me the public key, add private to Cloudflare Secrets |
+| 8 | — | Add 6 environment variables + 2 secrets to Cloudflare Pages | Build succeeds, variables show as set |
+| 8 | — | Run smoke test checklist on your phone | Report any ❌ items |
 
 **Your total dashboard + testing time: approximately 90 minutes across all phases.**
 **Every other step: agent does it.**
 
 ---
 
-_Last updated: 2026-09-24 · Against commit `8bd417f` · Folder restructure + 9 phases_
+*Last updated: 2026-09-24 · Against commit `8bd417f` · Folder restructure + 9 phases*

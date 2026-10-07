@@ -1,6 +1,5 @@
 # Phase 7 — Real Web Push Notification Delivery (VAPID End-to-End)
-
-_Exhaustive Master Implementation Plan for Senior Engineering Execution_
+*Exhaustive Master Implementation Plan for Senior Engineering Execution*
 
 ---
 
@@ -15,9 +14,7 @@ _Exhaustive Master Implementation Plan for Senior Engineering Execution_
 ## Part 0: Executive Architecture & System Overview
 
 ### 0-A: The Purpose of Web Push in BajiHears
-
 BajiHears is an anonymous communal space operating on a synchronous 12-hour cultural cycle. Without proactive re-engagement, retention decays exponentially after the initial visit. Real Web Push notifications provide the vital heartbeat:
-
 1. **The 12-Hour Crown Broadcast:** Notifying subscribers immediately when a new confession wins the hero spot (at 00:00 UTC and 12:00 UTC).
 2. **Anonymous-First Retention:** Retaining users without forcing them to register an email address or OAuth account.
 3. **Zero-Spam Cadence:** Strictly capping notifications to at most one broadcast per 12-hour cycle (with `tag` collapsing to prevent notification stacking).
@@ -77,14 +74,13 @@ graph TD
 ## Part 1: Comprehensive Current State vs. Target State Audit
 
 ### 1-A: Current State Audit (What Exists in Codebase)
-
 1. **`public/sw.js`:**
    - Already has skeleton listeners for `push` and `notificationclick`.
    - Hardcoded default titles and URLs exist.
    - Missing payload validation, security token checks, and dynamic routing parameters.
 2. **`src/client/lib/notifications.ts`:**
    - Helper functions exist: `registerServiceWorker()`, `requestPushPermission()`, `hasPushPermission()`, `shouldShowPushPrompt()`, `markPushPromptShown()`.
-   - **Crucial gap:** It does _not_ call `pushManager.subscribe()`. It only checks the browser permission string.
+   - **Crucial gap:** It does *not* call `pushManager.subscribe()`. It only checks the browser permission string.
    - **Crucial gap:** It never serializes the endpoint keys (`p256dh`, `auth`) or transmits them to the server.
 3. **`src/server/functions/notifications.ts`:**
    - Has a stub function `savePushSubscription(env, input)` that attempts to write to `profiles.push_subscription`.
@@ -93,7 +89,6 @@ graph TD
    - Exists as a mocked stub that merely logs `Winner notification queued`. Zero actual network dispatch occurs.
 
 ### 1-B: Target State Specification
-
 1. Full VAPID public/private key lifecycle with environment variable segregation.
 2. Client-side conversion of VAPID public key via URL-safe Base64 to `Uint8Array`.
 3. Dedicated `anonymous_subscriptions` database table with device-token anchoring and composite unique index on `endpoint`.
@@ -105,13 +100,11 @@ graph TD
 ## Part 2: Cryptographic Foundation & Cloudflare Runtime Constraints
 
 ### 2-A: Why Node.js `web-push` Cannot Be Used on Cloudflare Edge
-
 - The standard npm package `web-push` relies on Node.js core modules (`crypto`, `http`, `https`, `url`, `zlib`, `stream`).
 - Cloudflare Pages Functions and Cloudflare Workers run on the V8-based workerd runtime. Attempting to bundle `web-push` introduces polyfill overhead, massive bundle sizes, and runtime breakages during ECDH key derivation.
 - **The Senior Architecture Decision:** Implement Web Push encryption directly using the standard W3C **Web Crypto API** (`crypto.subtle`), which is natively supported with zero dependencies on Cloudflare Workers, Node 18+, Bun, and modern browsers.
 
 ### 2-B: Cryptographic Protocols Required (RFC 8291 & RFC 8292)
-
 1. **VAPID Authentication (RFC 8292):**
    - Application Server Key: NIST P-256 (secp256r1) elliptic curve keypair.
    - VAPID JWT Header: `{"typ":"JWT","alg":"ES256"}`.
@@ -157,7 +150,6 @@ CREATE TABLE public.anonymous_subscriptions (
 ```
 
 ### 3-B: RLS (Row Level Security) Policies
-
 - **ANON / PUBLIC INSERT / UPDATE:**
   - Clients can register or refresh their subscription matching their `device_token`.
   - Clients can never select or inspect other devices' subscription endpoints.
@@ -165,13 +157,11 @@ CREATE TABLE public.anonymous_subscriptions (
   - Full read, write, update, and prune access for the Cloudflare Worker dispatch job.
 
 ### 3-C: Table Indexes
-
 - `CREATE INDEX idx_anon_sub_active ON public.anonymous_subscriptions(is_active) WHERE is_active = true;`
 - `CREATE INDEX idx_anon_sub_device ON public.anonymous_subscriptions(device_token);`
 - `CREATE INDEX idx_anon_sub_endpoint ON public.anonymous_subscriptions(endpoint);`
 
 ### 3-D: Account Linking (Guest Carry-Over Integration)
-
 - When an anonymous user signs in via Google OAuth (Phase 3):
   - Their `device_token` is linked to their new `user_id`.
   - The subscription is mirrored to `profiles.push_subscription` or tagged with `user_id` to prevent duplicate delivery to the same physical device.
@@ -181,15 +171,12 @@ CREATE TABLE public.anonymous_subscriptions (
 ## Part 4: Client-Side Lifecycle & Service Worker Mechanics
 
 ### 4-A: Safe Base64-to-Uint8Array Utility
-
 The VAPID public key is exposed as a URL-safe Base64 string. The browser `PushManager.subscribe` API requires an `ArrayBuffer` / `Uint8Array`.
-
 - Padding characters (`=`) must be re-appended if truncated.
 - URL-safe characters (`-` and `_`) must be translated to standard Base64 (`+` and `/`).
 - Conversion must happen safely without throwing exceptions on malformed strings.
 
 ### 4-B: Subscription Flow in `PushPermissionSheet.tsx`
-
 1. User clicks "Enable Notifications".
 2. Check `Notification.requestPermission()`. If granted:
 3. Await `navigator.serviceWorker.ready` to retrieve active `registration`.
@@ -202,13 +189,11 @@ The VAPID public key is exposed as a URL-safe Base64 string. The browser `PushMa
 7. Persist local consent flag `bh:pushEnabled = true` to avoid re-prompting.
 
 ### 4-C: iOS Safari PWA Matrix & Edge Cases
-
-- **iOS 16.4+ Requirement:** Web Push on iOS _only_ functions if the user has added the website to their Home Screen (standalone PWA mode: `window.navigator.standalone === true`).
-- If iOS Safari is detected in regular browser mode, the UI must explain: _"Tap Share -> Add to Home Screen to enable instant alerts."_
+- **iOS 16.4+ Requirement:** Web Push on iOS *only* functions if the user has added the website to their Home Screen (standalone PWA mode: `window.navigator.standalone === true`).
+- If iOS Safari is detected in regular browser mode, the UI must explain: *"Tap Share -> Add to Home Screen to enable instant alerts."*
 - If Notification API is missing entirely, UI gracefully suppresses push triggers without errors.
 
 ### 4-D: Upgraded Service Worker (`public/sw.js`)
-
 - **`push` Listener:**
   - Safely parses JSON data with fallback defaults.
   - Generates notification options:
@@ -230,9 +215,7 @@ The VAPID public key is exposed as a URL-safe Base64 string. The browser `PushMa
 ## Part 5: Server-Side Push Dispatch Engine
 
 ### 5-A: The Dispatch Pipeline (`server/jobs/push-dispatch.ts`)
-
 When the 12-hour winner cycle crowns a new post (from Phase 6):
-
 1. Format winner payload:
    ```json
    {
@@ -253,17 +236,15 @@ When the 12-hour winner cycle crowns a new post (from Phase 6):
    - Prevent overwhelming Cloudflare subrequest limits (Cloudflare Workers allow up to 50 simultaneous subrequests per request).
 
 ### 5-B: Handling HTTP Responses from Push Services
-
-| HTTP Status Code           | Meaning                          | System Action                                                              |
-| :------------------------- | :------------------------------- | :------------------------------------------------------------------------- |
-| **201 Created**            | Delivered to push server         | Update `last_delivered_at = now()`, reset `failure_count = 0`.             |
-| **404 Not Found**          | Subscription expired/removed     | Mark `is_active = false`, delete or schedule for pruning.                  |
-| **410 Gone**               | User revoked permission          | Immediate soft-delete: `is_active = false`, set `last_error = '410 Gone'`. |
-| **429 Too Many Requests**  | Rate limited by FCM/Apple        | Exponential backoff retry or skip batch.                                   |
-| **400 / 401 Unauthorized** | VAPID key mismatch / invalid JWT | Log critical alarm: check VAPID subject and private key validity.          |
+| HTTP Status Code | Meaning | System Action |
+| :--- | :--- | :--- |
+| **201 Created** | Delivered to push server | Update `last_delivered_at = now()`, reset `failure_count = 0`. |
+| **404 Not Found** | Subscription expired/removed | Mark `is_active = false`, delete or schedule for pruning. |
+| **410 Gone** | User revoked permission | Immediate soft-delete: `is_active = false`, set `last_error = '410 Gone'`. |
+| **429 Too Many Requests** | Rate limited by FCM/Apple | Exponential backoff retry or skip batch. |
+| **400 / 401 Unauthorized** | VAPID key mismatch / invalid JWT | Log critical alarm: check VAPID subject and private key validity. |
 
 ### 5-C: Dead Endpoint Auto-Pruning Routine
-
 - Any subscription returning `410 Gone` or `404 Not Found` is immediately deactivated.
 - A nightly maintenance query removes deactivated subscriptions older than 30 days to keep the database lean.
 
@@ -272,9 +253,7 @@ When the 12-hour winner cycle crowns a new post (from Phase 6):
 ## Part 6: Phase 6 ↔ Phase 7 Handshake (Winner Crown Integration)
 
 ### 6-A: Hook in `winner-selection.ts`
-
 At the conclusion of `executeWinnerSelection()` in `server/jobs/winner-selection.ts`:
-
 ```mermaid
 sequenceDiagram
     participant CRON as Winner Cron (0 0,12 * * *)
@@ -295,9 +274,7 @@ sequenceDiagram
 ```
 
 ### 6-B: Idempotency Safeguard
-
 To prevent multiple notifications if a cron triggers more than once:
-
 - Check `push_delivery_logs` for `cycle_timestamp`.
 - If a push broadcast was already executed for the current cycle window, exit immediately with status `ALREADY_DISPATCHED`.
 
@@ -306,37 +283,31 @@ To prevent multiple notifications if a cron triggers more than once:
 ## Part 7: Step-by-Step Senior Implementation Blueprint
 
 ### Step 1: Database Migration
-
 - Create migration `supabase/migrations/20260927000000_phase7_push_subscriptions.sql`.
 - Create `anonymous_subscriptions` table with RLS enabled.
 - Add indexes on `endpoint`, `is_active`, and `device_token`.
 - Add `push_delivery_logs` audit table for broadcast tracking.
 
 ### Step 2: Native Web Crypto Helper (`src/server/lib/web-crypto-push.ts`)
-
 - Implement zero-dependency VAPID JWT generation using `crypto.subtle.sign("ECDSA", ...)`.
 - Implement RFC 8291 payload encryption using `crypto.subtle.deriveBits("ECDH", ...)` and `AES-GCM-128`.
 - Export unified function `sendWebPush(subscription, payload, vapidKeys)`.
 
 ### Step 3: Subscription Endpoint (`src/routes/api/push/subscribe.ts` or Server Function)
-
 - Validate incoming endpoint URL format and base64 encryption keys.
 - Upsert into `anonymous_subscriptions` using service role client.
 - Return HTTP 200 `{ success: true }`.
 
 ### Step 4: Client Push Manager Enhancement (`src/client/lib/notifications.ts`)
-
 - Add `urlBase64ToUint8Array` converter.
 - Implement `subscribeDeviceToPush(vapidPublicKey, deviceToken)`.
 - Connect to `PushPermissionSheet.tsx` confirmation callback.
 
 ### Step 5: Service Worker Upgrade (`public/sw.js`)
-
 - Update notification display logic with rich typography and badge support.
 - Implement robust focus-or-open navigation in `notificationclick`.
 
 ### Step 6: Dispatch Pipeline Activation (`src/server/jobs/push-dispatch.ts`)
-
 - Replace mock stub with batch dispatch query and concurrency runner.
 - Wire into `src/server/jobs/winner-selection.ts`.
 
@@ -344,16 +315,16 @@ To prevent multiple notifications if a cron triggers more than once:
 
 ## Part 8: Verification & QA Testing Matrix
 
-| Test Case                  | Procedure                               | Expected Outcome                                                          |
-| :------------------------- | :-------------------------------------- | :------------------------------------------------------------------------ |
-| **VAPID Key Generation**   | Run `npx web-push generate-vapid-keys`  | Outputs matching pair of Base64 strings.                                  |
-| **Client Subscription**    | Grant permission in UI on Chrome/Edge   | Browser registers subscription; row appears in `anonymous_subscriptions`. |
-| **Payload Encryption**     | Execute `sendWebPush` in test suite     | Push service returns HTTP 201 Created.                                    |
-| **Delivery to Desktop**    | Trigger manual push test                | OS banner appears with title `"The new winner is in ✨"`.                 |
-| **Banner Tap Interaction** | Click notification while app is closed  | Browser launches and navigates to `/?winner=true`.                        |
-| **Banner Tap While Open**  | Click notification while tab is open    | Existing tab receives focus immediately.                                  |
-| **Dead Endpoint Pruning**  | Revoke browser permission, trigger push | Push returns 410; database sets `is_active = false`.                      |
-| **Duplicate Prevention**   | Trigger cron twice within 5 minutes     | Second call detects logged cycle and skips dispatch.                      |
+| Test Case | Procedure | Expected Outcome |
+| :--- | :--- | :--- |
+| **VAPID Key Generation** | Run `npx web-push generate-vapid-keys` | Outputs matching pair of Base64 strings. |
+| **Client Subscription** | Grant permission in UI on Chrome/Edge | Browser registers subscription; row appears in `anonymous_subscriptions`. |
+| **Payload Encryption** | Execute `sendWebPush` in test suite | Push service returns HTTP 201 Created. |
+| **Delivery to Desktop** | Trigger manual push test | OS banner appears with title `"The new winner is in ✨"`. |
+| **Banner Tap Interaction** | Click notification while app is closed | Browser launches and navigates to `/?winner=true`. |
+| **Banner Tap While Open** | Click notification while tab is open | Existing tab receives focus immediately. |
+| **Dead Endpoint Pruning** | Revoke browser permission, trigger push | Push returns 410; database sets `is_active = false`. |
+| **Duplicate Prevention** | Trigger cron twice within 5 minutes | Second call detects logged cycle and skips dispatch. |
 
 ---
 

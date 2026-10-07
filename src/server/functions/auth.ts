@@ -14,7 +14,7 @@ export interface MigrateGuestInput {
  */
 export async function migrateGuestToAccount(
   env: DatabaseEnv | undefined,
-  input: MigrateGuestInput,
+  input: MigrateGuestInput
 ): Promise<DbProfile> {
   const token = validateDeviceToken(input.deviceToken);
 
@@ -64,7 +64,7 @@ export async function migrateGuestToAccount(
  */
 export async function refreshProfile(
   env: DatabaseEnv | undefined,
-  userId: string,
+  userId: string
 ): Promise<DbProfile> {
   const res = await fetchProfileById(env, userId);
   if (res.error || !res.data) {

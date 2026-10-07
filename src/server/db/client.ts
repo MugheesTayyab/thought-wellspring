@@ -59,13 +59,13 @@ export function getSupabaseAdminClient(env?: DatabaseEnv): SupabaseClient {
 
   if (!url) {
     throw new Error(
-      "Missing SUPABASE_URL in environment bindings. Check .env.local or runtime config.",
+      "Missing SUPABASE_URL in environment bindings. Check .env.local or runtime config."
     );
   }
 
   if (!serviceRoleKey) {
     throw new Error(
-      "Missing SUPABASE_SERVICE_ROLE_KEY in environment bindings. Check .env.local or runtime config.",
+      "Missing SUPABASE_SERVICE_ROLE_KEY in environment bindings. Check .env.local or runtime config."
     );
   }
 
@@ -87,13 +87,13 @@ export function getSupabaseAnonClient(env?: DatabaseEnv): SupabaseClient {
 
   if (!url) {
     throw new Error(
-      "Missing SUPABASE_URL in environment bindings. Check .env.local or runtime config.",
+      "Missing SUPABASE_URL in environment bindings. Check .env.local or runtime config."
     );
   }
 
   if (!anonKey) {
     throw new Error(
-      "Missing SUPABASE_ANON_KEY in environment bindings. Check .env.local or runtime config.",
+      "Missing SUPABASE_ANON_KEY in environment bindings. Check .env.local or runtime config."
     );
   }
 
@@ -117,3 +117,4 @@ export function getSupabaseClient(env?: DatabaseEnv): SupabaseClient {
     return getSupabaseAnonClient(env);
   }
 }
+
