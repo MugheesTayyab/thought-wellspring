@@ -105,7 +105,7 @@ export function BajiReadShareDialog({ archetype, open, onClose }: BajiReadShareD
     // Full Paragraph Text
     ctx.font = '400 32px "Plus Jakarta Sans", system-ui, sans-serif';
     ctx.fillStyle = "rgba(255, 255, 255, 0.82)";
-    const paraLines = wrap(ctx, archetype.fullParagraph, W - 240);
+    const paraLines = wrap(ctx, archetype.opening, W - 240);
     const paraStartY = dividerY + 60;
     const paraLh = 46;
     paraLines.forEach((l, i) => {
@@ -159,9 +159,7 @@ export function BajiReadShareDialog({ archetype, open, onClose }: BajiReadShareD
       <div className="w-full max-w-[320px] rounded-3xl border border-white/12 bg-gradient-to-b from-[#1f1712]/95 via-[#17110D]/95 to-[#100b08]/98 p-4 text-[#F5EFE9] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] backdrop-blur-2xl max-h-[92vh] overflow-y-auto no-scrollbar animate-[scaleUp_0.18s_ease-out]">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <p className="font-sans text-xs font-semibold text-[#F5EFE9]">
-            Share your Baji Read
-          </p>
+          <p className="font-sans text-xs font-semibold text-[#F5EFE9]">Share your Baji Read</p>
           <button
             type="button"
             onClick={onClose}
@@ -212,7 +210,7 @@ export function BajiReadShareDialog({ archetype, open, onClose }: BajiReadShareD
           className="bg-brand-gradient text-white mt-4 w-full rounded-2xl py-3 text-sm font-semibold shadow-md active:scale-98 transition-transform flex items-center justify-center gap-2 cursor-pointer"
         >
           <Share2 className="h-4 w-4" />
-          <span>Share to Instagram Story</span>
+          <span>Share or download</span>
         </button>
 
         <p className="text-muted-foreground/70 mt-2 text-center text-[11px]">

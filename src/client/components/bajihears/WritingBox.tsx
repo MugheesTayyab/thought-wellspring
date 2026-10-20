@@ -1,12 +1,23 @@
-import { useEffect, useMemo, useState } from "react";
-import { Instagram } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AtSign, Check, ChevronDown, Info, LoaderCircle, X } from "lucide-react";
 import { cn, formatCountdown, stripHandle } from "@/shared/utils";
 import type { Category } from "@/shared/types/unsaid";
+import type { SubmitPostResult } from "@/shared/types/api";
 import { CATEGORIES } from "@/shared/constants/categories";
 import { LOCKOUT_MS, MAX_LEN, MIN_LEN } from "@/shared/constants/cycle";
 import { PRESETS } from "@/shared/constants/presets";
 import { triggerHaptic } from "@/client/lib/haptics";
 import { detectProfanity } from "@/shared/lib/profanity";
+
+const DRAFT_KEY = "bh:wall-composer-draft-v1";
+
+type Draft = {
+  text: string;
+  anonymous: boolean;
+  handle: string;
+  category: Category | null;
+  preset: string;
+};
 
 type Props = {
   lastSubmitAt: number | null;
@@ -16,283 +27,493 @@ type Props = {
     handle: string | null;
     category: Category;
     preset: string;
-  }) => void | Promise<any>;
-  onUnlock: () => void;
+  }) => Promise<SubmitPostResult>;
+  onClose: () => void;
+  onSeePost?: (id: string) => void;
   isSubmitting?: boolean;
   submitError?: string | null;
 };
+
+function readDraft(myHandle: string | null): Draft {
+  const fallback: Draft = {
+    text: "",
+    anonymous: true,
+    handle: myHandle ? stripHandle(myHandle) : "",
+    category: null,
+    preset: PRESETS[0]!.key,
+  };
+  if (typeof window === "undefined") return fallback;
+  try {
+    const value = JSON.parse(localStorage.getItem(DRAFT_KEY) ?? "null") as Partial<Draft> | null;
+    return value
+      ? {
+          ...fallback,
+          ...value,
+          category: CATEGORIES.includes(value.category as Category)
+            ? (value.category as Category)
+            : null,
+          preset: PRESETS.some((mood) => mood.key === value.preset)
+            ? (value.preset as string)
+            : fallback.preset,
+        }
+      : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 export function WritingBox({
   lastSubmitAt,
   myHandle,
   onSubmit,
-  onUnlock,
+  onClose,
+  onSeePost,
   isSubmitting = false,
   submitError = null,
 }: Props) {
-  const [text, setText] = useState("");
-  const [focused, setFocused] = useState(false);
-  const [anonymous, setAnonymous] = useState(true);
-  const [igHandle, setIgHandle] = useState(myHandle ? stripHandle(myHandle) : "");
-  const [category, setCategory] = useState<Category>("Spill The Tea");
-  const [preset, setPreset] = useState(PRESETS[0]!.key);
+  const initialDraft = useMemo(() => readDraft(myHandle), [myHandle]);
+  const [text, setText] = useState(initialDraft.text);
+  const [anonymous, setAnonymous] = useState(initialDraft.anonymous);
+  const [handle, setHandle] = useState(initialDraft.handle);
+  const [category, setCategory] = useState<Category | null>(initialDraft.category);
+  const [preset, setPreset] = useState(initialDraft.preset);
   const [localSending, setLocalSending] = useState(false);
+  const [slow, setSlow] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
+  const [result, setResult] = useState<SubmitPostResult | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const sending = isSubmitting || localSending;
-
+  const cleanHandle = stripHandle(handle)
+    .replace(/[^a-zA-Z0-9._]/g, "")
+    .slice(0, 30);
+  const profanityCheck = useMemo(() => detectProfanity(text), [text]);
   const unlockAt = lastSubmitAt ? lastSubmitAt + LOCKOUT_MS : null;
   const locked = unlockAt !== null && unlockAt > now;
+  const overLimit = text.length > MAX_LEN;
+  const missingCategory = category === null;
+  const invalidHandle = !anonymous && cleanHandle.length < 2;
+  const valid =
+    text.trim().length >= MIN_LEN &&
+    !overLimit &&
+    !profanityCheck.hasProfanity &&
+    !missingCategory &&
+    !invalidHandle;
+  const selectedMood = PRESETS.find((mood) => mood.key === preset) ?? PRESETS[0]!;
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => textareaRef.current?.focus(), 180);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (!locked) return;
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(id);
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
   }, [locked]);
 
-  const counterTone = useMemo(() => {
-    if (text.length >= 275) return "text-destructive";
-    if (text.length >= 250) return "text-warn";
-    return "text-muted-foreground";
-  }, [text.length]);
+  useEffect(() => {
+    if (result) return;
+    const draft: Draft = { text, anonymous, handle, category, preset };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  }, [anonymous, category, handle, preset, result, text]);
 
-  if (locked) {
-    return (
-      <section className="bg-gradient-to-b from-[#1f1510] to-[#140e0a] border border-[#E8552E]/30 rounded-2xl sm:rounded-3xl p-5 text-center shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs font-mono font-semibold mb-2">
-          <span>👑 Competing for Today's Crown</span>
-        </div>
-        <p className="font-quote text-lg sm:text-xl font-bold text-[#F5EFE9]">
-          Your confession is live on the wall
-        </p>
-        <p className="text-[#E8552E] font-mono text-xs font-medium mt-1">
-          Next confession drop unlocks in {formatCountdown(unlockAt! - now)}
-        </p>
-        <div className="mt-3 pt-3 border-t border-white/[0.08] text-[#9C8F87] text-xs max-w-xs mx-auto space-y-1">
-          <p>Top confession of each 12 hour cycle is pinned & featured on <strong className="text-[#F5EFE9]">@bajihears</strong>.</p>
-          <p className="text-amber-400/90 font-medium">Daily visits build your 10 day streak: Baji follows active regulars back.</p>
-        </div>
-      </section>
-    );
-  }
+  useEffect(() => {
+    if (!sending) {
+      setSlow(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setSlow(true), 6000);
+    return () => window.clearTimeout(timer);
+  }, [sending]);
 
-  const open = focused || text.length > 0;
-  const cleanIg = stripHandle(igHandle);
-  const profanityCheck = useMemo(() => detectProfanity(text), [text]);
-  const valid =
-    text.trim().length >= MIN_LEN &&
-    !profanityCheck.hasProfanity &&
-    (anonymous || cleanIg.length >= 2);
+  const close = () => {
+    triggerHaptic("selection");
+    onClose();
+  };
 
-  // SVG circular progress calculation
-  const ringCircumference = 44; // 2 * PI * 7 ≈ 43.98
-  const progressRatio = Math.min(1, text.length / MAX_LEN);
-  const ringOffset = ringCircumference - progressRatio * ringCircumference;
-  const ringColor =
-    text.length >= 275
-      ? "var(--color-destructive)"
-      : text.length >= 250
-        ? "var(--color-warn)"
-        : "var(--color-primary)";
+  const submit = async () => {
+    if (!valid || !category || sending) return;
+    triggerHaptic("impactMedium");
+    setLocalError(null);
+    setLocalSending(true);
+    try {
+      const submission = await onSubmit({
+        text: text.trim(),
+        handle: anonymous ? null : `@${cleanHandle}`,
+        category,
+        preset,
+      });
+      localStorage.removeItem(DRAFT_KEY);
+      setResult(submission);
+      triggerHaptic("celebration");
+    } catch (error) {
+      setLocalError(error instanceof Error ? error.message : "Couldn't post that just yet.");
+    } finally {
+      setLocalSending(false);
+    }
+  };
 
   return (
-    <section className="bg-[#17110D] border border-white/[0.08] rounded-2xl sm:rounded-3xl p-4 sm:p-5 transition-all">
-      <div>
-        <div className="mb-2 flex flex-row gap-2">
-          {PRESETS.map((p) => (
-            <button
-              key={p.key}
-              type="button"
-              aria-label={p.name}
-              title={p.name}
-              onClick={() => {
-                triggerHaptic("selection");
-                setPreset(p.key);
-              }}
-              style={{ backgroundImage: `linear-gradient(135deg, ${p.from}, ${p.to})` }}
-              className={cn(
-                "size-4 rounded-full border transition-all cursor-pointer",
-                preset === p.key
-                  ? "border-primary scale-110 ring-2 ring-primary/40"
-                  : "border-white/20 opacity-70 hover:opacity-100",
-              )}
-            />
-          ))}
-        </div>
-        <p className="text-[#9C8F87] mb-2 text-[10px] tracking-wide font-medium">
-          {PRESETS.find((p) => p.key === preset)!.name}
-        </p>
-
-        <textarea
-          value={text}
-          onFocus={() => setFocused(true)}
-          onChange={(e) => setText(e.target.value.slice(0, MAX_LEN))}
-          rows={2}
-          placeholder="Spill the tea... something you couldn't say out loud."
-          className="bg-white/[0.03] border-white/10 placeholder:text-[#9C8F87]/60 focus:border-[#E8552E]/60 focus:ring-[#E8552E]/20 w-full resize-none rounded-2xl border p-3.5 text-sm sm:text-base leading-relaxed outline-none focus:ring-2 transition-all font-sans text-[#F5EFE9]"
-        />
-        <div
-          className={cn(
-            "mt-2 flex items-center justify-end gap-2 text-[11px] font-medium",
-            counterTone,
-          )}
-        >
-          {/* Circular SVG progress ring */}
-          <svg className="size-4 -rotate-90" viewBox="0 0 20 20" aria-hidden="true">
-            <circle
-              cx="10"
-              cy="10"
-              r="7"
-              fill="none"
-              stroke="rgba(255, 255, 255, 0.15)"
-              strokeWidth="2"
-            />
-            <circle
-              cx="10"
-              cy="10"
-              r="7"
-              fill="none"
-              stroke={ringColor}
-              strokeWidth="2"
-              strokeDasharray={ringCircumference}
-              strokeDashoffset={ringOffset}
-              strokeLinecap="round"
-              className="transition-all duration-200"
-            />
-          </svg>
-          <span className="shrink-0 tabular-nums font-mono">
-            {text.length}/{MAX_LEN}
-          </span>
-        </div>
-      </div>
-
-      {open && (
-        <div className="pop-in mt-3 space-y-3">
-          <div className="grid grid-cols-2 gap-2 font-vibe">
-            <button
-              type="button"
-              onClick={() => {
-                triggerHaptic("selection");
-                setAnonymous(true);
-              }}
-              className={cn(
-                "rounded-2xl border px-3 py-2.5 text-[13px] font-semibold transition-all active:scale-95 min-h-[44px]",
-                anonymous
-                  ? "border-primary/60 bg-primary/20 text-primary shadow-[0_0_10px_rgba(249,115,22,0.15)]"
-                  : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.07] hover:text-foreground",
-              )}
-            >
-              Anonymous
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                triggerHaptic("selection");
-                setAnonymous(false);
-              }}
-              className={cn(
-                "flex items-center justify-center gap-1.5 rounded-2xl border px-3 py-2.5 text-[13px] font-semibold transition-all active:scale-95 min-h-[44px]",
-                !anonymous
-                  ? "border-primary/60 bg-primary/20 text-primary shadow-[0_0_10px_rgba(249,115,22,0.15)]"
-                  : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.07] hover:text-foreground",
-              )}
-            >
-              <Instagram className="size-3.5" aria-hidden />
-              <span>Drop Handle</span>
-            </button>
+    <div
+      className="fixed inset-0 z-[70] flex bg-background sm:items-center sm:justify-center sm:bg-foreground/25 sm:p-5"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="composer-title"
+    >
+      <section className="flex min-h-0 w-full flex-col bg-background sm:max-h-[920px] sm:max-w-xl sm:rounded-[28px] sm:border sm:border-border sm:shadow-2xl">
+        <header className="flex min-h-16 shrink-0 items-center justify-between border-b border-border px-4 pt-[env(safe-area-inset-top,0px)] sm:px-5">
+          <div>
+            <h2 id="composer-title" className="text-lg font-semibold text-foreground">
+              Write a thought
+            </h2>
+            <p className="text-xs text-muted-foreground">No need for the perfect words.</p>
           </div>
+          <button
+            type="button"
+            onClick={close}
+            className="flex size-11 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
+            aria-label="Close composer. Your draft is saved on this device."
+          >
+            <X className="size-5" aria-hidden />
+          </button>
+        </header>
 
-          {!anonymous && (
-            <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2">
-              <span className="text-muted-foreground text-sm font-semibold">@</span>
-              <input
-                type="text"
-                value={igHandle}
-                onChange={(e) => setIgHandle(e.target.value)}
-                placeholder="instagram_handle"
-                className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/60 font-sans font-medium"
-              />
-            </div>
-          )}
-
-          <div className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 py-1 font-vibe">
-            {CATEGORIES.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => {
-                  triggerHaptic("selection");
-                  setCategory(c);
-                }}
-                className={cn(
-                  "shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition-all",
-                  category === c
-                    ? "border-primary/60 bg-primary/20 text-primary"
-                    : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground",
+        {result ? (
+          <div className="flex flex-1 items-center justify-center overflow-y-auto p-6 text-center">
+            <div className="max-w-sm">
+              <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-[#E7F0E7] text-[#426548]">
+                <Check className="size-6" aria-hidden />
+              </span>
+              <h3 className="mt-5 font-display text-3xl text-foreground">
+                {result.status === "published"
+                  ? "Your thought is on the Wall."
+                  : "Sent for review."}
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                {result.status === "published"
+                  ? "Thanks for sharing it here."
+                  : "It isn't public yet. The moderation check needs to finish first."}
+              </p>
+              <div className="mt-7 grid gap-2">
+                {result.status === "published" && (
+                  <button
+                    type="button"
+                    onClick={() => onSeePost?.(result.id)}
+                    className="min-h-12 rounded-2xl bg-primary px-5 text-sm font-semibold text-white"
+                  >
+                    See your post
+                  </button>
                 )}
-              >
-                {c}
-              </button>
-            ))}
+                <button
+                  type="button"
+                  onClick={close}
+                  className="min-h-12 rounded-2xl border border-border bg-card px-5 text-sm font-semibold text-foreground"
+                >
+                  Back to the Wall
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        ) : locked ? (
+          <div className="flex flex-1 items-center justify-center p-6 text-center">
+            <div className="max-w-sm">
+              <h3 className="font-display text-2xl text-foreground">
+                Your last thought was received.
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                You can write another in {formatCountdown(unlockAt! - now)}. Reading and Echoes are
+                still available.
+              </p>
+              <button
+                type="button"
+                onClick={close}
+                className="mt-6 min-h-12 rounded-2xl border border-border bg-card px-5 text-sm font-semibold"
+              >
+                Back to the Wall
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
+              <div
+                className="rounded-[22px] border border-border bg-white p-4 transition-colors focus-within:border-primary/60 focus-within:shadow-[inset_0_0_0_1px_rgba(203,91,71,.12)]"
+                style={{
+                  backgroundImage: `linear-gradient(145deg, ${selectedMood.from}, ${selectedMood.to})`,
+                  color: selectedMood.ink,
+                }}
+              >
+                <textarea
+                  ref={textareaRef}
+                  value={text}
+                  onChange={(event) => setText(event.target.value)}
+                  rows={8}
+                  maxLength={MAX_LEN + 80}
+                  placeholder="What's something you've been keeping to yourself?"
+                  className="min-h-[210px] w-full resize-none bg-transparent font-sans text-[18px] leading-[1.65] text-inherit outline-none placeholder:text-[#746B66]"
+                />
+                <div className="mt-2 flex items-end justify-between gap-4 border-t border-black/5 pt-3">
+                  <p className="max-w-xs text-xs leading-5 text-[#655D58]">
+                    Keep names and private details out of public posts.
+                  </p>
+                  <span
+                    className={cn(
+                      "shrink-0 text-xs tabular-nums",
+                      overLimit ? "font-semibold text-destructive" : "text-[#746B66]",
+                    )}
+                  >
+                    {text.length}/{MAX_LEN}
+                  </span>
+                </div>
+              </div>
 
-      {profanityCheck.hasProfanity && (
-        <div className="mt-3 rounded-2xl border border-rose-500/40 bg-rose-500/10 p-3 text-center text-xs text-rose-300 font-medium flex items-center justify-center gap-2 animate-[pulse_2s_infinite]">
-          <span className="text-sm">⚠️</span>
-          <span>Baji keeps it warm & honest, not dirty. Inappropriate words (like f-words, s-words) are not allowed.</span>
-        </div>
-      )}
+              {overLimit && (
+                <p role="alert" className="mt-2 text-sm text-destructive">
+                  That thought is a little over the limit. Shorten it to share.
+                </p>
+              )}
 
-      {submitError && (
-        <div className="mt-3 rounded-xl border border-destructive/40 bg-destructive/10 p-2.5 text-center text-xs text-destructive">
-          {submitError}
-        </div>
-      )}
+              <fieldset className="mt-6">
+                <legend className="text-sm font-semibold text-foreground">Mood</legend>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  This only changes the card's look.
+                </p>
+                <div className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-1 sm:px-1">
+                  {PRESETS.map((mood) => {
+                    const selected = mood.key === preset;
+                    return (
+                      <button
+                        key={mood.key}
+                        type="button"
+                        aria-pressed={selected}
+                        aria-label={`${mood.name}${selected ? ", selected" : ""}`}
+                        onClick={() => {
+                          setPreset(mood.key);
+                          triggerHaptic("selection");
+                        }}
+                        className={cn(
+                          "min-w-[96px] shrink-0 rounded-2xl border p-2 text-left transition-all duration-200",
+                          selected ? "border-primary ring-2 ring-primary/15" : "border-border",
+                        )}
+                      >
+                        <span
+                          className="block h-9 rounded-xl border border-black/5"
+                          style={{
+                            backgroundImage: `linear-gradient(145deg, ${mood.from}, ${mood.to})`,
+                          }}
+                        />
+                        <span className="mt-1.5 block text-[11px] font-medium text-foreground">
+                          {mood.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
 
-      {open && (
-        <div className="mt-2.5 flex items-center justify-center gap-1.5 text-[11px] text-[#9C8F87]">
-          <span>👑 Top whisper of each cycle is featured on @bajihears</span>
-        </div>
-      )}
+              <fieldset className="mt-6">
+                <legend className="text-sm font-semibold text-foreground">Post as</legend>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    aria-pressed={anonymous}
+                    onClick={() => setAnonymous(true)}
+                    className={cn(
+                      "min-h-[72px] rounded-2xl border p-3 text-left",
+                      anonymous ? "border-primary bg-accent" : "border-border bg-card",
+                    )}
+                  >
+                    <span className="block text-sm font-semibold text-foreground">Anonymous</span>
+                    <span className="mt-1 block text-xs leading-4 text-muted-foreground">
+                      Other readers won't see a name attached.
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={!anonymous}
+                    onClick={() => setAnonymous(false)}
+                    className={cn(
+                      "min-h-[72px] rounded-2xl border p-3 text-left",
+                      !anonymous ? "border-primary bg-accent" : "border-border bg-card",
+                    )}
+                  >
+                    <span className="block text-sm font-semibold text-foreground">
+                      With a handle
+                    </span>
+                    <span className="mt-1 block text-xs leading-4 text-muted-foreground">
+                      Readers can see the Instagram handle you enter.
+                    </span>
+                  </button>
+                </div>
 
-      <div className="mt-2.5">
-        <button
-          type="button"
-          disabled={!valid || sending}
-          onClick={async () => {
-            triggerHaptic("impactMedium");
-            setLocalSending(true);
-            try {
-              const res = onSubmit({
-                text: text.trim(),
-                handle: anonymous ? null : `@${cleanIg}`,
-                category,
-                preset,
-              });
-              if (res instanceof Promise) {
-                await res;
-              }
-              setText("");
-              setFocused(false);
-              setAnonymous(true);
-            } catch {
-              // Error handled by parent or displayed via submitError prop
-            } finally {
-              setLocalSending(false);
-            }
-          }}
-          className={cn(
-            "spring-press w-full rounded-2xl py-3 text-[15px] font-bold tracking-wide transition-opacity font-vibe min-h-[44px]",
-            valid && !sending
-              ? "bg-brand-gradient text-primary-foreground shadow-md"
-              : "bg-secondary text-muted-foreground",
-          )}
-        >
-          {sending ? "Posting anonymously…" : "Post Anonymously 🔒"}
-        </button>
-      </div>
-    </section>
+                {!anonymous && (
+                  <div className="mt-3 rounded-2xl border border-border bg-card p-3">
+                    <label
+                      htmlFor="public-handle"
+                      className="text-xs font-semibold text-foreground"
+                    >
+                      Instagram handle
+                    </label>
+                    <div className="mt-2 flex min-h-12 items-center rounded-xl border border-border bg-background px-3 focus-within:border-primary">
+                      <AtSign className="size-4 text-muted-foreground" aria-hidden />
+                      <input
+                        id="public-handle"
+                        value={handle}
+                        onChange={(event) => setHandle(event.target.value)}
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        placeholder="your.handle"
+                        className="h-11 w-full bg-transparent px-2 text-base text-foreground outline-none"
+                      />
+                    </div>
+                    <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                      People may use this to find your account outside BajiHears. We never fill it
+                      automatically from a private account.
+                    </p>
+                  </div>
+                )}
+              </fieldset>
+
+              <fieldset className="mt-6">
+                <legend className="text-sm font-semibold text-foreground">Category</legend>
+                <p className="mt-0.5 text-xs text-muted-foreground">Choose the closest fit.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {CATEGORIES.map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      aria-pressed={category === option}
+                      onClick={() => setCategory(option)}
+                      className={cn(
+                        "min-h-11 rounded-full border px-4 text-xs font-semibold",
+                        category === option
+                          ? "border-primary bg-accent text-primary"
+                          : "border-border bg-card text-muted-foreground",
+                      )}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+
+              <div className="mt-6 rounded-2xl border border-[#D8CCEA] bg-[#F4F0FA] p-4 text-sm text-[#51436A]">
+                <div className="flex gap-2">
+                  <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
+                  <div>
+                    <p className="font-semibold">How this post appears</p>
+                    <p className="mt-1 leading-5">
+                      Public on the Wall ·{" "}
+                      {anonymous
+                        ? "Posted as Anonymous"
+                        : `Handle: @${cleanHandle || "your handle"}`}
+                      .
+                    </p>
+                    <details className="mt-2">
+                      <summary className="cursor-pointer font-medium underline decoration-current/40 underline-offset-2">
+                        What can others see?
+                      </summary>
+                      <p className="mt-2 leading-5">
+                        Anyone who can open the Wall can read or share the post. Readers don't see
+                        your device identifier, but the service stores it for rate limits and
+                        moderation. Anonymous does not mean private from the platform or its service
+                        providers.
+                      </p>
+                    </details>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowPreview((value) => !value)}
+                className="mt-4 flex min-h-11 w-full items-center justify-between rounded-xl px-1 text-sm font-semibold text-foreground"
+              >
+                Preview as others see it
+                <ChevronDown
+                  className={cn("size-4 transition-transform", showPreview && "rotate-180")}
+                />
+              </button>
+
+              {showPreview && (
+                <div
+                  className="rounded-[22px] border border-border p-4"
+                  style={{
+                    backgroundImage: `linear-gradient(145deg, ${selectedMood.from}, ${selectedMood.to})`,
+                  }}
+                >
+                  <div className="flex items-center justify-between text-xs text-[#6F6661]">
+                    <span>{anonymous ? "Anonymous" : `@${cleanHandle || "your.handle"}`}</span>
+                    <span>{category ?? "Choose a category"}</span>
+                  </div>
+                  <p
+                    className="mt-4 whitespace-pre-wrap text-[18px] leading-7"
+                    style={{ color: selectedMood.ink }}
+                  >
+                    {text.trim() || "Your thought will appear here."}
+                  </p>
+                </div>
+              )}
+
+              {(localError || submitError || profanityCheck.hasProfanity) && (
+                <div
+                  role="alert"
+                  className="mt-4 rounded-2xl border border-destructive/25 bg-destructive/5 p-3 text-sm text-destructive"
+                >
+                  <p className="font-semibold">
+                    {profanityCheck.hasProfanity
+                      ? "Please revise that before sharing."
+                      : "Couldn't post that just yet."}
+                  </p>
+                  <p className="mt-1">
+                    {profanityCheck.hasProfanity
+                      ? "Remove insults or explicit language, then try again."
+                      : "Your words are still here. Check your connection and try again."}
+                  </p>
+                </div>
+              )}
+
+              <p className="mt-4 text-center text-xs text-muted-foreground">
+                Draft saved only in this browser. It is not synced between devices.
+              </p>
+            </div>
+
+            <footer className="shrink-0 border-t border-border bg-background px-4 pb-[calc(.75rem+env(safe-area-inset-bottom,0px))] pt-3 sm:px-6">
+              {!valid && text.length > 0 && (
+                <p className="mb-2 text-center text-xs text-muted-foreground">
+                  {overLimit
+                    ? "Shorten the thought to share."
+                    : missingCategory
+                      ? "Choose a category before sharing."
+                      : invalidHandle
+                        ? "Enter the handle people will see."
+                        : text.trim().length < MIN_LEN
+                          ? "Write a little something first."
+                          : "Revise the highlighted text before sharing."}
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={submit}
+                disabled={!valid || sending}
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-5 text-sm font-semibold text-white disabled:bg-secondary disabled:text-muted-foreground"
+              >
+                {sending && <LoaderCircle className="size-4 animate-spin" aria-hidden />}
+                {sending
+                  ? slow
+                    ? "Still sending…"
+                    : "Posting…"
+                  : anonymous
+                    ? "Post anonymously"
+                    : "Post with handle"}
+              </button>
+            </footer>
+          </>
+        )}
+      </section>
+    </div>
   );
 }

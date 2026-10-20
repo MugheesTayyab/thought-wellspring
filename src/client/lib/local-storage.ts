@@ -1,17 +1,6 @@
-import type {
-  Category,
-  MyReactions,
-  ReactionKey,
-  Unsaid,
-} from "@/shared/types/unsaid";
-import type {
-  AnsweredDuelRecord,
-} from "@/shared/types/duel";
-import type {
-  DailyCapState,
-  StreakState,
-  WarmthLogEntry,
-} from "@/shared/types/warmth";
+import type { Category, MyReactions, ReactionKey, Unsaid } from "@/shared/types/unsaid";
+import type { AnsweredDuelRecord } from "@/shared/types/duel";
+import type { DailyCapState, StreakState, WarmthLogEntry } from "@/shared/types/warmth";
 import { getTodayKey } from "@/shared/utils";
 import { SEED_DATA } from "./seedData";
 import { getOrCreateIdentity } from "./identity";
@@ -34,6 +23,7 @@ const CALLSIGN_KEY = "bh:callSign";
 const DUELS_ANSWERED_KEY = "bh:duelAnswered";
 const MY_POST_CATEGORIES_KEY = "bh:myPostCategories";
 const PURCHASED_ITEMS_KEY = "bh:purchasedItems";
+const SAVED_THOUGHTS_KEY = "bh:savedThoughts";
 
 function read<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -70,6 +60,9 @@ export const writeMyEchoes = (v: string[]) => write(ECHO_KEY, v);
 
 export const readMyReports = () => read<string[]>(REPORT_KEY, []);
 export const writeMyReports = (v: string[]) => write(REPORT_KEY, v);
+
+export const readSavedThoughts = () => read<Unsaid[]>(SAVED_THOUGHTS_KEY, []);
+export const writeSavedThoughts = (thoughts: Unsaid[]) => write(SAVED_THOUGHTS_KEY, thoughts);
 
 export const readAvatarSeed = () => read<string | null>(AVATAR_KEY, null);
 export const writeAvatarSeed = (v: string) => write(AVATAR_KEY, v);

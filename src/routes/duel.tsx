@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, RotateCw } from "lucide-react";
 import { DuelCard } from "@/client/components/bajihears/DuelCard";
-import { WarmthOrb } from "@/client/components/bajihears/WarmthOrb";
 import { BottomNav } from "@/client/components/bajihears/BottomNav";
 import { useWarmth } from "@/client/stores/warmth-context";
 import { useDuel } from "@/client/hooks/use-duel";
@@ -9,18 +8,8 @@ import { useDuel } from "@/client/hooks/use-duel";
 export const Route = createFileRoute("/duel")({
   head: () => ({
     meta: [
-      { title: "The Duel: Which One Is You? | BajiHears" },
-      {
-        name: "description",
-        content:
-          "Live community confession duels. Choose which confession speaks to your soul and earn Warmth Points.",
-      },
-      { property: "og:title", content: "The Duel | BajiHears" },
-      {
-        property: "og:description",
-        content: "Which confession speaks to your soul? Vote and see what others felt.",
-      },
-      { property: "og:type", content: "website" },
+      { title: "The Duel | BajiHears" },
+      { name: "description", content: "Choose between two real community thoughts." },
     ],
   }),
   component: DuelPage,
@@ -34,80 +23,68 @@ function DuelPage() {
     userChoice,
     pctA,
     pctB,
+    votesA,
+    votesB,
     isLoading,
+    isVoting,
+    error,
     vote,
     answeredCount,
   } = useDuel();
-
-  const answeredState =
-    alreadyVoted && userChoice !== undefined
-      ? { choiceIndex: userChoice, pctA, pctB }
-      : null;
-
+  const answered =
+    alreadyVoted && userChoice !== undefined ? { choiceIndex: userChoice, pctA, pctB } : null;
   return (
-    <div className="relative min-h-screen w-full bg-[#0F0A0A] text-white flex flex-col items-center p-4 pb-32 sm:pb-36 md:p-8 md:pb-36">
-      {/* Background Glow */}
-      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent opacity-60" />
-
-      {/* Top Header */}
-      <header className="relative z-10 w-full max-w-2xl flex items-center justify-between py-3 border-b border-white/10">
+    <div className="min-h-screen bg-background px-4 pb-32 text-foreground sm:px-6">
+      <header className="mx-auto flex max-w-xl items-center justify-between border-b border-border py-4">
         <Link
           to="/"
-          className="flex items-center gap-1.5 text-xs font-semibold text-white/70 hover:text-white transition-colors"
+          className="tap-44 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground"
         >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Back to Wall</span>
+          <ArrowLeft className="size-4" />
+          The Wall
         </Link>
-
-        <h1 className="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
-          <span>The Duel</span>
-          <span className="text-xs text-primary font-mono">⚔️</span>
-        </h1>
-
-        <WarmthOrb totalWarmth={totalWarmth} mini onClick={openWarmthSheet} />
+        <h1 className="font-display text-lg font-bold">Duel</h1>
+        <span className="w-16" />
       </header>
-
-      {/* Main Duel Content */}
-      <main className="relative z-10 my-auto py-5 sm:py-8 w-full flex flex-col items-center justify-center min-h-[420px]">
-        {isLoading && !duel ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-16 text-white/60">
-            <Loader2 className="size-6 animate-spin text-primary" />
-            <p className="text-xs tracking-wide">Summoning the daily duel…</p>
+      <main className="mx-auto flex min-h-[70vh] w-full max-w-xl items-center justify-center py-8">
+        {isLoading ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" />
+            Loading the current Duel…
+          </div>
+        ) : error ? (
+          <div className="paper-card max-w-sm p-6 text-center" role="alert">
+            <RotateCw className="mx-auto size-5 text-coral" />
+            <h2 className="mt-3 font-display text-xl font-bold">The Duel could not load</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Nothing was substituted. Refresh when your connection is ready.
+            </p>
           </div>
         ) : duel ? (
           <DuelCard
             duel={duel}
-            answeredState={answeredState}
-            onAnswer={(choiceIndex) => vote(choiceIndex)}
-            onNext={() => {}}
+            answeredState={answered}
+            totalVotes={votesA + votesB}
+            isVoting={isVoting}
+            onAnswer={(choice) => void vote(choice)}
           />
         ) : (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center max-w-md">
-            <p className="text-base font-bold text-white mb-1">No Active Duel Today</p>
-            <p className="text-xs text-white/60">
-              The daily duel resets every 24 hours. Check back soon for the next choice.
+          <div className="paper-card max-w-sm p-7 text-center">
+            <h2 className="font-display text-xl font-bold">No Duel is active</h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              A new pair will appear when the next community Duel is published.
             </p>
           </div>
         )}
       </main>
-
-      {/* Bottom Footer Stats */}
-      <footer className="relative z-10 w-full max-w-2xl mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-white/50">
+      <footer className="mx-auto flex max-w-xl justify-between border-t border-border py-4 text-xs text-muted-foreground">
         <span>
-          Duels Answered:{" "}
-          <strong className="text-white font-mono">{answeredCount}</strong>
+          {answeredCount} {answeredCount === 1 ? "Duel" : "Duels"} answered
         </span>
-        <button
-          type="button"
-          onClick={openWarmthSheet}
-          className="hover:text-primary transition-colors flex items-center gap-1 cursor-pointer font-mono"
-        >
-          <span>Earned {totalWarmth} Warmth</span>
-          <span>🔥</span>
+        <button type="button" onClick={openWarmthSheet} className="font-semibold text-coral">
+          View Ember · {totalWarmth}
         </button>
       </footer>
-
-      {/* Shared Bottom Navigation */}
       <BottomNav
         totalWarmth={totalWarmth}
         isFlashingOrb={isFlashingOrb}

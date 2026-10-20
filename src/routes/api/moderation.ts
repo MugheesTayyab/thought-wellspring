@@ -16,3 +16,10 @@ export const apiReportPost = createServerFn({ method: "POST" })
     const { handleReportPost } = await import("@/server/handlers/moderation");
     return handleReportPost(data);
   });
+
+export const apiReportEcho = createServerFn({ method: "POST" })
+  .validator((data: { echoId: string; reason: string; deviceToken: string }) => data)
+  .handler(async ({ data }) => {
+    const { handleReportEcho } = await import("@/server/handlers/moderation");
+    return handleReportEcho(data);
+  });

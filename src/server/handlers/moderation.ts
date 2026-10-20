@@ -2,7 +2,9 @@ import { getServerEnv } from "@/server/lib/get-env";
 import { wrapServerFn } from "@/server/lib/wrap-server-fn";
 import type { ServerFnResult } from "@/shared/types/api";
 import {
+  reportEcho,
   reportPost,
+  type ReportEchoInput,
   type ReportPostInput,
 } from "@/server/functions/moderation";
 
@@ -12,10 +14,19 @@ export interface ReportPostResponseData {
 }
 
 export async function handleReportPost(
-  data: ReportPostInput
+  data: ReportPostInput,
 ): Promise<ServerFnResult<ReportPostResponseData>> {
   return wrapServerFn(async () => {
     const env = getServerEnv();
     return reportPost(env, data);
+  });
+}
+
+export async function handleReportEcho(
+  data: ReportEchoInput,
+): Promise<ServerFnResult<ReportPostResponseData>> {
+  return wrapServerFn(async () => {
+    const env = getServerEnv();
+    return reportEcho(env, data);
   });
 }

@@ -14,6 +14,7 @@ dist-ssr
 .vinxi
 .tanstack/**
 .nitro
+.tmp-edge-*/
 *.local
 .env
 .env.*
@@ -33,3 +34,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+plans/phase*-screenshots/

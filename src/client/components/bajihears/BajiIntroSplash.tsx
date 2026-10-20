@@ -37,13 +37,13 @@ export const BajiIntroSplash: React.FC<BajiIntroSplashProps> = ({ onComplete }) 
     // Phase 2: Begin smooth dissolve
     const fadeTimer = window.setTimeout(() => {
       setFading(true);
-    }, 1900);
+    }, 1100);
 
     // Phase 3: Complete and unmount
     const endTimer = window.setTimeout(() => {
       setVisible(false);
       onComplete?.();
-    }, 2400);
+    }, 1450);
 
     return () => {
       window.clearTimeout(textTimer);
@@ -56,16 +56,16 @@ export const BajiIntroSplash: React.FC<BajiIntroSplashProps> = ({ onComplete }) 
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0A0604] transition-opacity duration-500 ease-out select-none ${
+      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#FAF7F3] transition-opacity duration-300 ease-out select-none ${
         fading ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
       aria-label="Welcome to BajiHears"
     >
-      {/* Intimate candlelit background hearth glow */}
+      {/* Warm paper welcome wash */}
       <div
-        className="pointer-events-none absolute size-[460px] rounded-full opacity-25 blur-3xl"
+        className="pointer-events-none absolute size-[460px] rounded-full opacity-70 blur-3xl"
         style={{
-          background: "radial-gradient(circle, #E8552E 0%, #fa541c 30%, transparent 70%)",
+          background: "radial-gradient(circle, #FBE6E4 0%, #FFF0C9 38%, transparent 72%)",
         }}
         aria-hidden
       />
@@ -73,8 +73,8 @@ export const BajiIntroSplash: React.FC<BajiIntroSplashProps> = ({ onComplete }) 
       <div className="relative z-10 flex flex-col items-center gap-5 text-center px-6">
         {/* Animated Brand Mascot Emblem */}
         <div className="relative flex items-center justify-center p-1">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#E8552E]/30 to-amber-500/20 blur-xl animate-pulse" />
-          <div className="relative drop-shadow-[0_12px_36px_rgba(232,85,46,0.4)] transition-transform duration-700 hover:scale-105">
+          <div className="absolute inset-0 rounded-full bg-[#FBE6E4] blur-xl" />
+          <div className="relative transition-transform duration-500">
             <Logo size={84} />
           </div>
         </div>
@@ -87,17 +87,16 @@ export const BajiIntroSplash: React.FC<BajiIntroSplashProps> = ({ onComplete }) 
 
           {/* 3-4 words of copy communicating what the app is for and how to use it */}
           <p
-            className={`font-sans text-xs sm:text-sm font-medium tracking-wide text-[#F5EFE9]/90 transition-all duration-500 ${
+            className={`font-sans text-sm font-medium text-[#665A60] transition-all duration-500 ${
               textVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1.5"
             }`}
           >
-            Whisper your truth. Read the unsaid.
+            Say the unsaid.
           </p>
         </div>
 
-        {/* Minimal Ember Hairline Progress Bar */}
-        <div className="mt-4 w-36 h-[2px] rounded-full bg-white/[0.08] overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-amber-400 via-[#E8552E] to-[#fa541c] rounded-full animate-[progress_1.7s_cubic-bezier(0.16,1,0.3,1)_forwards]" />
+        <div className="mt-4 h-[2px] w-28 overflow-hidden rounded-full bg-[#E8DFDC]">
+          <div className="h-full rounded-full bg-[#AE4335] animate-[progress_1.1s_cubic-bezier(0.16,1,0.3,1)_forwards]" />
         </div>
       </div>
     </div>

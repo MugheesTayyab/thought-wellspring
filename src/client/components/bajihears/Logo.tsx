@@ -7,7 +7,7 @@ export function Logo({ size = 34, className }: { size?: number; className?: stri
   return (
     <div
       className={cn(
-        "relative shrink-0 rounded-full border border-primary/50 overflow-hidden bg-gradient-to-br from-[#2a1410] to-[#120a0a] shadow-[0_0_12px_rgba(250,84,28,0.35)]",
+        "relative shrink-0 rounded-full border border-[#E3B8B1] overflow-hidden bg-[#FBE6E4]",
         className,
       )}
       style={{ width: size, height: size }}

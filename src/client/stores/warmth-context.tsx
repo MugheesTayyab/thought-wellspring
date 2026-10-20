@@ -1,16 +1,6 @@
 import { useEffect, useState, createContext, useContext, type ReactNode } from "react";
-import type {
-  ActionType,
-  WarmthLogEntry,
-  DailyCapState,
-  StreakState,
-  GiftMilestone,
-} from "@/shared/types/warmth";
-import {
-  AWARD_VALUES,
-  DAILY_PASSIVE_CAP,
-  GIFT_MILESTONES,
-} from "@/shared/constants/warmth";
+import type { ActionType, WarmthLogEntry, DailyCapState, StreakState } from "@/shared/types/warmth";
+import { AWARD_VALUES, DAILY_PASSIVE_CAP } from "@/shared/constants/warmth";
 import { getTodayKey, randomSeed } from "@/shared/utils";
 import {
   readWarmth,
@@ -22,7 +12,6 @@ import {
   readStreak,
   writeStreak,
   readMilestonesClaimed,
-  writeMilestonesClaimed,
   readCallSign,
   writeCallSign,
   readAvatarSeed,
@@ -30,7 +19,6 @@ import {
 } from "@/client/lib/local-storage";
 import { WarmthToast, type WarmthToastEvent } from "@/client/components/bajihears/WarmthToast";
 import { WarmthSheet } from "@/client/components/bajihears/WarmthSheet";
-import { GiftMilestoneModal } from "@/client/components/bajihears/GiftMilestone";
 
 export interface WarmthContextType {
   totalWarmth: number;
@@ -70,9 +58,7 @@ export function WarmthProvider({ children }: { children: ReactNode }) {
   const [warmthLog, setWarmthLog] = useState<WarmthLogEntry[]>(() => readWarmthLog());
   const [dailyCap, setDailyCap] = useState<DailyCapState>(() => readDailyCap());
   const [streak, setStreak] = useState<StreakState>(() => readStreak());
-  const [milestonesClaimed, setMilestonesClaimed] = useState<number[]>(() =>
-    readMilestonesClaimed(),
-  );
+  const [milestonesClaimed] = useState<number[]>(() => readMilestonesClaimed());
   const [callSign, setCallSign] = useState<string | null>(() => readCallSign());
   const [avatarSeed, setAvatarSeed] = useState<string>(() => {
     let seed = readAvatarSeed();
@@ -86,7 +72,6 @@ export function WarmthProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<WarmthToastEvent | null>(null);
   const [isFlashingOrb, setIsFlashingOrb] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [activeMilestone, setActiveMilestone] = useState<GiftMilestone | null>(null);
 
   // Daily visit streak check
   useEffect(() => {
@@ -171,22 +156,6 @@ export function WarmthProvider({ children }: { children: ReactNode }) {
         ? { amount: finalAmount, label, x: coords.x, y: coords.y }
         : { amount: finalAmount, label },
     );
-
-    // Check milestone unlocked
-    const unlocked = GIFT_MILESTONES.find(
-      (m) => newTotal >= m.threshold && !milestonesClaimed.includes(m.threshold),
-    );
-    if (unlocked && !activeMilestone) {
-      setActiveMilestone(unlocked);
-    }
-  };
-
-  const handleClaimMilestone = () => {
-    if (!activeMilestone) return;
-    const updated = [...milestonesClaimed, activeMilestone.threshold];
-    setMilestonesClaimed(updated);
-    writeMilestonesClaimed(updated);
-    setActiveMilestone(null);
   };
 
   const updateCallSign = (name: string) => {
@@ -257,13 +226,6 @@ export function WarmthProvider({ children }: { children: ReactNode }) {
         callSign={callSign}
         onUpdateCallSign={updateCallSign}
         avatarSeed={avatarSeed}
-      />
-
-      {/* Milestone Unlock Celebration Modal */}
-      <GiftMilestoneModal
-        milestone={activeMilestone}
-        avatarSeed={avatarSeed}
-        onClaim={handleClaimMilestone}
       />
     </WarmthContext.Provider>
   );

@@ -85,25 +85,44 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" },
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
+      },
       { title: "BajiHears | Say the Unsaid" },
-      { name: "description", content: "An intimate sanctuary for anonymous confessions, hot takes, and real connection." },
-      { name: "theme-color", content: "#0F0A0A" },
+      {
+        name: "description",
+        content: "A place to share a thought, find a familiar feeling, or just read for a bit.",
+      },
+      { name: "theme-color", content: "#FAF7F3" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { name: "apple-mobile-web-app-title", content: "BajiHears" },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://bajihears.mugheestayyab4.workers.dev/" },
       { property: "og:title", content: "BajiHears | Say the Unsaid" },
-      { property: "og:description", content: "An intimate sanctuary for anonymous confessions, hot takes, and real connection." },
-      { property: "og:image", content: "https://bajihears.mugheestayyab4.workers.dev/og-image.jpg" },
+      {
+        property: "og:description",
+        content: "An intimate sanctuary for anonymous confessions, hot takes, and real connection.",
+      },
+      {
+        property: "og:image",
+        content: "https://bajihears.mugheestayyab4.workers.dev/og-image.jpg",
+      },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "675" },
       { property: "og:image:alt", content: "BajiHears | Say the Unsaid" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "BajiHears | Say the Unsaid" },
-      { name: "twitter:description", content: "An intimate sanctuary for anonymous confessions, hot takes, and real connection." },
-      { name: "twitter:image", content: "https://bajihears.mugheestayyab4.workers.dev/og-image.jpg" },
+      {
+        name: "twitter:description",
+        content: "An intimate sanctuary for anonymous confessions, hot takes, and real connection.",
+      },
+      {
+        name: "twitter:image",
+        content: "https://bajihears.mugheestayyab4.workers.dev/og-image.jpg",
+      },
     ],
     links: [
       {
@@ -114,7 +133,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,600&family=Playfair+Display:ital,wght@1,600;1,700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Instrument+Serif:ital@0;1&display=swap",
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
       { rel: "apple-touch-icon", href: "/favicon.png" },
@@ -129,7 +148,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="light-foundation">
       <head>
         <HeadContent />
       </head>

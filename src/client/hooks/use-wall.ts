@@ -20,13 +20,7 @@ import {
   readMyEchoes,
   writeMyEchoes,
 } from "@/client/lib/local-storage";
-import type {
-  Category,
-  ReactionKey,
-  Unsaid,
-  MyReactions,
-  Echo,
-} from "@/shared/types/unsaid";
+import type { Category, ReactionKey, Unsaid, MyReactions, Echo } from "@/shared/types/unsaid";
 import type { SubmitPostResult } from "@/shared/types/api";
 
 interface FeedPage {
@@ -60,6 +54,7 @@ export interface UseWallReturn {
   }) => Promise<SubmitPostResult>;
   isSubmitting: boolean;
   submitError: string | null;
+  reactionError: string | null;
   onReact: (postId: string, reactionKey: ReactionKey) => void;
   onEcho: (postId: string, text: string, handle?: string | null) => Promise<void>;
   myReactions: MyReactions;
@@ -76,7 +71,16 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
   const { deviceToken } = useDeviceToken();
   const pageSize = options?.pageSize ?? 20;
 
-  const [filters, setFilters] = useState<Category[]>(options?.initialCategories ?? []);
+  const [filters, setFilters] = useState<Category[]>(() => {
+    if (options?.initialCategories) return options.initialCategories;
+    if (typeof window === "undefined") return [];
+    try {
+      const saved = JSON.parse(sessionStorage.getItem("bh:wall-filters") ?? "[]");
+      return Array.isArray(saved) ? (saved as Category[]) : [];
+    } catch {
+      return [];
+    }
+  });
   const [myReactions, setMyReactions] = useState<MyReactions>(() => {
     if (typeof window === "undefined") return {};
     return readMyReactions();
@@ -86,6 +90,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
     return readMyEchoes();
   });
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [reactionError, setReactionError] = useState<string | null>(null);
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -96,11 +101,13 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
     }
   }, []);
 
+  useEffect(() => {
+    sessionStorage.setItem("bh:wall-filters", JSON.stringify(filters));
+  }, [filters]);
+
   // Filter actions
   const toggleFilter = useCallback((category: Category) => {
-    setFilters((prev) =>
-      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
-    );
+    setFilters((prev) => (prev.includes(category) ? [] : [category]));
   }, []);
 
   const clearFilters = useCallback(() => {
@@ -140,7 +147,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
     initialPageParam: 0,
     getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.page + 1 : undefined),
     staleTime: 120_000, // 2 minutes
-    gcTime: 600_000,    // 10 minutes
+    gcTime: 600_000, // 10 minutes
   });
 
   // Flatten posts across pages with client-side filter fallback for multi-category
@@ -165,7 +172,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
           fetchNextPage();
         }
       },
-      { rootMargin: "400px" }
+      { rootMargin: "400px" },
     );
 
     observer.observe(sentinel);
@@ -199,6 +206,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       }
     },
     onMutate: async ({ postId, reactionKey, action }) => {
+      setReactionError(null);
       const feedKey = queryKeys.posts.feed(filters);
       await queryClient.cancelQueries({ queryKey: feedKey });
 
@@ -246,7 +254,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
 
       return { previousFeed, previousLocalReactions };
     },
-    onError: (_err, _vars, context) => {
+    onError: (err: Error, _vars, context) => {
       if (context?.previousFeed) {
         queryClient.setQueryData(queryKeys.posts.feed(filters), context.previousFeed);
       }
@@ -254,6 +262,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
         setMyReactions(context.previousLocalReactions);
         writeMyReactions(context.previousLocalReactions);
       }
+      setReactionError(err.message || "That reaction did not save. Try again.");
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.posts.all });
@@ -266,7 +275,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       const action = activeForPost.includes(reactionKey) ? "unreact" : "react";
       reactionMutation.mutate({ postId, reactionKey, action });
     },
-    [myReactions, reactionMutation]
+    [myReactions, reactionMutation],
   );
 
   // Echo mutation with pending state and rollback
@@ -356,7 +365,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
             posts: page.posts.map((post) => {
               if (post.id !== postId) return post;
               const filteredEchoes = (post.echoes || []).filter(
-                (e) => !e.id.startsWith("pending-")
+                (e) => !e.id.startsWith("pending-"),
               );
               return {
                 ...post,
@@ -381,7 +390,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       }
       await echoMutation.mutateAsync(echoParams);
     },
-    [echoMutation]
+    [echoMutation],
   );
 
   // Post submission mutation
@@ -441,7 +450,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
     }) => {
       return await submitMutation.mutateAsync(input);
     },
-    [submitMutation]
+    [submitMutation],
   );
 
   const refetch = useCallback(async () => {
@@ -462,6 +471,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
     submitPost,
     isSubmitting: submitMutation.isPending,
     submitError,
+    reactionError,
     onReact,
     onEcho,
     myReactions,

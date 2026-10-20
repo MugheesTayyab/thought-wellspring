@@ -3,21 +3,33 @@ import type { Preset, ExclusivePreset } from "../types/unsaid";
 export const PRESETS: Preset[] = [
   {
     key: "midnight-static",
-    name: "Midnight Static",
-    from: "#1b1f3b",
-    to: "#3d2b56",
-    ink: "#f4f0ff",
+    name: "Soft Note",
+    from: "#FFFCF8",
+    to: "#FBE9E5",
+    ink: "#342D2A",
   },
-  { key: "3am", name: "3AM Thoughts", from: "#101820", to: "#25424f", ink: "#eaf6ff" },
+  { key: "3am", name: "Blue Window", from: "#F7F8FF", to: "#E5EAF8", ink: "#303849" },
   {
     key: "golden-hour",
-    name: "Golden Hour Confession",
-    from: "#ff9a2b",
-    to: "#e0192b",
-    ink: "#fff8f2",
+    name: "Peach Hour",
+    from: "#FFF8F2",
+    to: "#FBE4D9",
+    ink: "#3D302B",
   },
-  { key: "quiet-storm", name: "Quiet Storm", from: "#243b4a", to: "#6b7f8c", ink: "#f5fbff" },
-  { key: "neon-ache", name: "Neon Ache", from: "#ff2e88", to: "#5b16d6", ink: "#fff0f8" },
+  {
+    key: "quiet-storm",
+    name: "After Hours",
+    from: "#F8F5FA",
+    to: "#EAE5F0",
+    ink: "#37313C",
+  },
+  {
+    key: "neon-ache",
+    name: "Little Spark",
+    from: "#FFFDF3",
+    to: "#F7EDC9",
+    ink: "#3B3527",
+  },
 ];
 
 export const EXCLUSIVE_PRESETS: ExclusivePreset[] = [

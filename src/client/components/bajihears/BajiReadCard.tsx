@@ -1,295 +1,100 @@
-import { ArchetypeDefinition, BAJI_READ_COST, TraitBreakdown } from "@/client/lib/bajiRead";
-import { Share2, Check, Copy, Eye, Heart, Sparkles, Flame, Clock } from "lucide-react";
-import { triggerHaptic } from "@/client/lib/haptics";
-
-export interface BajiReadCardProps {
-  archetype: ArchetypeDefinition;
-  totalWarmth: number;
-  bonusUnlocked: boolean;
-  onSpendWarmth: () => void;
-  onCopy: () => void;
-  onShare: () => void;
-  copied: boolean;
-  matchAccuracy?: number;
-  traits?: TraitBreakdown;
-  vibeSignature?: string;
-  evidenceSummary?: string;
-}
+import { Bookmark, BookmarkCheck, Check, Copy, Share2 } from "lucide-react";
+import type { ArchetypeDefinition } from "@/client/lib/bajiRead";
 
 export function BajiReadCard({
   archetype,
-  totalWarmth,
-  bonusUnlocked,
-  onSpendWarmth,
+  evidenceSummary,
+  saved,
+  copied,
+  onSave,
   onCopy,
   onShare,
-  copied,
-  matchAccuracy = 96,
-  traits,
-  vibeSignature,
-  evidenceSummary,
-}: BajiReadCardProps) {
-  const canAffordBonus = totalWarmth >= BAJI_READ_COST;
-  const warmthProgressPct = Math.min(100, Math.max(0, (totalWarmth / BAJI_READ_COST) * 100));
-
-  const resolvedTraits: TraitBreakdown = traits ?? archetype.defaultTraits;
-
+}: {
+  archetype: ArchetypeDefinition;
+  evidenceSummary: string;
+  saved: boolean;
+  copied: boolean;
+  onSave: () => void;
+  onCopy: () => void;
+  onShare: () => void;
+}) {
   return (
     <article
-      role="article"
-      aria-label={`Your Baji Read result: ${archetype.name}`}
-      className="relative w-full max-w-md rounded-3xl border border-white/12 bg-gradient-to-b from-[#1c1511] via-[#140e0b] to-[#0d0906] p-5 sm:p-7 backdrop-blur-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] animate-[slideUp_0.3s_ease-out] overflow-hidden"
+      className="paper-card motion-note-in relative w-full overflow-hidden p-6 sm:p-8"
+      aria-labelledby="read-title"
     >
-      {/* Top subtle glow matching archetype color */}
-      <div
-        className="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 size-56 opacity-25 blur-3xl rounded-full"
-        style={{
-          background: `radial-gradient(circle, ${archetype.color} 0%, transparent 70%)`,
-        }}
-        aria-hidden
-      />
-
-      {/* Header Bar: Polished Read Time + Match Confidence Badge */}
-      <div className="flex items-center justify-between gap-2 text-xs">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04] text-[#9C8F87] text-[11px] font-medium font-sans">
-          <Clock className="size-3 text-[#E8552E]" />
-          <span>2 min read</span>
-        </div>
-
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-amber-500/25 bg-amber-500/10 text-amber-300 text-[11px] font-semibold font-sans tabular-nums">
-          <Sparkles className="size-3 text-amber-400" />
-          <span>{matchAccuracy}% Personality Match</span>
-        </div>
+      <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: archetype.color }} />
+      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-coral">
+        Your Baji Read · about 2 minutes
+      </p>
+      <div className="mt-7 text-4xl" aria-hidden>
+        {archetype.emoji}
       </div>
-
-      {/* Emoji & Archetype Name */}
-      <div className="mt-5 text-center">
-        <div className="inline-flex size-16 sm:size-20 items-center justify-center rounded-3xl bg-white/[0.04] border border-white/10 shadow-inner">
-          <span className="text-4xl sm:text-5xl select-none" aria-hidden="true">
-            {archetype.emoji}
-          </span>
-        </div>
-
-        <h2 className="mt-3.5 font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-[#F5EFE9]">
-          {archetype.name}
-        </h2>
-
-        <p className="mt-1 font-sans text-xs sm:text-sm font-medium text-[#E8552E]">
-          {archetype.tagline}
+      <h2 id="read-title" className="mt-3 font-display text-3xl font-bold leading-tight text-ink">
+        {archetype.name}
+      </h2>
+      <p className="mt-1 text-sm font-semibold" style={{ color: archetype.color }}>
+        {archetype.tagline}
+      </p>
+      <p className="mt-6 border-l-2 border-coral pl-4 font-quote text-xl leading-8 text-ink">
+        “{archetype.hookLine}”
+      </p>
+      <div className="mt-7 space-y-7 text-[15px] leading-7 text-ink/85">
+        <section>
+          <h3 className="font-display text-lg font-bold text-ink">The opening note</h3>
+          <p className="mt-2">{archetype.opening}</p>
+        </section>
+        <section>
+          <h3 className="font-display text-lg font-bold text-ink">A familiar pattern</h3>
+          <p className="mt-2">{archetype.pattern}</p>
+        </section>
+        <section className="rounded-2xl bg-lilac/60 p-4">
+          <h3 className="font-display text-lg font-bold text-ink">The gentle contrast</h3>
+          <p className="mt-2">{archetype.contrast}</p>
+        </section>
+        <section>
+          <h3 className="font-display text-lg font-bold text-ink">A note to keep</h3>
+          <p className="mt-2 font-medium">{archetype.closing}</p>
+        </section>
+      </div>
+      <div className="mt-7 rounded-2xl border border-border bg-cream/70 p-4">
+        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          Why this appeared
         </p>
-
-        {/* Polished Individual Insight Badges */}
-        {vibeSignature && (
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
-            {vibeSignature.split("•").map((trait, idx) => (
-              <span
-                key={idx}
-                className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium font-sans text-[#F5EFE9]/90 shadow-sm"
-              >
-                <span className="size-1 rounded-full bg-[#E8552E]" aria-hidden="true" />
-                {trait.trim()}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Hook Line Quote */}
-        <p className="mt-3.5 font-quote text-sm sm:text-base text-[#F5EFE9]/90 italic px-2 leading-relaxed">
-          &ldquo;{archetype.hookLine}&rdquo;
-        </p>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">{evidenceSummary}</p>
       </div>
-
-      {/* Divider */}
-      <div className="my-5 h-px w-full bg-white/[0.08]" />
-
-      {/* Deep Psychological Paragraph */}
-      <div className="space-y-3 font-sans text-xs sm:text-sm leading-relaxed text-[#F5EFE9]/85">
-        <p>{archetype.fullParagraph}</p>
-      </div>
-
-      {/* How Others Secretly Perceive You */}
-      <div className="mt-5 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 text-left">
-        <div className="flex items-center gap-2 text-xs font-bold text-[#F5EFE9] mb-1.5">
-          <Eye className="size-3.5 text-sky-400 shrink-0" />
-          <span>How people secretly think of you</span>
-        </div>
-        <p className="font-sans text-xs text-[#9C8F87] leading-relaxed">
-          {archetype.howOthersSeeYou}
-        </p>
-      </div>
-
-      {/* Secret Vulnerability */}
-      <div className="mt-3 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 text-left">
-        <div className="flex items-center gap-2 text-xs font-bold text-[#F5EFE9] mb-1.5">
-          <Heart className="size-3.5 text-rose-400 shrink-0" />
-          <span>What you secretly hide</span>
-        </div>
-        <p className="font-sans text-xs text-[#9C8F87] leading-relaxed">
-          {archetype.secretVulnerability}
-        </p>
-      </div>
-
-      {/* Telemetry Accuracy Evidence */}
-      {evidenceSummary && (
-        <div className="mt-3 rounded-2xl border border-[#E8552E]/20 bg-[#E8552E]/[0.04] p-3 text-left">
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#E8552E] mb-1">
-            <Flame className="size-3 shrink-0" />
-            <span>Telemetry Verification</span>
-          </div>
-          <p className="font-sans text-[11px] text-[#9C8F87] leading-relaxed">
-            {evidenceSummary}
-          </p>
-        </div>
-      )}
-
-      {/* Vibe Trait Breakdown (Empathy, Intuition, Chaos, Depth) */}
-      <div className="mt-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-2.5">
-        <div className="flex items-center justify-between text-xs font-bold text-[#F5EFE9] mb-2">
-          <span>Unspoken Vibe Breakdown</span>
-          <span className="text-[10px] text-[#9C8F87] font-normal">telemetry derived</span>
-        </div>
-
-        <div className="space-y-2 text-xs font-sans">
-          <div>
-            <div className="flex justify-between text-[11px] mb-1">
-              <span className="text-[#9C8F87]">Empathy Radar</span>
-              <span className="font-sans font-bold tabular-nums text-[#F5EFE9]">{resolvedTraits.empathy}%</span>
-            </div>
-            <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-rose-400 rounded-full transition-all duration-700"
-                style={{ width: `${resolvedTraits.empathy}%` }}
-              />
-            </div>
-          </div>
-
-          <div>
-            <div className="flex justify-between text-[11px] mb-1">
-              <span className="text-[#9C8F87]">Intuition / Perception</span>
-              <span className="font-sans font-bold tabular-nums text-[#F5EFE9]">{resolvedTraits.intuition}%</span>
-            </div>
-            <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-sky-400 rounded-full transition-all duration-700"
-                style={{ width: `${resolvedTraits.intuition}%` }}
-              />
-            </div>
-          </div>
-
-          <div>
-            <div className="flex justify-between text-[11px] mb-1">
-              <span className="text-[#9C8F87]">Chaos / Main Character Energy</span>
-              <span className="font-sans font-bold tabular-nums text-[#F5EFE9]">{resolvedTraits.chaos}%</span>
-            </div>
-            <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-amber-400 rounded-full transition-all duration-700"
-                style={{ width: `${resolvedTraits.chaos}%` }}
-              />
-            </div>
-          </div>
-
-          <div>
-            <div className="flex justify-between text-[11px] mb-1">
-              <span className="text-[#9C8F87]">Emotional Depth</span>
-              <span className="font-sans font-bold tabular-nums text-[#F5EFE9]">{resolvedTraits.depth}%</span>
-            </div>
-            <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-purple-400 rounded-full transition-all duration-700"
-                style={{ width: `${resolvedTraits.depth}%` }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Warmth Bonus Section (Deeper cut) */}
-      <div className="mt-5">
-        {bonusUnlocked ? (
-          <div className="rounded-2xl border border-[#E8552E]/40 bg-[#E8552E]/10 p-4 animate-[fadeIn_0.2s_ease-out]">
-            <div className="flex items-center gap-1.5 font-sans text-xs font-bold text-[#E8552E]">
-              <Flame className="size-3.5 fill-current" />
-              <span>Baji&apos;s deepest cut:</span>
-            </div>
-            <p className="mt-1.5 font-quote text-xs sm:text-sm text-[#F5EFE9] italic leading-relaxed">
-              &ldquo;{archetype.bonusLine}&rdquo;
-            </p>
-          </div>
-        ) : canAffordBonus ? (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-sans text-xs font-bold text-[#F5EFE9] flex items-center gap-1.5">
-                <Flame className="size-3.5 text-[#E8552E]" />
-                <span>Unlock deeper insight</span>
-              </span>
-              <span className="font-sans font-bold tabular-nums text-xs text-[#E8552E]">{totalWarmth} pts</span>
-            </div>
-            <p className="font-sans text-xs text-[#9C8F87] leading-relaxed">
-              Spend 30 points to unlock the deepest observation Baji has on you.
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                triggerHaptic("celebration");
-                onSpendWarmth();
-              }}
-              className="w-full py-2.5 rounded-xl bg-[#E8552E] text-white font-semibold text-xs shadow-md hover:opacity-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
-            >
-              <span>Reveal deeper insight (30 pts)</span>
-            </button>
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 space-y-2">
-            <div className="flex items-center justify-between text-xs font-semibold text-[#F5EFE9]">
-              <span className="flex items-center gap-1.5">
-                <Flame className="size-3.5 text-[#E8552E]" />
-                <span>Deeper insight locked</span>
-              </span>
-              <span className="font-sans font-bold tabular-nums text-xs text-[#9C8F87]">
-                {totalWarmth} / {BAJI_READ_COST} pts
-              </span>
-            </div>
-            <p className="font-sans text-xs text-[#9C8F87]">
-              React on the Wall to reach {BAJI_READ_COST} points and reveal your deeper insight.
-            </p>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-              <div
-                className="h-full rounded-full bg-[#E8552E] transition-all duration-500"
-                style={{ width: `${warmthProgressPct}%` }}
-              />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Divider */}
-      <div className="my-5 h-px w-full bg-white/[0.08]" />
-
-      {/* Sharing & Copy Action Buttons */}
-      <div className="flex items-center gap-2.5">
+      <p className="mt-4 text-xs leading-5 text-muted-foreground">
+        This is a playful editorial reflection from your activity here—not a diagnosis, score, or
+        claim about what other people think.
+      </p>
+      <div className="mt-6 grid grid-cols-3 gap-2">
         <button
           type="button"
-          onClick={() => {
-            triggerHaptic("selection");
-            onCopy();
-          }}
-          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.05] hover:bg-white/[0.1] px-4 py-2.5 text-xs font-semibold text-[#F5EFE9] transition-all cursor-pointer"
+          onClick={onSave}
+          className="tap-44 flex items-center justify-center gap-1.5 rounded-xl border border-border bg-white text-xs font-semibold"
         >
-          {copied ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
-          <span>{copied ? "Copied" : "Copy Vibe"}</span>
+          {saved ? (
+            <BookmarkCheck className="size-4 text-coral" />
+          ) : (
+            <Bookmark className="size-4" />
+          )}
+          {saved ? "Saved" : "Save"}
         </button>
-
         <button
           type="button"
-          onClick={() => {
-            triggerHaptic("selection");
-            onShare();
-          }}
-          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#E8552E] hover:opacity-95 px-4 py-2.5 text-xs font-semibold text-white transition-all shadow-md cursor-pointer"
+          onClick={onCopy}
+          className="tap-44 flex items-center justify-center gap-1.5 rounded-xl border border-border bg-white text-xs font-semibold"
         >
-          <Share2 className="size-3.5" />
-          <span>Share Story</span>
+          {copied ? <Check className="size-4 text-sage" /> : <Copy className="size-4" />}
+          {copied ? "Copied" : "Copy"}
+        </button>
+        <button
+          type="button"
+          onClick={onShare}
+          className="tap-44 flex items-center justify-center gap-1.5 rounded-xl bg-coral text-xs font-bold text-white"
+        >
+          <Share2 className="size-4" />
+          Share
         </button>
       </div>
     </article>

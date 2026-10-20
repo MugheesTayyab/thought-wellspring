@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
-export const HeroIntro: React.FC = () => {
+export function HeroIntro() {
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const isDismissed = localStorage.getItem("bh:hero-collapsed") === "1";
-      if (isDismissed) setCollapsed(true);
-    }
+    const returning = localStorage.getItem("bh:wall-visited") === "1";
+    setCollapsed(returning || localStorage.getItem("bh:hero-collapsed") === "1");
+    localStorage.setItem("bh:wall-visited", "1");
   }, []);
 
   const toggleCollapse = () => {
@@ -16,82 +15,55 @@ export const HeroIntro: React.FC = () => {
     setCollapsed(next);
     try {
       localStorage.setItem("bh:hero-collapsed", next ? "1" : "0");
-    } catch {}
+    } catch {
+      // The intro still works when storage is unavailable.
+    }
   };
 
   if (collapsed) {
     return (
-      <div className="flex items-center justify-between rounded-2xl border border-white/[0.06] bg-[#17110D] px-4 py-2.5 text-xs text-[#9C8F87]">
-        <span className="font-sans text-xs">
-          A quiet space where anonymous thoughts reach thousands.
-        </span>
+      <div className="flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-2.5 text-sm text-muted-foreground">
+        <span>Good to see you around. Read for a while.</span>
         <button
           type="button"
           onClick={toggleCollapse}
-          className="text-[#E8552E] hover:underline font-medium text-xs flex items-center gap-1 cursor-pointer"
+          className="flex min-h-11 shrink-0 items-center gap-1 font-semibold text-primary"
         >
-          <span>How it works</span>
-          <ChevronDown className="size-3" />
+          About <ChevronDown className="size-4" aria-hidden />
         </button>
       </div>
     );
   }
 
   return (
-    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-[#17110D] border border-white/[0.08] p-4 sm:p-5 shadow-xs transition-all animate-[fadeIn_0.2s_ease-out]">
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[11px] font-sans font-medium text-[#E8552E]">
-            <span>Quiet Sanctuary</span>
-          </div>
-
-          <h2 className="font-quote text-xl sm:text-2xl font-bold tracking-tight text-[#F5EFE9] leading-snug">
-            For introverts with a loud mind and a quiet voice.
-          </h2>
-
-          <p className="font-sans text-xs sm:text-[13px] text-[#9C8F87] leading-relaxed max-w-md">
-            This is where an anonymous confession can reach thousands of kindred people without ever exposing who you are. No followers required. No identity attached.
-          </p>
-
-          <div className="pt-2 border-t border-white/[0.06] space-y-2">
-            <p className="text-[12px] font-sans font-medium text-[#F5EFE9]">
-              The Path to Bajislays
-            </p>
-            <p className="text-[11px] font-sans text-[#9C8F87] leading-relaxed">
-              Every cycle, one post chosen by both community resonance and our editorial curators is crowned Cycle Champion and featured on Bajislays (@bajihears).
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 font-sans">
-              <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-2.5">
-                <span className="text-[11px] font-semibold text-amber-300 block">
-                  What curators look for
-                </span>
-                <span className="text-[10.5px] text-[#9C8F87] leading-normal block mt-0.5">
-                  Raw authenticity, craft of writing, and honest emotional weight.
-                </span>
-              </div>
-              <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-2.5">
-                <span className="text-[11px] font-semibold text-[#E8552E] block">
-                  What the audience votes on
-                </span>
-                <span className="text-[10.5px] text-[#9C8F87] leading-normal block mt-0.5">
-                  Relatability, emotional resonance, and shared human truth.
-                </span>
-              </div>
-            </div>
-          </div>
+    <section className="relative overflow-hidden rounded-3xl border border-[#F1D7D2] bg-[#FBE6E4] px-5 py-6 sm:px-6 sm:py-7">
+      <div className="absolute -right-4 -top-5 size-24 rounded-full bg-white/40" aria-hidden />
+      <div className="relative max-w-sm">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-[#7D3028]">
+            <span className="listening-mark" aria-hidden /> The Wall
+          </span>
+          <button
+            type="button"
+            onClick={toggleCollapse}
+            aria-label="Collapse introduction"
+            className="flex size-11 items-center justify-center rounded-full text-[#665A60] hover:bg-white/60"
+          >
+            <ChevronUp className="size-4" aria-hidden />
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={toggleCollapse}
-          aria-label="Minimize intro"
-          title="Minimize"
-          className="text-[#9C8F87] hover:text-[#F5EFE9] p-1.5 rounded-full hover:bg-white/[0.05] transition shrink-0 cursor-pointer"
-        >
-          <ChevronUp className="size-4" />
-        </button>
+        <h2 className="max-w-[18rem] font-quote text-[34px] leading-[1.02] tracking-[-0.02em] text-foreground sm:text-[38px]">
+          For the thoughts you keep to yourself.
+        </h2>
+        <p className="mt-3 max-w-[21rem] text-[15px] leading-6 text-muted-foreground">
+          Read what others are thinking. Share when you feel like it.
+        </p>
+        <p className="mt-5 flex items-center gap-2 text-xs font-semibold text-[#7D3028]">
+          <span className="block h-px w-6 bg-[#D65A49]" aria-hidden />
+          Just here to read? That&apos;s welcome too.
+        </p>
       </div>
-    </div>
+    </section>
   );
-};
+}

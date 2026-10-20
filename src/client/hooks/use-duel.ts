@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/client/lib/query-keys";
 import { apiFetchActiveDuel, apiSubmitDuelVote } from "@/routes/api/duels";
-import { MOCK_DUELS } from "@/shared/constants/duels";
 import { useDeviceToken } from "@/client/hooks/use-device-token";
 import { useWarmth } from "@/client/stores/warmth-context";
 import { readAnsweredDuels, writeAnsweredDuels } from "@/client/lib/local-storage";
@@ -50,17 +49,14 @@ export function useDuel(): UseDuelReturn {
       const res = await apiFetchActiveDuel({
         data: deviceToken ? { deviceToken } : undefined,
       });
-      if (res.ok) {
-        return res.data;
-      }
-      return { duel: null, alreadyVoted: false };
+      if (res.ok) return res.data;
+      throw new Error(res.error.message);
     },
     staleTime: 60_000,
     gcTime: 300_000,
   });
 
-  // Active duel from DB, fallback to first mock duel if none active in DB
-  const duel: Duel | null = data?.duel ?? MOCK_DUELS[0] ?? null;
+  const duel: Duel | null = data?.duel ?? null;
 
   // Determine answered status: server source takes priority, fallback to local storage
   const activeDuelId = duel?.id;
@@ -71,13 +67,13 @@ export function useDuel(): UseDuelReturn {
     data?.userChoice !== undefined ? data.userChoice : localRecord?.choiceIndex;
 
   // Vote counts
-  const votesA = duel?.votesA ?? 12;
-  const votesB = duel?.votesB ?? 14;
+  const votesA = duel?.votesA ?? 0;
+  const votesB = duel?.votesB ?? 0;
 
   // Mathematical percentage calculation
   const { pctA, pctB } = useMemo(() => {
     const total = votesA + votesB;
-    if (total <= 0) return { pctA: 50, pctB: 50 };
+    if (total <= 0) return { pctA: 0, pctB: 0 };
     const calculatedA = Math.round((votesA / total) * 100);
     return {
       pctA: calculatedA,
@@ -86,13 +82,7 @@ export function useDuel(): UseDuelReturn {
   }, [votesA, votesB]);
 
   const voteMutation = useMutation({
-    mutationFn: async ({
-      duelId,
-      choiceIndex,
-    }: {
-      duelId: string;
-      choiceIndex: 0 | 1;
-    }) => {
+    mutationFn: async ({ duelId, choiceIndex }: { duelId: string; choiceIndex: 0 | 1 }) => {
       if (!deviceToken) throw new Error("No device identity available");
       const res = await apiSubmitDuelVote({
         data: {
@@ -146,10 +136,7 @@ export function useDuel(): UseDuelReturn {
     },
     onError: (_err, _vars, context) => {
       if (context?.previousDuelData) {
-        queryClient.setQueryData(
-          queryKeys.duels.active(deviceToken),
-          context.previousDuelData
-        );
+        queryClient.setQueryData(queryKeys.duels.active(deviceToken), context.previousDuelData);
       }
       if (context?.previousRecord) {
         setAnsweredRecord(context.previousRecord);
@@ -157,9 +144,8 @@ export function useDuel(): UseDuelReturn {
       }
     },
     onSuccess: (res) => {
-      // Award warmth client-side
       try {
-        awardWarmth("duel", "Voted in Daily Duel");
+        awardWarmth("duel", "Chose in a Duel");
       } catch (err) {
         console.warn("[useDuel] Could not award warmth:", err);
       }
