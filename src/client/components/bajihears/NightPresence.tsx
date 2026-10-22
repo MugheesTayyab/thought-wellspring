@@ -27,8 +27,8 @@ export const NightPresence: React.FC = () => {
         <span className="absolute inline-flex h-full w-full rounded-full bg-[#E8552E] opacity-75 animate-ping" />
         <span className="relative inline-flex size-1.5 rounded-full bg-[#E8552E]" />
       </span>
-      <span className="text-[12px] text-[#9C8F87] tracking-normal font-normal">
-        <strong className="text-[#F5EFE9] font-medium font-mono tabular-nums">{soulsCount}</strong>{" "}
+      <span className="text-[12px] text-muted-foreground tracking-normal font-normal">
+        <strong className="text-foreground font-medium font-sans tabular-nums">{soulsCount}</strong>{" "}
         whispering in the dark right now
       </span>
     </div>

@@ -39,32 +39,26 @@ export const FeedWritingPrompt: React.FC<FeedWritingPromptProps> = ({ onWriteCli
   };
 
   return (
-    <div className="slide-in-card relative overflow-hidden rounded-2xl sm:rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/10 via-[#170e0e]/95 to-black/80 p-5 sm:p-6 shadow-[0_4px_25px_rgba(250,84,28,0.15)] text-center transition-all hover:border-primary/50">
-      {/* Ambient Radial Accent */}
-      <div
-        className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 size-40 rounded-full bg-primary/15 blur-2xl"
-        aria-hidden
-      />
-
+    <div className="relative overflow-hidden rounded-3xl border border-border-card bg-[#FFFDFC] p-5 sm:p-6 shadow-soft text-center transition-all hover:border-primary/40">
       <div className="relative z-10 flex flex-col items-center gap-3">
-        <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/20 border border-primary/40 text-primary shadow-[0_0_15px_rgba(250,84,28,0.3)]">
+        <div className="flex size-11 items-center justify-center rounded-2xl bg-accent border border-primary/20 text-primary">
           <Feather className="size-5" />
         </div>
 
         <div className="space-y-1 max-w-sm">
-          <h3 className="font-display text-base sm:text-lg font-bold text-white tracking-tight flex items-center justify-center gap-1.5">
+          <h3 className="font-serif text-lg sm:text-xl font-normal text-foreground tracking-tight flex items-center justify-center gap-1.5">
             <span>You've been listening for a while.</span>
           </h3>
-          <p className="font-vibe text-xs sm:text-sm text-white/75 leading-relaxed">"{subtext}"</p>
+          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">"{subtext}"</p>
         </div>
 
         <button
           type="button"
           onClick={handleClick}
-          className="mt-1 inline-flex items-center gap-2 rounded-xl bg-brand-gradient px-5 py-2.5 text-xs sm:text-sm font-bold text-primary-foreground shadow-[0_0_20px_rgba(250,84,28,0.35)] transition-all active:scale-95 hover:shadow-[0_0_25px_rgba(250,84,28,0.5)]"
+          className="mt-1 inline-flex min-h-11 items-center gap-2 rounded-2xl bg-primary px-5 py-2.5 text-xs sm:text-sm font-semibold text-primary-foreground shadow-xs transition-transform active:scale-[0.98]"
         >
           <span>Write it</span>
-          <span className="font-mono text-xs">→</span>
+          <span className="text-xs" aria-hidden>→</span>
         </button>
       </div>
     </div>

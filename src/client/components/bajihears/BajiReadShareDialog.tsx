@@ -154,19 +154,19 @@ export function BajiReadShareDialog({ archetype, open, onClose }: BajiReadShareD
       role="dialog"
       aria-modal="true"
       aria-label={`Share ${archetype.name} to Story`}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-[fadeIn_0.15s_ease-out]"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-[fadeIn_0.15s_ease-out]"
     >
-      <div className="w-full max-w-[320px] rounded-3xl border border-white/12 bg-gradient-to-b from-[#1f1712]/95 via-[#17110D]/95 to-[#100b08]/98 p-4 text-[#F5EFE9] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] backdrop-blur-2xl max-h-[92vh] overflow-y-auto no-scrollbar animate-[scaleUp_0.18s_ease-out]">
+      <div className="w-full max-w-[320px] rounded-3xl border border-border-card bg-card p-5 text-foreground shadow-[0_20px_50px_-15px_rgba(62,43,38,0.2)] max-h-[92vh] overflow-y-auto no-scrollbar animate-[scaleUp_0.18s_ease-out]">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <p className="font-sans text-xs font-semibold text-[#F5EFE9]">Share your Baji Read</p>
+          <p className="font-sans text-xs font-semibold text-foreground">Share your Baji Read</p>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="tap-44 grid place-items-center cursor-pointer"
+            className="tap-44 grid place-items-center cursor-pointer p-1 text-muted-foreground hover:text-foreground transition-colors"
           >
-            <X className="text-[#9C8F87] hover:text-[#F5EFE9] size-4 transition-colors" />
+            <X className="size-4" />
           </button>
         </div>
 
@@ -178,10 +178,10 @@ export function BajiReadShareDialog({ archetype, open, onClose }: BajiReadShareD
           <img
             src={dataUrl}
             alt={`${archetype.name} share preview`}
-            className="mt-3.5 w-full rounded-2xl border border-white/10 shadow-lg aspect-[4/5] object-cover"
+            className="mt-3.5 w-full rounded-2xl border border-border-card shadow-sm aspect-[4/5] object-cover"
           />
         ) : (
-          <div className="bg-white/5 mt-3.5 aspect-[4/5] w-full animate-pulse rounded-2xl" />
+          <div className="bg-secondary mt-3.5 aspect-[4/5] w-full animate-pulse rounded-2xl border border-border-card" />
         )}
 
         {/* Preset Selector */}
@@ -192,10 +192,10 @@ export function BajiReadShareDialog({ archetype, open, onClose }: BajiReadShareD
               type="button"
               onClick={() => setPresetKey(p.key)}
               className={cn(
-                "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-all active:scale-95 cursor-pointer",
+                "shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-all active:scale-95 cursor-pointer",
                 presetKey === p.key
-                  ? "border-primary/60 bg-primary/20 text-primary shadow-[0_0_10px_rgba(250,84,28,0.25)]"
-                  : "border-white/10 bg-white/[0.03] text-muted-foreground hover:bg-white/[0.07] hover:text-foreground",
+                  ? "border-primary bg-accent text-primary font-semibold"
+                  : "border-border-card bg-card text-muted-foreground hover:text-foreground",
               )}
             >
               {p.name}
@@ -207,13 +207,13 @@ export function BajiReadShareDialog({ archetype, open, onClose }: BajiReadShareD
         <button
           type="button"
           onClick={share}
-          className="bg-brand-gradient text-white mt-4 w-full rounded-2xl py-3 text-sm font-semibold shadow-md active:scale-98 transition-transform flex items-center justify-center gap-2 cursor-pointer"
+          className="bg-primary text-white mt-4 w-full min-h-11 rounded-2xl py-2.5 text-sm font-semibold shadow-xs hover:bg-primary/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
           <Share2 className="h-4 w-4" />
           <span>Share or download</span>
         </button>
 
-        <p className="text-muted-foreground/70 mt-2 text-center text-[11px]">
+        <p className="text-muted-foreground mt-2 text-center text-[11px] leading-tight">
           If direct sharing isn&apos;t supported on your browser, the card will download directly.
         </p>
       </div>

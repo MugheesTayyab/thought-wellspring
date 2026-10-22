@@ -36,31 +36,31 @@ export function HeroIntro() {
   }
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-[#F1D7D2] bg-[#FBE6E4] px-5 py-6 sm:px-6 sm:py-7">
-      <div className="absolute -right-4 -top-5 size-24 rounded-full bg-white/40" aria-hidden />
-      <div className="relative max-w-sm">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-[#7D3028]">
-            <span className="listening-mark" aria-hidden /> The Wall
+    <section className="relative overflow-hidden rounded-3xl border border-[#E3B8B1] bg-[#FBE6E4] px-4.5 py-4 sm:px-6 sm:py-5 shadow-xs">
+      <div className="absolute -right-4 -top-5 size-20 rounded-full bg-white/40 pointer-events-none" aria-hidden />
+      <div className="relative">
+        <div className="flex items-center justify-between gap-3">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E3B8B1]/70 bg-white/80 px-2.5 py-0.5 text-[11px] font-semibold text-[#7D3028]">
+            <span className="listening-mark scale-75" aria-hidden /> The Wall
           </span>
           <button
             type="button"
             onClick={toggleCollapse}
             aria-label="Collapse introduction"
-            className="flex size-11 items-center justify-center rounded-full text-[#665A60] hover:bg-white/60"
+            className="flex size-9 items-center justify-center rounded-full text-[#7D3028]/70 hover:bg-white/60 transition-colors"
           >
             <ChevronUp className="size-4" aria-hidden />
           </button>
         </div>
 
-        <h2 className="max-w-[18rem] font-quote text-[34px] leading-[1.02] tracking-[-0.02em] text-foreground sm:text-[38px]">
+        <h2 className="mt-2 font-serif text-[22px] sm:text-[26px] leading-[1.2] tracking-[-0.015em] text-foreground font-normal">
           For the thoughts you keep to yourself.
         </h2>
-        <p className="mt-3 max-w-[21rem] text-[15px] leading-6 text-muted-foreground">
+        <p className="mt-1 text-xs sm:text-sm leading-5 text-muted-foreground">
           Read what others are thinking. Share when you feel like it.
         </p>
-        <p className="mt-5 flex items-center gap-2 text-xs font-semibold text-[#7D3028]">
-          <span className="block h-px w-6 bg-[#D65A49]" aria-hidden />
+        <p className="mt-2.5 flex items-center gap-2 text-xs font-medium text-[#7D3028]">
+          <span className="block h-px w-5 bg-primary/40" aria-hidden />
           Just here to read? That&apos;s welcome too.
         </p>
       </div>

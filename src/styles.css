@@ -34,22 +34,31 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-border-subtle: var(--border-subtle);
+  --color-border-card: var(--border-card);
   --color-input: var(--input);
+  --color-input-active: var(--input-active);
   --color-ring: var(--ring);
   --color-ember: var(--ember);
   --color-flame: var(--flame);
   --color-warn: var(--warn);
   --color-coral: var(--primary);
+  --color-coral-action: var(--coral-action);
+  --color-coral-expressive: var(--coral-expressive);
   --color-ink: var(--foreground);
+  --color-ink-primary: var(--ink-primary);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-quiet: var(--ink-quiet);
   --color-paper: var(--card);
   --color-cream: var(--secondary);
   --color-lilac: var(--lilac);
   --color-butter: var(--butter);
   --color-sage: var(--sage);
-  --font-display: "DM Sans", system-ui, sans-serif;
-  --font-sans: "DM Sans", system-ui, sans-serif;
-  --font-vibe: "DM Sans", system-ui, sans-serif;
-  --font-quote: "Instrument Serif", Georgia, serif;
+  --font-display: "DM Sans", system-ui, -apple-system, sans-serif;
+  --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
+  --font-vibe: "DM Sans", system-ui, -apple-system, sans-serif;
+  --font-serif: "Fraunces", Georgia, serif;
+  --font-editorial: "Fraunces", Georgia, serif;
+  --font-quote: "Fraunces", Georgia, serif;
   --font-script: "Sachiko", cursive;
 }
 
@@ -67,25 +76,33 @@
 
 :root {
   --radius: 1.25rem;
-  --background: #faf7f3;
-  --foreground: #272027;
-  --card: #ffffff;
-  --card-foreground: #272027;
+  /* Phase 01 Color System: intentional, light and cozy */
+  --background: #faf7f3;        /* Canvas / warm paper */
+  --foreground: #272027;        /* Ink / primary */
+  --card: #ffffff;              /* Surface / clean sheet */
+  --card-foreground: #272027;   /* Ink / primary */
   --popover: #ffffff;
   --popover-foreground: #272027;
-  --primary: #ae4335;
+  --primary: #ae4335;           /* Coral / accessible action (5.8:1 contrast on white) */
   --primary-foreground: #ffffff;
-  --secondary: #f4ede6;
+  --coral-action: #ae4335;
+  --coral-expressive: #d65a49;  /* Coral / expressive accent */
+  --secondary: #f4ede6;         /* Surface / soft oat */
   --secondary-foreground: #272027;
   --muted: #f4ede6;
-  --muted-foreground: #665a60;
-  --accent: #fbe6e4;
+  --muted-foreground: #665a60;  /* Ink / secondary (6.2:1 contrast on warm paper) */
+  --ink-primary: #272027;
+  --ink-secondary: #665a60;
+  --ink-quiet: #776b72;         /* Ink / quiet */
+  --accent: #fbe6e4;            /* Blush / thought */
   --accent-foreground: #7d3028;
   --destructive: #a43d3d;
   --destructive-foreground: #ffffff;
-  --border: #e8dfdc;
+  --border: #e8dfdc;            /* Divider / warm line */
   --border-subtle: #f0e9e6;
-  --input: #ded3cf;
+  --border-card: #dccdcb;       /* Card border / visible (stronger warm edge) */
+  --input: #dccdcb;             /* Input resting border */
+  --input-active: #a94a40;      /* Input border / active focus */
   --ring: #ae4335;
   --ember: #d65a49;
   --flame: #ae4335;
@@ -98,11 +115,11 @@
   --gradient-brand: linear-gradient(135deg, var(--ember), var(--flame));
   --gradient-hero: linear-gradient(
     160deg,
-    color-mix(in oklab, var(--ember) 18%, var(--card)),
+    color-mix(in oklab, var(--ember) 14%, var(--card)),
     var(--card) 70%
   );
-  --shadow-glow: 0 0 0 1px rgba(174, 67, 53, 0.16), 0 12px 32px -18px rgba(80, 43, 37, 0.22);
-  --shadow-card: 0 1px 2px rgba(62, 43, 38, 0.04), 0 12px 32px -24px rgba(62, 43, 38, 0.2);
+  --shadow-glow: 0 0 0 1px rgba(174, 67, 53, 0.16), 0 12px 32px -18px rgba(80, 43, 37, 0.18);
+  --shadow-card: 0 1px 3px rgba(62, 43, 38, 0.04), 0 10px 28px -16px rgba(62, 43, 38, 0.12);
 }
 
 @layer base {
@@ -332,6 +349,14 @@
 
 @utility font-quote {
   font-family: var(--font-quote);
+}
+
+@utility font-serif {
+  font-family: var(--font-serif);
+}
+
+@utility font-editorial {
+  font-family: var(--font-editorial);
 }
 
 @keyframes slideUp {
@@ -631,7 +656,7 @@
   color: #665a60 !important;
 }
 .light-foundation [class*="border-white/"] {
-  border-color: #e8dfdc !important;
+  border-color: #dccdcb !important;
 }
 .light-foundation [class*="bg-white/[0.0"] {
   background-color: #f4ede6 !important;
@@ -642,7 +667,7 @@
 
 .paper-card {
   background: var(--card);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-card);
   border-radius: 1.5rem;
   box-shadow: var(--shadow-card);
 }
@@ -670,13 +695,28 @@
 }
 
 .motion-note-in {
-  animation: note-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: note-in 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .motion-panel-in {
-  animation: panel-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: panel-in 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .motion-progress {
-  transition: width 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: width 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.motion-sheet-in {
+  animation: panel-in 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.motion-reveal {
+  animation: note-in 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.motion-press {
+  transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.motion-press:active {
+  transform: scale(0.97);
+}
+.motion-chip {
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .listening-mark {
@@ -684,27 +724,32 @@
   align-items: center;
   gap: 2px;
   color: var(--primary);
+  vertical-align: middle;
+  flex-shrink: 0;
 }
 .listening-mark::before,
 .listening-mark::after {
   content: "";
-  display: block;
-  width: 5px;
-  border: 1.5px solid currentColor;
+  display: inline-block;
+  border-right: 1.75px solid currentColor;
+  border-top: 1.75px solid transparent;
+  border-bottom: 1.75px solid transparent;
   border-left: 0;
-  border-block-color: transparent;
   border-radius: 0 999px 999px 0;
+  box-sizing: border-box;
 }
 .nav-items > * {
   flex: 1 1 0;
   min-width: 0;
 }
 .listening-mark::before {
-  height: 10px;
+  width: 4px;
+  height: 9px;
 }
 .listening-mark::after {
-  height: 16px;
-  opacity: 0.55;
+  width: 5px;
+  height: 14px;
+  opacity: 0.65;
 }
 
 /* Accessible reduced-motion fallback (WCAG 2.2) */

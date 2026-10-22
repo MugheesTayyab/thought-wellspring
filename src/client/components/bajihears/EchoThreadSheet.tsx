@@ -77,9 +77,9 @@ export function EchoThreadSheet({ open, post, myHandle, onClose, onEcho, onRepor
         role="dialog"
         aria-modal="true"
         aria-labelledby={`echo-title-${post.id}`}
-        className="flex h-[min(92dvh,880px)] w-full flex-col rounded-t-[28px] border border-border bg-background shadow-2xl sm:max-w-xl sm:rounded-[28px]"
+        className="flex h-[min(92dvh,880px)] w-full flex-col rounded-t-[28px] border border-border-card bg-background shadow-2xl sm:max-w-xl sm:rounded-[28px]"
       >
-        <header className="flex min-h-16 shrink-0 items-center justify-between border-b border-border px-4 sm:px-5">
+        <header className="flex min-h-16 shrink-0 items-center justify-between border-b border-border-card px-4 sm:px-5">
           <div>
             <h2 id={`echo-title-${post.id}`} className="text-lg font-semibold text-foreground">
               Echoes
@@ -115,7 +115,7 @@ export function EchoThreadSheet({ open, post, myHandle, onClose, onEcho, onRepor
           </div>
 
           {post.echoes.length === 0 ? (
-            <p className="mt-4 rounded-2xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
+            <p className="mt-4 rounded-2xl border border-dashed border-border-card p-5 text-center text-sm text-muted-foreground">
               No Echoes yet. You can leave one if you like.
             </p>
           ) : (
@@ -127,7 +127,7 @@ export function EchoThreadSheet({ open, post, myHandle, onClose, onEcho, onRepor
                   <li
                     key={echo.id}
                     className={cn(
-                      "rounded-2xl border border-border bg-card p-3.5",
+                      "rounded-2xl border border-border-card bg-card p-3.5",
                       pending && "opacity-65",
                     )}
                   >
@@ -175,7 +175,7 @@ export function EchoThreadSheet({ open, post, myHandle, onClose, onEcho, onRepor
           )}
         </div>
 
-        <footer className="shrink-0 border-t border-border bg-background px-4 pb-[calc(.75rem+env(safe-area-inset-bottom,0px))] pt-3 sm:px-5">
+        <footer className="shrink-0 border-t border-border-card bg-background px-4 pb-[calc(.75rem+env(safe-area-inset-bottom,0px))] pt-3 sm:px-5">
           <label
             htmlFor={`echo-input-${post.id}`}
             className="text-sm font-semibold text-foreground"
@@ -193,7 +193,7 @@ export function EchoThreadSheet({ open, post, myHandle, onClose, onEcho, onRepor
               onChange={(event) => setText(event.target.value.slice(0, 200))}
               rows={2}
               placeholder="Write an Echo…"
-              className="max-h-28 min-h-12 flex-1 resize-none rounded-2xl border border-border bg-card px-3.5 py-3 text-base leading-5 text-foreground outline-none placeholder:text-muted-foreground focus:border-primary"
+              className="max-h-28 min-h-12 flex-1 resize-none rounded-2xl border border-border-card bg-card px-3.5 py-3 text-base leading-5 text-foreground outline-none placeholder:text-muted-foreground focus:border-primary"
             />
             <button
               type="button"

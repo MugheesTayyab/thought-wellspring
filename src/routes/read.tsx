@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Sparkles, RefreshCcw } from "lucide-react";
 import { useWarmth } from "@/client/stores/warmth-context";
 import {
   readMyReactions,
@@ -15,6 +15,7 @@ import {
   readBajiReadCache,
   writeBajiReadCache,
   getArchetype,
+  getSampleArchetype,
   CACHE_TTL_MS,
   readBajiReadSaved,
   writeBajiReadSaved,
@@ -28,7 +29,7 @@ import { BottomNav } from "@/client/components/bajihears/BottomNav";
 export const Route = createFileRoute("/read")({
   head: () => ({
     meta: [
-      { title: "Your Baji Read | BajiHears" },
+      { title: "Baji Read · A Playful Reflection | BajiHears" },
       {
         name: "description",
         content: "A playful editorial reflection based on how you interact with BajiHears.",
@@ -49,6 +50,7 @@ function ReadPage() {
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [previewingSample, setPreviewingSample] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -77,12 +79,17 @@ function ReadPage() {
     }
   }, [totalWarmth]);
 
-  const archetype = result.unlocked ? getArchetype(result.archetype) : null;
+  const activeArchetype = result.unlocked
+    ? getArchetype(result.archetype)
+    : previewingSample
+      ? getSampleArchetype()
+      : null;
+
   const copyRead = async () => {
-    if (!archetype) return;
+    if (!activeArchetype) return;
     const url = `${window.location.origin}/read`;
     await navigator.clipboard?.writeText(
-      `My playful Baji Read: ${archetype.name} ${archetype.emoji}\n\n“${archetype.hookLine}”\n\nExplore yours: ${url}`,
+      `My playful Baji Read: ${activeArchetype.name} ${activeArchetype.emoji}\n\n“${activeArchetype.hookLine}”\n\nExplore yours: ${url}`,
     );
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1500);
@@ -93,27 +100,31 @@ function ReadPage() {
       <header className="mx-auto flex w-full max-w-md items-center justify-between border-b border-border py-4">
         <Link
           to="/"
-          className="tap-44 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground"
+          className="tap-44 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="size-4" />
           The Wall
         </Link>
-        <h1 className="font-display text-lg font-bold">Baji Read</h1>
+        <div className="flex items-center gap-1.5">
+          <Sparkles className="size-4 text-lilac" />
+          <h1 className="font-display text-lg font-bold text-ink">Baji Read</h1>
+        </div>
         <span className="w-16" aria-hidden />
       </header>
+
       <main className="mx-auto flex w-full max-w-md flex-col items-center py-7">
         {!mounted ? (
           <div className="flex items-center gap-2 py-20 text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" />
+            <Loader2 className="size-4 animate-spin text-coral" />
             Preparing your Read…
           </div>
         ) : loadError ? (
           <div className="paper-card p-6 text-center text-sm text-muted-foreground" role="alert">
             {loadError}
           </div>
-        ) : result.unlocked && archetype ? (
+        ) : result.unlocked && activeArchetype ? (
           <BajiReadCard
-            archetype={archetype}
+            archetype={activeArchetype}
             evidenceSummary={result.evidenceSummary}
             saved={saved}
             copied={copied}
@@ -125,20 +136,54 @@ function ReadPage() {
             onCopy={copyRead}
             onShare={() => setShareOpen(true)}
           />
+        ) : previewingSample && activeArchetype ? (
+          <div className="w-full space-y-4">
+            <div className="flex items-center justify-between rounded-2xl border border-lilac/50 bg-lilac/25 px-4 py-2.5 text-xs font-semibold text-ink">
+              <span className="flex items-center gap-1.5">
+                <Sparkles className="size-3.5 text-lilac" />
+                Sample Archetype Preview
+              </span>
+              <button
+                type="button"
+                onClick={() => setPreviewingSample(false)}
+                className="flex items-center gap-1 text-coral underline hover:text-coral-dark"
+              >
+                <RefreshCcw className="size-3" />
+                View my progress
+              </button>
+            </div>
+            <BajiReadCard
+              archetype={activeArchetype}
+              evidenceSummary="This is a sample demonstration of how an archetype is presented. When you have explored 5 Wall thoughts, your own reflection will be shaped here."
+              saved={saved}
+              copied={copied}
+              isSample={true}
+              onSave={() => {
+                const next = !saved;
+                setSaved(next);
+                writeBajiReadSaved(next);
+              }}
+              onCopy={copyRead}
+              onShare={() => setShareOpen(true)}
+            />
+          </div>
         ) : (
           <BajiReadLockedCard
             totalActions={!result.unlocked ? result.totalActions : 0}
             actionsNeeded={!result.unlocked ? result.actionsNeeded : 5}
+            onPreviewSample={() => setPreviewingSample(true)}
           />
         )}
       </main>
-      {archetype && (
+
+      {activeArchetype && (
         <BajiReadShareDialog
-          archetype={archetype}
+          archetype={activeArchetype}
           open={shareOpen}
           onClose={() => setShareOpen(false)}
         />
       )}
+
       <BottomNav
         totalWarmth={totalWarmth}
         isFlashingOrb={isFlashingOrb}

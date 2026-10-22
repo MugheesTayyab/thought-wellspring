@@ -184,7 +184,7 @@ export function UnsaidCard({
         onPointerMove={onPointerMove}
         className={cn(
           "paper-card relative overflow-hidden p-5 transition-all duration-200 sm:p-6",
-          isWinner ? "border-[#E3B8B1] bg-[#FFF9F6]" : "bg-card",
+          isWinner ? "border-2 border-[#E3B8B1] bg-[#FFF9F6] shadow-[0_12px_36px_-16px_rgba(214,90,73,0.18)]" : "bg-card hover:border-[#CBB9B6]",
           isVetoed && "opacity-40 pointer-events-none",
         )}
       >
@@ -212,12 +212,12 @@ export function UnsaidCard({
                 <span className="font-sans text-xs font-semibold tracking-wide text-[#7D3028] leading-tight">
                   Featured thought
                 </span>
-                <span className="text-[10px] text-[#9C8F87] font-sans leading-tight">
+                <span className="text-[10px] text-muted-foreground font-sans leading-tight">
                   Featured on @bajihears
                 </span>
               </div>
             </div>
-            <span className="rounded-full bg-[#F4EDE6] px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+            <span className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
               Community pick
             </span>
           </div>
@@ -225,7 +225,7 @@ export function UnsaidCard({
 
         {/* Standard Card Header Row: Handle, Instagram icon to the right, date, and category tag */}
         <div className="flex items-center justify-between gap-3 text-xs font-sans mb-3 pb-2.5 border-b border-border-subtle">
-          <div className="flex items-center gap-2 text-[#9C8F87] min-w-0">
+          <div className="flex items-center gap-2 text-muted-foreground min-w-0">
             {unsaid.handle ? (
               <div className="inline-flex items-center gap-1.5 truncate">
                 <button
@@ -248,11 +248,11 @@ export function UnsaidCard({
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="text-[#9C8F87] hover:text-pink-400 transition-colors p-0.5 inline-flex items-center"
+                    className="text-muted-foreground hover:text-pink-500 transition-colors p-0.5 inline-flex items-center"
                     title="Open Instagram"
                   >
                     <Instagram
-                      className="size-3 text-[#E8552E] opacity-80 hover:opacity-100"
+                      className="size-3 text-primary opacity-80 hover:opacity-100"
                       aria-hidden
                     />
                   </a>
@@ -263,13 +263,13 @@ export function UnsaidCard({
                 <span className="listening-mark scale-75" aria-hidden /> Anonymous
               </span>
             )}
-            <span className="text-[#9C8F87]/40 text-xs select-none">·</span>
-            <span className="text-[12px] text-[#9C8F87]/70 whitespace-nowrap">
+            <span className="text-muted-foreground/40 text-xs select-none">·</span>
+            <span className="text-[12px] text-muted-foreground whitespace-nowrap">
               {relativeTime(unsaid.createdAt)}
             </span>
           </div>
 
-          <span className="shrink-0 border border-border text-muted-foreground rounded-full px-2.5 py-0.5 text-[11px] font-normal bg-transparent">
+          <span className="shrink-0 border border-border-card text-muted-foreground rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-secondary/50">
             #{unsaid.category.toLowerCase().replace(/\s+/g, "")}
           </span>
         </div>
@@ -279,7 +279,7 @@ export function UnsaidCard({
           className={cn(
             "font-normal text-foreground tracking-normal [text-wrap:pretty]",
             isWinner
-              ? "font-quote text-[23px] leading-[1.5] sm:text-[26px]"
+              ? "font-serif text-[22px] leading-[1.48] sm:text-[25px]"
               : "font-sans text-[18px] leading-[1.55] sm:text-[20px]",
           )}
         >
@@ -288,27 +288,27 @@ export function UnsaidCard({
 
         {/* Small muted status caption if Winner without header */}
         {isWinner && !hero && (
-          <div className="mt-2.5 text-xs text-[#9C8F87] flex items-center gap-1.5 font-sans">
-            <RevealCountdown className="text-[#9C8F87]" />
+          <div className="mt-2.5 text-xs text-muted-foreground flex items-center gap-1.5 font-sans">
+            <RevealCountdown className="text-muted-foreground" />
           </div>
         )}
 
         {/* Pending status caption */}
         {unsaid.status === "pending" && (
-          <div className="mt-2 text-xs text-amber-400/80 flex items-center gap-1.5 font-sans">
+          <div className="mt-2 text-xs text-amber-600 flex items-center gap-1.5 font-sans">
             <Clock className="size-3 animate-spin" />
             <span>warming up: visible to others shortly</span>
           </div>
         )}
 
         {copied && (
-          <p className="text-[#E8552E] mt-2 text-center text-xs font-semibold animate-fade-in font-sans">
+          <p className="text-primary mt-2 text-center text-xs font-semibold animate-fade-in font-sans">
             Copied to clipboard
           </p>
         )}
 
         {vetoFeedback && (
-          <p className="text-amber-400 mt-2 text-center text-xs font-semibold animate-fade-in flex items-center justify-center gap-1 font-sans">
+          <p className="text-amber-600 mt-2 text-center text-xs font-semibold animate-fade-in flex items-center justify-center gap-1 font-sans">
             <ShieldAlert className="size-3.5" />
             <span>{vetoFeedback}</span>
           </p>
@@ -324,14 +324,14 @@ export function UnsaidCard({
               aria-pressed={mine.includes("heart")}
               onClick={() => react("heart")}
               className={cn(
-                "flex min-h-10 items-center gap-1.5 rounded-xl border px-2.5 text-xs transition-all active:scale-[.97] cursor-pointer",
+                "flex min-h-11 items-center gap-1.5 rounded-xl border px-3 text-xs transition-all active:scale-[.97] cursor-pointer",
                 mine.includes("heart")
-                  ? "border-[#E8552E]/60 bg-[#E8552E]/10 text-[#E8552E] font-semibold"
+                  ? "border-primary/40 bg-accent text-primary font-semibold"
                   : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary",
               )}
             >
               <Heart
-                className={cn("size-3.5", mine.includes("heart") && "fill-current text-[#E8552E]")}
+                className={cn("size-3.5", mine.includes("heart") && "fill-current text-primary")}
               />
               <span className="font-sans font-semibold">Relate</span>
               {unsaid.reactions.heart > 0 && (
@@ -396,8 +396,8 @@ export function UnsaidCard({
               type="button"
               onClick={() => setThreadOpen(true)}
               className={cn(
-                "flex min-h-10 items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors font-sans text-xs font-medium cursor-pointer",
-                echoed && "text-[#E8552E] font-semibold",
+                "flex min-h-11 items-center gap-1.5 rounded-xl px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground cursor-pointer font-sans",
+                echoed && "text-primary font-semibold",
               )}
             >
               <MessageCircle className="size-3.5 shrink-0" />
@@ -413,7 +413,7 @@ export function UnsaidCard({
               onClick={() => onSave(unsaid)}
               aria-pressed={saved}
               className={cn(
-                "flex min-h-10 items-center gap-1.5 text-xs font-medium transition-colors",
+                "flex min-h-11 items-center gap-1.5 rounded-xl px-2.5 text-xs font-medium transition-colors hover:bg-secondary",
                 saved ? "text-primary" : "text-muted-foreground hover:text-foreground",
               )}
               title={saved ? "Remove from saved thoughts" : "Save on this device"}
@@ -426,7 +426,7 @@ export function UnsaidCard({
             <button
               type="button"
               onClick={() => onShare(unsaid)}
-              className="flex min-h-10 items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors font-sans text-xs font-medium cursor-pointer"
+              className="flex min-h-11 items-center gap-1.5 rounded-xl px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground cursor-pointer font-sans"
               title="Share Story Card"
             >
               <Share2 className="size-3.5" />
@@ -439,13 +439,13 @@ export function UnsaidCard({
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
                 aria-label="More options"
-                className="flex size-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground cursor-pointer"
+                className="flex size-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground cursor-pointer"
               >
                 <MoreHorizontal className="size-4" />
               </button>
 
               {menuOpen && (
-                <div className="absolute bottom-full right-0 mb-2 z-30 w-44 overflow-hidden rounded-2xl border border-border bg-card py-1.5 shadow-lg animate-[slideUp_0.15s_ease-out] font-sans">
+                <div className="absolute bottom-full right-0 mb-2 z-30 w-44 overflow-hidden rounded-2xl border border-border-card bg-card py-1.5 shadow-[0_8px_24px_-6px_rgba(62,43,38,0.12)] animate-[slideUp_0.15s_ease-out] font-sans">
                   <button
                     type="button"
                     onClick={() => {

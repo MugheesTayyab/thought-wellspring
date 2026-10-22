@@ -127,7 +127,7 @@ export const WarmthOrb: React.FC<WarmthOrbProps> = ({
       {/* Tier Label */}
       <span
         suppressHydrationWarning
-        className="mt-1 font-mono text-[11px] font-bold tracking-wider text-white/90 group-hover:text-primary"
+        className="mt-1 font-sans tabular-nums text-[11px] font-bold tracking-wider text-white/90 group-hover:text-primary"
       >
         {totalWarmth} 🔥
       </span>

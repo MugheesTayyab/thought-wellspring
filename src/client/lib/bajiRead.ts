@@ -16,6 +16,7 @@ export interface ArchetypeDefinition {
   color: string;
   emoji: string;
   presetKey: string;
+  reflectionPrompt: string;
 }
 
 export const ARCHETYPES: ArchetypeDefinition[] = [
@@ -33,6 +34,7 @@ export const ARCHETYPES: ArchetypeDefinition[] = [
     color: "#7c3aed",
     emoji: "🌙",
     presetKey: "midnight-static",
+    reflectionPrompt: "What is one thought you can let rest tonight without resolving it completely?",
   },
   {
     key: "softie",
@@ -47,6 +49,7 @@ export const ARCHETYPES: ArchetypeDefinition[] = [
     color: "#e76f36",
     emoji: "🫶",
     presetKey: "golden-hour",
+    reflectionPrompt: "Where in your own life could you offer yourself the same grace you give so easily to others?",
   },
   {
     key: "chaos-main",
@@ -61,12 +64,13 @@ export const ARCHETYPES: ArchetypeDefinition[] = [
     color: "#c84e78",
     emoji: "✨",
     presetKey: "neon-ache",
+    reflectionPrompt: "What is an unexpected turn that ended up teaching you something good?",
   },
   {
     key: "quiet-storm",
     name: "The Quiet Observer",
     tagline: "Reading the room gently",
-    hookLine: "You often choose the detail that other people might pass over.",
+    hookLine: "Not every thought needs to be spoken to matter.",
     opening: "Your activity suggests a preference for observation before response.",
     pattern:
       "You seem at home with subtle shifts, layered feelings, and thoughts that do not announce themselves.",
@@ -75,6 +79,7 @@ export const ARCHETYPES: ArchetypeDefinition[] = [
     color: "#3e7f91",
     emoji: "🌊",
     presetKey: "quiet-storm",
+    reflectionPrompt: "What is something you observed recently that gave you quiet reassurance?",
   },
   {
     key: "healer",
@@ -89,6 +94,7 @@ export const ARCHETYPES: ArchetypeDefinition[] = [
     color: "#43876d",
     emoji: "💬",
     presetKey: "3am",
+    reflectionPrompt: "Who in your circle might appreciate a simple, unprompted 'thinking of you' today?",
   },
   {
     key: "nostalgic",
@@ -104,6 +110,7 @@ export const ARCHETYPES: ArchetypeDefinition[] = [
     color: "#6870a8",
     emoji: "📼",
     presetKey: "midnight-static",
+    reflectionPrompt: "What is a happy memory that has stayed surprisingly vivid for you?",
   },
   {
     key: "truth-teller",
@@ -119,6 +126,7 @@ export const ARCHETYPES: ArchetypeDefinition[] = [
     color: "#a86634",
     emoji: "⚖️",
     presetKey: "quiet-storm",
+    reflectionPrompt: "What is a boundary you set that made your life lighter once in place?",
   },
 ];
 
@@ -127,7 +135,11 @@ export const ARCHETYPE_PRESET: Record<ArchetypeKey, string> = Object.fromEntries
 ) as Record<ArchetypeKey, string>;
 
 export function getArchetype(key: ArchetypeKey): ArchetypeDefinition {
-  return ARCHETYPES.find((item) => item.key === key) ?? ARCHETYPES[0]!;
+  return ARCHETYPES.find((item) => item.key === key) ?? ARCHETYPES[3]!;
+}
+
+export function getSampleArchetype(): ArchetypeDefinition {
+  return ARCHETYPES[3]!; // The Quiet Observer as a welcoming sample
 }
 
 export type BajiReadResult =

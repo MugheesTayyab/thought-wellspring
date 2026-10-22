@@ -94,24 +94,24 @@ export function CornerMenu({ seed }: { seed: string }) {
           <div
             role="dialog"
             aria-modal="true"
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-xl animate-[fadeIn_0.15s_ease-out]"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm animate-[fadeIn_0.15s_ease-out]"
             onClick={() => setOpen(false)}
           >
             <div
-              className="w-full max-w-[310px] rounded-3xl border border-white/12 bg-gradient-to-b from-[#1f1712]/95 via-[#17110D]/95 to-[#100b08]/98 p-5 text-[#F5EFE9] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] backdrop-blur-2xl animate-[scaleUp_0.18s_ease-out]"
+              className="w-full max-w-[310px] rounded-3xl border border-border-card bg-card p-5 text-foreground shadow-[0_20px_50px_-15px_rgba(62,43,38,0.2)] animate-[scaleUp_0.18s_ease-out]"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
                   <CornerAvatar seed={seed} photoUrl={customPhoto} size={42} />
                   <div className="min-w-0">
-                    <p className="font-display truncate text-base font-bold">
+                    <p className="font-display truncate text-base font-bold text-foreground">
                       {profile?.handle || (user?.email ? user.email.split("@")[0] : "Your Public Corner")}
                     </p>
                     <p className="font-sans text-[11px] text-muted-foreground flex items-center gap-1">
                       {user ? (
                         <>
-                          <CheckCircle2 className="size-3 text-emerald-400" />
+                          <CheckCircle2 className="size-3 text-emerald-600" />
                           <span>Google Linked</span>
                         </>
                       ) : (
@@ -124,16 +124,16 @@ export function CornerMenu({ seed }: { seed: string }) {
                   type="button"
                   onClick={() => setOpen(false)}
                   aria-label="Close"
-                  className="shrink-0 cursor-pointer"
+                  className="shrink-0 cursor-pointer p-1 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <X className="text-[#9C8F87] size-4 hover:text-[#F5EFE9] transition-colors" />
+                  <X className="size-4" />
                 </button>
               </div>
 
               {/* Avatar Quick Switch: Choose from Gallery */}
-              <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between gap-2">
-                <label className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] px-2.5 py-1.5 text-[11px] font-sans font-medium text-[#F5EFE9] transition cursor-pointer">
-                  <ImageIcon className="size-3 text-[#E8552E]" />
+              <div className="mt-3 pt-3 border-t border-border flex items-center justify-between gap-2">
+                <label className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-border-card bg-secondary/60 hover:bg-secondary px-3 py-2 text-[11px] font-sans font-semibold text-foreground transition cursor-pointer">
+                  <ImageIcon className="size-3.5 text-primary" />
                   <span>Choose from Gallery</span>
                   <input
                     type="file"
@@ -146,9 +146,9 @@ export function CornerMenu({ seed }: { seed: string }) {
 
               {/* Google Sign In / Account Status */}
               {!user ? (
-                <div className="mt-3.5 rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-center">
-                  <p className="font-sans text-xs text-[#F5EFE9]/80 mb-2.5 leading-snug">
-                    Sign in to secure your Corner and keep your streak safe. <span className="text-[#E8552E] font-medium">10-day streak gets followed by Baji! 👑</span>
+                <div className="mt-3.5 rounded-2xl border border-border-card bg-secondary/40 p-3.5 text-center">
+                  <p className="font-sans text-xs text-muted-foreground mb-3 leading-snug">
+                    Keep your Corner across devices. Posts and Echoes you share can sync with your profile.
                   </p>
                   <button
                     type="button"
@@ -157,7 +157,7 @@ export function CornerMenu({ seed }: { seed: string }) {
                       signInWithGoogle();
                     }}
                     disabled={isLoading}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-3 py-2 text-xs font-bold text-black shadow-sm transition hover:bg-neutral-100 active:scale-95 cursor-pointer"
+                    className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-border-card bg-card px-3 py-2 text-xs font-semibold text-foreground shadow-xs transition hover:bg-secondary active:scale-[0.98] cursor-pointer"
                   >
                     <svg className="size-4 shrink-0" viewBox="0 0 24 24">
                       <path
@@ -177,11 +177,11 @@ export function CornerMenu({ seed }: { seed: string }) {
                         d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                       />
                     </svg>
-                    Sign in with Google
+                    Continue with Google
                   </button>
                 </div>
               ) : (
-                <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3 text-left">
+                <div className="mt-4 rounded-2xl border border-border-card bg-secondary/50 p-3 text-left">
                   <p className="font-vibe text-[11px] text-muted-foreground">Connected Email</p>
                   <p className="font-vibe text-xs font-medium text-foreground truncate">{user.email}</p>
                 </div>
@@ -190,19 +190,19 @@ export function CornerMenu({ seed }: { seed: string }) {
               <button
                 type="button"
                 onClick={share}
-                className="mt-3 flex w-full items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs font-semibold text-[#F5EFE9] transition hover:bg-white/[0.07] cursor-pointer"
+                className="mt-3 flex min-h-10 w-full items-center gap-2.5 rounded-xl border border-border-card bg-card px-3.5 py-2 text-xs font-semibold text-foreground transition hover:bg-secondary cursor-pointer"
               >
-                <Share2 className="text-[#E8552E] size-3.5" aria-hidden />
+                <Share2 className="text-primary size-3.5" aria-hidden />
                 <span>Share BajiHears</span>
               </button>
 
               <Link
                 to="/corner"
                 onClick={() => setOpen(false)}
-                className="mt-2 flex w-full items-center gap-2.5 rounded-xl border border-[#E8552E]/30 bg-[#E8552E]/10 px-3.5 py-2.5 text-xs font-semibold text-[#F5EFE9] transition hover:bg-[#E8552E]/20 cursor-pointer"
+                className="mt-2 flex min-h-10 w-full items-center gap-2.5 rounded-xl border border-primary/30 bg-accent px-3.5 py-2 text-xs font-semibold text-primary transition hover:bg-accent/80 cursor-pointer"
               >
-                <MessageCircle className="text-[#E8552E] size-3.5" aria-hidden />
-                <span>My Whispers & Corner</span>
+                <MessageCircle className="text-primary size-3.5" aria-hidden />
+                <span>My Whispers &amp; Corner</span>
               </Link>
 
               {user && (
@@ -212,7 +212,7 @@ export function CornerMenu({ seed }: { seed: string }) {
                     signOut();
                     setOpen(false);
                   }}
-                  className="mt-2 flex w-full items-center gap-2.5 rounded-xl border border-rose-500/25 bg-rose-500/10 px-3.5 py-2 text-xs font-semibold text-rose-400 transition hover:bg-rose-500/15 cursor-pointer"
+                  className="mt-2 flex min-h-10 w-full items-center gap-2.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 cursor-pointer"
                 >
                   <LogOut className="size-3.5" aria-hidden />
                   <span>Sign Out</span>

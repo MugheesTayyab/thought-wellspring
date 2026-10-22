@@ -53,16 +53,15 @@ export function BottomNav({ readState, archetypeColor }: BottomNavProps) {
               to={to}
               aria-current={active ? "page" : undefined}
               onClick={() => triggerHaptic("selection")}
-              className={`spring-press flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[11px] font-medium transition-colors ${
-                active ? "bg-[#FBE6E4] text-primary" : "text-muted-foreground hover:text-foreground"
+              className={`spring-press flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[11px] font-semibold transition-all duration-150 ${
+                active ? "bg-accent text-primary shadow-xs" : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
               }`}
             >
               <span className="relative">
                 <Icon className={`size-5 ${active && label === "Wall" ? "fill-primary/10" : ""}`} />
                 {label === "Read" && readIndicator.ready && (
                   <span
-                    className="absolute -right-1.5 -top-1 size-2 rounded-full ring-2 ring-background"
-                    style={{ backgroundColor: readIndicator.color || "#AE4335" }}
+                    className="absolute -right-1.5 -top-1 size-2 rounded-full ring-2 ring-background bg-primary"
                     aria-label="New Baji Read available"
                   />
                 )}

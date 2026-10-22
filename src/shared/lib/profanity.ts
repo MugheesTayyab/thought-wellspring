@@ -7,7 +7,7 @@
 export interface ProfanityCheckResult {
   hasProfanity: boolean;
   matchedWord?: string;
-  category?: "vulgar" | "f_word" | "s_word" | "slur" | "abusive";
+  category?: "vulgar" | "f_word" | "s_word" | "slur" | "abusive" | undefined;
   message?: string;
 }
 
@@ -109,16 +109,21 @@ export function detectProfanity(rawText: string): ProfanityCheckResult {
     }
   }
 
-  // 3. Compact string check for spaced-out words (e.g. "f u c k", "s h i t")
-  const compact = lower.replace(/[^a-z]/g, "");
-  const compactForbidden = ["fuck", "shit", "bitch", "cunt", "nigger", "bhenchod", "chutiya", "madarchod"];
-  for (const word of compactForbidden) {
-    if (compact.includes(word)) {
+  // 3. Check for explicitly spaced-out single vulgar words (e.g. "s h i t", "f u c k")
+  const spacedForbiddenRegexes = [
+    /\bf[\s._-]+u[\s._-]+c*[\s._-]*k\b/i,
+    /\bs[\s._-]+h[\s._-]+i[\s._-]+t\b/i,
+    /\bb[\s._-]+i[\s._-]+t[\s._-]+c[\s._-]+h\b/i,
+    /\bc[\s._-]+u[\s._-]+n[\s._-]+t\b/i,
+  ];
+  for (const regex of spacedForbiddenRegexes) {
+    const match = lower.match(regex);
+    if (match) {
       return {
         hasProfanity: true,
-        matchedWord: word,
+        matchedWord: match[0],
         category: "vulgar",
-        message: "Baji keeps it warm & honest, not dirty. Please remove inappropriate language.",
+        message: "Please remove inappropriate language.",
       };
     }
   }

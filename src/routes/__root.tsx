@@ -133,7 +133,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Instrument+Serif:ital@0;1&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&display=swap",
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
       { rel: "apple-touch-icon", href: "/favicon.png" },
@@ -194,13 +194,13 @@ function RootComponent() {
           {/* Daily Return Bonus Toast */}
           {dailyBonus && (
             <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none select-none">
-              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-[#17110D]/85 px-3.5 py-1.5 text-xs text-[#F5EFE9] shadow-[0_8px_30px_rgba(0,0,0,0.6)] backdrop-blur-2xl font-sans animate-[slideDown_0.25s_cubic-bezier(0.16,1,0.3,1)]">
+              <div className="flex items-center gap-2 rounded-full border border-border-card bg-card px-4 py-2 text-xs text-foreground shadow-[0_8px_24px_-8px_rgba(62,43,38,0.18)] font-sans animate-[slideDown_0.25s_cubic-bezier(0.16,1,0.3,1)]">
                 <span className="text-xs shrink-0 select-none">🔥</span>
-                <span className="font-semibold tabular-nums text-[#E8552E]">
+                <span className="font-bold tabular-nums text-primary">
                   +{dailyBonus.amount}
                 </span>
-                <span className="text-[#9C8F87] text-[11px] font-normal truncate max-w-[200px]">
-                  Welcome back · {dailyBonus.streak}d streak
+                <span className="text-muted-foreground text-[12px] font-medium truncate max-w-[200px]">
+                  Welcome back · Day {dailyBonus.streak} visit
                 </span>
               </div>
             </div>

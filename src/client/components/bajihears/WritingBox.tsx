@@ -169,7 +169,7 @@ export function WritingBox({
             <h2 id="composer-title" className="text-lg font-semibold text-foreground">
               Write a thought
             </h2>
-            <p className="text-xs text-muted-foreground">No need for the perfect words.</p>
+            <p className="text-xs text-muted-foreground">It doesn&apos;t need to sound perfect.</p>
           </div>
           <button
             type="button"
@@ -238,9 +238,9 @@ export function WritingBox({
           </div>
         ) : (
           <>
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
+            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-5 sm:px-6">
               <div
-                className="rounded-[22px] border border-border bg-white p-4 transition-colors focus-within:border-primary/60 focus-within:shadow-[inset_0_0_0_1px_rgba(203,91,71,.12)]"
+                className="rounded-[22px] border border-border-card bg-white p-4 transition-colors focus-within:border-primary/60 focus-within:shadow-[inset_0_0_0_1px_rgba(203,91,71,.12)]"
                 style={{
                   backgroundImage: `linear-gradient(145deg, ${selectedMood.from}, ${selectedMood.to})`,
                   color: selectedMood.ink,
@@ -281,7 +281,7 @@ export function WritingBox({
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   This only changes the card's look.
                 </p>
-                <div className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-1 sm:px-1">
+                <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1">
                   {PRESETS.map((mood) => {
                     const selected = mood.key === preset;
                     return (
@@ -295,8 +295,8 @@ export function WritingBox({
                           triggerHaptic("selection");
                         }}
                         className={cn(
-                          "min-w-[96px] shrink-0 rounded-2xl border p-2 text-left transition-all duration-200",
-                          selected ? "border-primary ring-2 ring-primary/15" : "border-border",
+                          "min-w-[96px] shrink-0 rounded-2xl border p-2 text-left transition-all duration-200 cursor-pointer",
+                          selected ? "border-primary ring-2 ring-primary/20 bg-accent/25" : "border-border-card bg-card hover:border-primary/40",
                         )}
                       >
                         <span
@@ -322,8 +322,8 @@ export function WritingBox({
                     aria-pressed={anonymous}
                     onClick={() => setAnonymous(true)}
                     className={cn(
-                      "min-h-[72px] rounded-2xl border p-3 text-left",
-                      anonymous ? "border-primary bg-accent" : "border-border bg-card",
+                      "min-h-[72px] rounded-2xl border p-3 text-left transition-colors cursor-pointer",
+                      anonymous ? "border-primary bg-accent" : "border-border-card bg-card hover:border-primary/40",
                     )}
                   >
                     <span className="block text-sm font-semibold text-foreground">Anonymous</span>
@@ -336,8 +336,8 @@ export function WritingBox({
                     aria-pressed={!anonymous}
                     onClick={() => setAnonymous(false)}
                     className={cn(
-                      "min-h-[72px] rounded-2xl border p-3 text-left",
-                      !anonymous ? "border-primary bg-accent" : "border-border bg-card",
+                      "min-h-[72px] rounded-2xl border p-3 text-left transition-colors cursor-pointer",
+                      !anonymous ? "border-primary bg-accent" : "border-border-card bg-card hover:border-primary/40",
                     )}
                   >
                     <span className="block text-sm font-semibold text-foreground">
@@ -350,14 +350,14 @@ export function WritingBox({
                 </div>
 
                 {!anonymous && (
-                  <div className="mt-3 rounded-2xl border border-border bg-card p-3">
+                  <div className="mt-3 rounded-2xl border border-border-card bg-card p-3">
                     <label
                       htmlFor="public-handle"
                       className="text-xs font-semibold text-foreground"
                     >
                       Instagram handle
                     </label>
-                    <div className="mt-2 flex min-h-12 items-center rounded-xl border border-border bg-background px-3 focus-within:border-primary">
+                    <div className="mt-2 flex min-h-12 items-center rounded-xl border border-border-card bg-background px-3 focus-within:border-primary">
                       <AtSign className="size-4 text-muted-foreground" aria-hidden />
                       <input
                         id="public-handle"
@@ -388,10 +388,10 @@ export function WritingBox({
                       aria-pressed={category === option}
                       onClick={() => setCategory(option)}
                       className={cn(
-                        "min-h-11 rounded-full border px-4 text-xs font-semibold",
+                        "min-h-11 rounded-full border px-4 text-xs font-semibold cursor-pointer transition-colors",
                         category === option
                           ? "border-primary bg-accent text-primary"
-                          : "border-border bg-card text-muted-foreground",
+                          : "border-border-card bg-card text-muted-foreground hover:text-foreground hover:border-primary/40",
                       )}
                     >
                       {option}
@@ -440,7 +440,7 @@ export function WritingBox({
 
               {showPreview && (
                 <div
-                  className="rounded-[22px] border border-border p-4"
+                  className="rounded-[22px] border border-border-card p-4 shadow-sm"
                   style={{
                     backgroundImage: `linear-gradient(145deg, ${selectedMood.from}, ${selectedMood.to})`,
                   }}

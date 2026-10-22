@@ -81,17 +81,17 @@ export function PublicProfileModal({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-[fadeIn_0.15s_ease-out]"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-[fadeIn_0.15s_ease-out]"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-[360px] rounded-3xl border border-white/12 bg-gradient-to-b from-[#1f1712]/95 via-[#17110D]/95 to-[#100b08]/98 p-5 text-[#F5EFE9] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] backdrop-blur-2xl max-h-[88vh] overflow-y-auto no-scrollbar animate-[scaleUp_0.18s_ease-out]"
+        className="w-full max-w-[360px] rounded-3xl border border-border-card bg-card p-5 text-foreground shadow-[0_20px_50px_-15px_rgba(62,43,38,0.2)] max-h-[88vh] overflow-y-auto no-scrollbar animate-[scaleUp_0.18s_ease-out]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-white/10">
-          <div className="flex items-center gap-1.5 text-xs text-[#9C8F87]">
-            <Flame className="size-3 text-[#E8552E]" />
+        <div className="flex items-center justify-between pb-3 border-b border-border">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Flame className="size-3.5 text-primary" />
             <span className="font-sans text-[11px] font-semibold uppercase tracking-wider">
               Public Corner
             </span>
@@ -100,14 +100,14 @@ export function PublicProfileModal({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="p-1 rounded-full text-[#9C8F87] hover:text-[#F5EFE9] transition-colors cursor-pointer"
+            className="p-1 rounded-full text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
           >
             <X className="size-4" />
           </button>
         </div>
 
         {loading ? (
-          <div className="py-12 text-center text-xs text-[#9C8F87] animate-pulse font-sans">
+          <div className="py-12 text-center text-xs text-muted-foreground animate-pulse font-sans">
             Opening public corner…
           </div>
         ) : profile ? (
@@ -116,76 +116,76 @@ export function PublicProfileModal({
             <div className="text-center">
               <div className="relative inline-block">
                 <CornerAvatar seed={String(profile.avatarSeed)} size={72} />
-                <span className="absolute bottom-0 right-0 size-3.5 rounded-full bg-emerald-500 ring-2 ring-[#17110D]" />
+                <span className="absolute bottom-0 right-0 size-3.5 rounded-full bg-emerald-500 ring-2 ring-card" />
               </div>
 
-              <h3 className="mt-2.5 font-display text-xl font-bold tracking-tight text-[#F5EFE9]">
+              <h3 className="mt-2.5 font-display text-xl font-bold tracking-tight text-foreground">
                 @{profile.handle}
               </h3>
 
-              <div className="mt-1 flex items-center justify-center gap-1.5 text-xs text-[#9C8F87]">
-                <CheckCircle2 className="size-3.5 text-emerald-400" />
+              <div className="mt-1 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                <CheckCircle2 className="size-3.5 text-emerald-600" />
                 <span className="font-sans font-medium text-[11px]">
                   Verified Baji Member
                 </span>
                 <span>•</span>
-                <span className="font-mono text-[11px] text-[#E8552E] font-semibold">
+                <span className="font-sans text-[11px] text-primary font-semibold">
                   {tier.name}
                 </span>
               </div>
             </div>
 
             {/* Stat Badges Grid */}
-            <div className="grid grid-cols-3 gap-2 text-center font-mono">
-              <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-2.5">
-                <p className="text-[10px] text-[#9C8F87] uppercase">Streak</p>
-                <p className="text-sm font-bold text-[#F5EFE9] mt-0.5">
-                  {profile.visitStreak}d 🔥
+            <div className="grid grid-cols-3 gap-2 text-center font-sans">
+              <div className="rounded-2xl border border-border-card bg-secondary/50 p-2.5">
+                <p className="text-[10px] text-muted-foreground uppercase font-medium">Visits</p>
+                <p className="text-sm font-bold text-foreground mt-0.5 tabular-nums">
+                  {profile.visitStreak}d
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-2.5">
-                <p className="text-[10px] text-[#9C8F87] uppercase">Thoughts</p>
-                <p className="text-sm font-bold text-[#F5EFE9] mt-0.5">
+              <div className="rounded-2xl border border-border-card bg-secondary/50 p-2.5">
+                <p className="text-[10px] text-muted-foreground uppercase font-medium">Thoughts</p>
+                <p className="text-sm font-bold text-foreground mt-0.5 tabular-nums">
                   {posts.length}
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-2.5">
-                <p className="text-[10px] text-[#9C8F87] uppercase">Likes</p>
-                <p className="text-sm font-bold text-[#E8552E] mt-0.5">
+              <div className="rounded-2xl border border-border-card bg-secondary/50 p-2.5">
+                <p className="text-[10px] text-muted-foreground uppercase font-medium">Reactions</p>
+                <p className="text-sm font-bold text-primary mt-0.5 tabular-nums">
                   {compactCount(totalLikes)}
                 </p>
               </div>
             </div>
 
-            {/* Gift Warmth Action Button */}
+            {/* Gift Ember Action Button */}
             <button
               type="button"
               onClick={handleGiftWarmth}
               disabled={totalWarmth < 10 || gifted}
-              className={`w-full py-2.5 px-4 rounded-2xl flex items-center justify-center gap-2 text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer ${
+              className={`w-full min-h-11 py-2.5 px-4 rounded-2xl flex items-center justify-center gap-2 text-xs font-semibold transition-all shadow-xs active:scale-[0.98] cursor-pointer ${
                 gifted
-                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                  : "bg-brand-gradient text-white hover:opacity-95 disabled:opacity-40"
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  : "bg-primary text-white hover:bg-primary/90 disabled:opacity-40"
               }`}
             >
               <Gift className="size-3.5" />
               <span>
-                {gifted ? "10 Warmth Gifted! 🔥" : "Send 10 Warmth to @author 🔥"}
+                {gifted ? "10 Ember sent" : "Send 10 Ember to author"}
               </span>
             </button>
 
             {/* Published Thoughts Section */}
             <div className="pt-2">
-              <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/[0.08]">
-                <span className="text-[11px] font-bold text-[#9C8F87] uppercase tracking-wider font-mono">
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-border">
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider font-sans">
                   Thoughts on The Wall ({posts.length})
                 </span>
               </div>
 
               {posts.length === 0 ? (
-                <p className="py-4 text-center text-xs text-[#9C8F87] font-sans">
+                <p className="py-4 text-center text-xs text-muted-foreground font-sans">
                   No public thoughts posted yet.
                 </p>
               ) : (
@@ -200,19 +200,19 @@ export function PublicProfileModal({
                     return (
                       <div
                         key={post.id}
-                        className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-3 text-left font-sans transition-all hover:bg-white/[0.04]"
+                        className="rounded-2xl border border-border-card bg-secondary/30 p-3 text-left font-sans transition-all hover:bg-secondary/60"
                       >
-                        <p className="font-quote text-xs text-[#F5EFE9] leading-relaxed line-clamp-3">
+                        <p className="font-serif text-[13px] text-foreground leading-relaxed line-clamp-3">
                           &ldquo;{post.text}&rdquo;
                         </p>
 
-                        <div className="mt-2 flex items-center justify-between text-[11px] text-[#9C8F87] font-mono">
-                          <span className="text-[#E8552E] font-medium">
+                        <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground font-sans">
+                          <span className="text-primary font-medium">
                             #{post.category.toLowerCase().replace(/\s+/g, "")}
                           </span>
 
                           <div className="flex items-center gap-2.5">
-                            <span className="flex items-center gap-1 text-rose-400 font-semibold">
+                            <span className="flex items-center gap-1 text-primary font-semibold tabular-nums">
                               <Heart className="size-3 fill-current" />
                               <span>{postLikes}</span>
                             </span>
@@ -227,8 +227,8 @@ export function PublicProfileModal({
             </div>
           </div>
         ) : (
-          <div className="py-8 text-center text-xs text-[#9C8F87] font-sans">
-            Unable to load profile. This member may have chosen total anonymity.
+          <div className="py-8 text-center text-xs text-muted-foreground font-sans">
+            Unable to load profile. This member may have posted anonymously.
           </div>
         )}
       </div>

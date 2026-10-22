@@ -8,6 +8,7 @@ import { CornerMenu } from "@/client/components/bajihears/CornerMenu";
 import { Logo } from "@/client/components/bajihears/Logo";
 import { BottomNav } from "@/client/components/bajihears/BottomNav";
 import { HeroIntro } from "@/client/components/bajihears/HeroIntro";
+import { FeedWritingPrompt } from "@/client/components/bajihears/FeedWritingPrompt";
 import { PushPermissionSheet } from "@/client/components/bajihears/PushPermissionSheet";
 import { shouldShowPushPrompt } from "@/client/lib/notifications";
 import { useWarmth } from "@/client/stores/warmth-context";
@@ -284,41 +285,10 @@ function Home() {
             />
           )}
 
-          <section aria-labelledby="wall-heading" className="pt-2">
-            <h2
-              id="wall-heading"
-              className="text-[28px] font-semibold tracking-tight text-foreground"
-            >
-              The Wall
-            </h2>
-            <p className="mt-1 text-sm leading-5 text-muted-foreground">
-              Different lives. Familiar thoughts.
-            </p>
-          </section>
-
-          <button
-            type="button"
-            onClick={openComposer}
-            className="paper-card flex min-h-16 w-full items-center gap-3 px-4 text-left transition-colors hover:border-primary/35"
-          >
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-primary">
-              <PencilLine className="size-4" aria-hidden />
-            </span>
-            <span className="min-w-0">
-              <span className="block text-sm font-semibold text-foreground">
-                Got something on your mind?
-              </span>
-              <span className="mt-0.5 block text-xs text-muted-foreground">
-                Start a private draft. Share only if you want to.
-              </span>
-            </span>
-          </button>
-
-          {/* Honest sort and category controls */}
-          <div className="space-y-3">
+          {/* Streamlined sort and category controls */}
+          <div className="space-y-2 pt-1">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-xs font-semibold text-muted-foreground">Browse</span>
-              <div className="flex items-center justify-center gap-1 rounded-2xl border border-border bg-secondary p-1">
+              <div className="flex items-center justify-center gap-1 rounded-2xl border border-border-card bg-secondary p-1">
                 <button
                   type="button"
                   onClick={() => {
@@ -328,7 +298,7 @@ function Home() {
                   className={cn(
                     "flex min-h-9 items-center rounded-xl px-3 text-xs font-semibold transition-all cursor-pointer",
                     feedSort === "most-reacted"
-                      ? "bg-card text-foreground shadow-sm"
+                      ? "bg-card text-foreground shadow-xs"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -343,30 +313,25 @@ function Home() {
                   className={cn(
                     "flex min-h-9 items-center rounded-xl px-3 text-xs font-semibold transition-all cursor-pointer",
                     feedSort === "recent"
-                      ? "bg-card text-foreground shadow-sm"
+                      ? "bg-card text-foreground shadow-xs"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   <span>Recent</span>
                 </button>
               </div>
-            </div>
 
-            {/* Category Filter Pills */}
-            <div className="flex items-center justify-between gap-3 px-1 mb-2 font-vibe">
-              <span className="text-muted-foreground text-xs font-semibold tracking-wide">
-                Find a familiar thought
-              </span>
               {filters.length > 0 && (
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="text-primary hover:underline shrink-0 text-xs font-medium cursor-pointer"
+                  className="text-primary hover:underline shrink-0 text-xs font-semibold cursor-pointer"
                 >
-                  Clear all ({filters.length})
+                  Clear filter ({filters.length})
                 </button>
               )}
             </div>
+
             <div
               className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-5 sm:px-5"
               aria-label="Filter the Wall by category"
@@ -376,10 +341,10 @@ function Home() {
                 aria-pressed={filters.length === 0}
                 onClick={clearFilters}
                 className={cn(
-                  "min-h-10 shrink-0 rounded-full border px-4 text-xs font-semibold transition-colors",
+                  "min-h-10 shrink-0 rounded-full border px-4 text-xs font-semibold transition-colors cursor-pointer",
                   filters.length === 0
                     ? "border-primary bg-accent text-primary"
-                    : "border-border bg-card text-muted-foreground",
+                    : "border-border-card bg-card text-muted-foreground hover:text-foreground hover:border-muted-foreground/30",
                 )}
               >
                 All
@@ -398,8 +363,8 @@ function Home() {
                     className={cn(
                       "min-h-10 shrink-0 rounded-full border px-4 text-xs font-medium transition-all active:scale-[.97] cursor-pointer",
                       on
-                        ? "border-primary bg-accent text-primary"
-                        : "border-border bg-card text-muted-foreground hover:text-foreground",
+                        ? "border-primary bg-accent text-primary font-semibold"
+                        : "border-border-card bg-card text-muted-foreground hover:text-foreground hover:border-muted-foreground/30",
                     )}
                   >
                     {c}
@@ -465,15 +430,15 @@ function Home() {
 
           {/* Error State */}
           {isFeedError && visiblePosts.length === 0 && (
-            <div className="bg-card border-border rounded-3xl border p-5 text-center font-vibe">
-              <p className="font-display text-lg">Couldn&apos;t load the Wall just now.</p>
-              <p className="text-muted-foreground mt-2 text-sm">
-                Your place is still here. Try the connection again.
+            <div className="bg-card border-border-card rounded-3xl border p-6 text-center font-sans shadow-soft">
+              <p className="font-serif text-xl text-foreground">Couldn&apos;t load the Wall just now.</p>
+              <p className="text-muted-foreground mt-2 text-sm leading-6">
+                Your place is still here. Check your connection and try again.
               </p>
               <button
                 type="button"
                 onClick={() => refetch()}
-                className="bg-brand-gradient text-primary-foreground mt-4 rounded-2xl px-5 py-2.5 text-sm font-semibold cursor-pointer"
+                className="bg-primary text-white mt-4 rounded-2xl min-h-11 px-5 text-sm font-semibold cursor-pointer active:scale-[0.98]"
               >
                 Try again
               </button>
@@ -482,19 +447,19 @@ function Home() {
 
           {/* Honest empty state */}
           {!isFeedLoading && !isFeedError && visiblePosts.length === 0 && (
-            <div className="paper-card space-y-4 p-6 text-center">
-              <p className="font-display text-xl font-bold text-foreground">A little quiet here.</p>
+            <div className="paper-card space-y-4 p-7 text-center">
+              <p className="font-serif text-2xl font-normal text-foreground">A little quiet here.</p>
               <p className="mx-auto max-w-sm text-sm leading-relaxed text-muted-foreground">
                 {filters.length > 0
                   ? "No thoughts in this corner yet. Want to look around somewhere else?"
                   : "No thoughts have reached the Wall yet. You can check back, or leave one when you feel like it."}
               </p>
-              <div className="flex flex-wrap justify-center gap-2">
+              <div className="flex flex-wrap justify-center gap-2 pt-1">
                 {filters.length > 0 && (
                   <button
                     type="button"
                     onClick={clearFilters}
-                    className="min-h-11 rounded-xl bg-primary px-4 text-sm font-semibold text-white"
+                    className="min-h-11 rounded-2xl bg-primary px-5 text-sm font-semibold text-white active:scale-[0.98]"
                   >
                     See all thoughts
                   </button>
@@ -502,7 +467,7 @@ function Home() {
                 <button
                   type="button"
                   onClick={openComposer}
-                  className="min-h-11 rounded-xl border border-border bg-card px-4 text-sm font-semibold text-foreground"
+                  className="min-h-11 rounded-2xl border border-border-card bg-card px-5 text-sm font-semibold text-foreground active:scale-[0.98]"
                 >
                   Write something
                 </button>
@@ -533,12 +498,15 @@ function Home() {
                     <Info className="size-4 text-primary" aria-hidden />
                     <h3>A few things worth knowing</h3>
                   </div>
-                  <ul className="mt-3 space-y-2 leading-5">
+                  <ul className="mt-3 space-y-2 leading-5 text-xs sm:text-sm text-[#51436A]">
                     <li>Wall posts can be read by other visitors.</li>
                     <li>You choose whether your handle appears when you post.</li>
                     <li>You can report a post from its options menu.</li>
                   </ul>
                 </aside>
+              )}
+              {index === 4 && (
+                <FeedWritingPrompt onWriteClick={openComposer} />
               )}
             </Fragment>
           ))}

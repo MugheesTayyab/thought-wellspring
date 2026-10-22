@@ -51,36 +51,36 @@ export const PushPermissionSheet: React.FC<PushPermissionSheetProps> = ({ isOpen
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-[fadeIn_0.15s_ease-out]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-[fadeIn_0.15s_ease-out]">
       {/* Click backdrop to dismiss */}
       <div className="absolute inset-0" onClick={handleDismiss} />
 
       {/* Modal Content */}
-      <div className="relative z-10 w-full max-w-[290px] rounded-3xl border border-white/12 bg-gradient-to-b from-[#1f1712]/95 via-[#17110D]/95 to-[#100b08]/98 p-4 text-center shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] backdrop-blur-2xl text-[#F5EFE9] font-sans animate-[scaleUp_0.18s_ease-out]">
-        <div className="mx-auto mb-2.5 flex size-9 items-center justify-center rounded-xl bg-[#E8552E]/10 border border-[#E8552E]/25 text-[#E8552E]">
+      <div className="relative z-10 w-full max-w-[300px] rounded-3xl border border-border-card bg-card p-5 text-center shadow-[0_20px_50px_-15px_rgba(62,43,38,0.2)] text-foreground font-sans animate-[scaleUp_0.18s_ease-out]">
+        <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-2xl bg-accent border border-primary/20 text-primary">
           <Bell className="size-4" />
         </div>
 
-        <h3 className="text-sm font-bold text-[#F5EFE9]">
+        <h3 className="text-base font-bold text-foreground">
           Get notified?
         </h3>
-        <p className="text-[11px] text-[#9C8F87] mt-1 leading-relaxed">
-          Alerts when your confessions get replies or the daily winner is crowned.
+        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+          Alerts when your thoughts get Echoes or when new thoughts reach the Wall.
         </p>
 
         {isIosBrowser && (
-          <div className="mt-2.5 flex items-center gap-2 rounded-xl bg-white/[0.03] border border-white/10 p-2 text-[10px] text-[#F5EFE9]/80 text-left">
-            <Smartphone className="size-3.5 text-[#E8552E] shrink-0" />
+          <div className="mt-3 flex items-center gap-2 rounded-xl bg-secondary/60 border border-border-card p-2 text-[11px] text-foreground text-left">
+            <Smartphone className="size-3.5 text-primary shrink-0" />
             <span>On iPhone: Tap <strong>Share</strong> → <strong>Add to Home Screen</strong>.</span>
           </div>
         )}
 
-        <div className="mt-3.5 flex items-center justify-end gap-2">
+        <div className="mt-4 flex items-center justify-end gap-2">
           <button
             type="button"
             disabled={isSubscribing}
             onClick={handleDismiss}
-            className="w-full rounded-xl border border-white/10 py-1.5 text-xs font-medium text-[#9C8F87] hover:text-[#F5EFE9] hover:bg-white/[0.04] transition-colors disabled:opacity-50 cursor-pointer"
+            className="w-full min-h-10 rounded-xl border border-border-card py-2 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors disabled:opacity-50 cursor-pointer"
           >
             Later
           </button>
@@ -88,7 +88,7 @@ export const PushPermissionSheet: React.FC<PushPermissionSheetProps> = ({ isOpen
             type="button"
             disabled={isSubscribing}
             onClick={handleAccept}
-            className="w-full rounded-xl bg-[#E8552E] py-1.5 text-xs font-semibold text-white shadow-md transition hover:opacity-95 active:scale-95 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5"
+            className="w-full min-h-10 rounded-xl bg-primary py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-primary/90 active:scale-[0.98] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5"
           >
             {isSubscribing ? (
               <>
