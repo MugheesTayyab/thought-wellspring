@@ -32,6 +32,10 @@ another local port. These checks use controlled API responses and make no public
 posts. `npm run test:database` runs all migrations and transaction/permission checks
 in an isolated PostgreSQL engine; it does not read credentials or touch Supabase.
 
+After deployment, `npm run test:live` verifies the public Wall, Duel, Corner,
+redirects, disabled diagnostics, PWA assets, and absence of browser/HTTP 5xx errors.
+It is read-only and does not create production content.
+
 `npm run check:production` verifies the TLS database connection, complete migration
 history, required RPCs, live table permissions, server-role access, and OAuth provider
 availability. `npm run check:launch` runs both the local release suite and those

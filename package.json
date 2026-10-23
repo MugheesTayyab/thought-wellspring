@@ -11,6 +11,7 @@
     "test": "vitest run",
     "test:database": "node scripts/test-database.mjs",
     "test:browser": "node scripts/test-browser.mjs",
+    "test:live": "node scripts/test-live-smoke.mjs",
     "audit:database": "node scripts/audit-database.mjs && node scripts/inspect-database-state.mjs",
     "check:release": "npm run lint && npm run typecheck && npm test && npm run test:database && npm run build && node scripts/check-client-secrets.mjs",
     "check:production": "node scripts/check-database-connection.mjs && npm run audit:database",
