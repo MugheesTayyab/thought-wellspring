@@ -25,6 +25,17 @@ dist-ssr
 .dev.vars
 supabase/.temp/
 
+# Local databases and private key material
+*.sqlite
+*.sqlite3
+*.db
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

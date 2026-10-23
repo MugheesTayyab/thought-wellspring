@@ -57,6 +57,7 @@ try {
     "20261022000000",
     "20261022010000",
     "20261022020000",
+    "20261023000000",
   ];
   const tableNames = tables.rows.map(({ table_name }) => table_name);
   const appliedVersions = migrations.map(({ version }) => version).filter(Boolean);

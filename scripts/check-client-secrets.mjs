@@ -15,6 +15,17 @@ try {
   /* CI values come from the environment. */
 }
 
+for (const key of [
+  "VITE_SUPABASE_SERVICE_ROLE_KEY",
+  "VITE_VAPID_PRIVATE_KEY",
+  "VITE_CRON_SECRET",
+  "VITE_SUPABASE_DATABASE_URL",
+]) {
+  if (localEnv.get(key) || process.env[key]) {
+    throw new Error(`${key} is server-only and must never use the VITE_ public prefix.`);
+  }
+}
+
 const vapidPrivateKey = localEnv.get("VAPID_PRIVATE_KEY") || process.env.VAPID_PRIVATE_KEY;
 const vapidPublicKey = localEnv.get("VITE_VAPID_PUBLIC_KEY") || process.env.VITE_VAPID_PUBLIC_KEY;
 if (!vapidPrivateKey || !vapidPublicKey) {

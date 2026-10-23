@@ -57,7 +57,10 @@ export function compactCount(n: number): string {
 }
 
 export function stripHandle(value: string): string {
-  return value.replace(/^@+/, "").replace(/\s+/g, "");
+  return value
+    .replace(/^@+/, "")
+    .replace(/[^a-zA-Z0-9_.-]/g, "")
+    .slice(0, 24);
 }
 
 export function getInstagramUrl(handle: string | null): string | null {

@@ -15,7 +15,13 @@ export async function migrateGuestToAccount(
   input: MigrateGuestInput,
 ): Promise<DbProfile> {
   const token = validateDeviceToken(input.deviceToken);
-  const handle = z.string().min(1).max(40).parse(input.handle);
+  const handle = z
+    .string()
+    .trim()
+    .min(3)
+    .max(24)
+    .regex(/^@?[a-zA-Z0-9_.-]+$/, "Handle contains unsupported characters")
+    .parse(input.handle);
   const avatar = z
     .number()
     .int()

@@ -1,15 +1,11 @@
 import { getServerEnv } from "@/server/lib/get-env";
-import {
-  wrapServerFn,
-  extractBearerJwt,
-} from "@/server/lib/wrap-server-fn";
+import { wrapServerFn, extractBearerJwt } from "@/server/lib/wrap-server-fn";
 import type { ServerFnResult } from "@/shared/types/api";
 import { getSupabaseAnonClient } from "@/server/db/client";
-import {
-  migrateGuestToAccount,
-  refreshProfile,
-} from "@/server/functions/auth";
+import { migrateGuestToAccount, refreshProfile } from "@/server/functions/auth";
 import type { DbProfile } from "@/shared/types/profile";
+import { checkRateLimit, checkRequestRateLimit } from "@/server/middleware/rate-limit";
+import { validateDeviceToken } from "@/server/middleware/device-token";
 
 export interface MigrateGuestData {
   profile: DbProfile;
@@ -23,11 +19,12 @@ export async function handleMigrateGuestToAccount(data: {
   deviceToken: string;
   handle: string;
   avatarSeed?: number;
-  jwt?: string;
 }): Promise<ServerFnResult<MigrateGuestData>> {
   return wrapServerFn(async () => {
     const env = getServerEnv();
-    const jwt = await extractBearerJwt(data.jwt);
+    const deviceToken = validateDeviceToken(data.deviceToken);
+    await checkRateLimit(env, "auth", deviceToken);
+    const jwt = await extractBearerJwt();
 
     if (!jwt) {
       throw new Error("Missing required authorization token (UNAUTHORIZED)");
@@ -42,7 +39,7 @@ export async function handleMigrateGuestToAccount(data: {
 
     const profile = await migrateGuestToAccount(env, {
       userId: userData.user.id,
-      deviceToken: data.deviceToken,
+      deviceToken,
       handle: data.handle,
       avatarSeed: data.avatarSeed,
     });
@@ -51,12 +48,13 @@ export async function handleMigrateGuestToAccount(data: {
   });
 }
 
-export async function handleRefreshProfile(data?: {
-  jwt?: string;
-}): Promise<ServerFnResult<RefreshProfileData>> {
+export async function handleRefreshProfile(
+  _data?: undefined,
+): Promise<ServerFnResult<RefreshProfileData>> {
   return wrapServerFn(async () => {
     const env = getServerEnv();
-    const jwt = await extractBearerJwt(data?.jwt);
+    await checkRequestRateLimit(env, "auth");
+    const jwt = await extractBearerJwt();
 
     if (!jwt) {
       throw new Error("Missing required authorization token (UNAUTHORIZED)");

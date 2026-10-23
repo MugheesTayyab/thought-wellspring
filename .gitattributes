@@ -1,0 +1,20 @@
+# Auto-detect text files and normalize line endings to LF
+* text=auto eol=lf
+
+# Force shell scripts and SQL migrations to LF
+*.sh text eol=lf
+*.sql text eol=lf
+*.mjs text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.svg text

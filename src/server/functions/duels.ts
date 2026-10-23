@@ -9,6 +9,7 @@ import { incrementTotalActions, incrementWarmth } from "../db/profiles";
 import { validateDeviceToken } from "../middleware/device-token";
 import { checkRateLimit } from "../middleware/rate-limit";
 import type { Duel } from "@/shared/types/duel";
+import { z } from "zod";
 
 export interface ActiveDuelResponse {
   duel: Duel | null;
@@ -68,6 +69,7 @@ export async function submitDuelVote(
   },
 ): Promise<{ choiceIndex: 0 | 1; votesA: number; votesB: number }> {
   const token = validateDeviceToken(input.deviceToken);
+  const duelId = z.string().uuid().parse(input.duelId);
 
   if (input.choiceIndex !== 0 && input.choiceIndex !== 1) {
     throw new Error("Invalid choice index. Must be 0 or 1.");
@@ -75,7 +77,7 @@ export async function submitDuelVote(
 
   // Record vote in DB
   await checkRateLimit(env, "duel_vote", token);
-  const voteRes = await recordDuelVote(env, input.duelId, token, input.choiceIndex);
+  const voteRes = await recordDuelVote(env, duelId, token, input.choiceIndex);
 
   if (voteRes.error || !voteRes.data) {
     throw new Error(voteRes.error?.message || "Failed to record duel vote");

@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { isCrossOriginMutation, secureResponse } from "../lib/request-security";
+import {
+  enforceRequestBodyLimit,
+  contentSecurityPolicy,
+  isCrossOriginMutation,
+  MAX_REQUEST_BODY_BYTES,
+  secureResponse,
+} from "../lib/request-security";
 import { validatePushEndpoint } from "@/shared/lib/push-validation";
 import { mapErrorToResponse } from "../lib/wrap-server-fn";
 import { mapRowToUnsaid } from "../db/unsaids";
@@ -9,6 +15,9 @@ import { checkRateLimit } from "../middleware/rate-limit";
 import { handleTriggerWinnerSelection } from "../handlers/cron";
 import { syncWarmth } from "../functions/warmth";
 import { handleFetchUserActivity, handleSubmitPost } from "../handlers/wall";
+import { redactSensitiveText } from "../lib/error-capture";
+import { secretsMatch } from "../handlers/cron";
+import { getServerEnv } from "../lib/get-env";
 
 vi.mock("../db/client", () => ({
   getSupabaseAdminClient: vi.fn(),
@@ -50,6 +59,60 @@ describe("Public release security", () => {
     const response = secureResponse(Response.json({ private: true }));
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(response.headers.get("x-frame-options")).toBe("DENY");
+    expect(response.headers.get("strict-transport-security")).toContain("max-age=63072000");
+    expect(response.headers.get("content-security-policy")).not.toContain("*.supabase.co");
+  });
+  it("uses a nonce-based script policy without unsafe-inline", () => {
+    const policy = contentSecurityPolicy("test-nonce");
+    expect(policy).toContain("'nonce-test-nonce'");
+    expect(policy).toContain("'strict-dynamic'");
+    expect(policy).not.toContain("script-src 'self' 'unsafe-inline'");
+  });
+  it("rejects oversized mutation bodies with and without a Content-Length header", async () => {
+    await expect(
+      enforceRequestBodyLimit(
+        new Request("https://bajihears.com/action", {
+          method: "POST",
+          headers: { "content-length": String(MAX_REQUEST_BODY_BYTES + 1) },
+          body: "x",
+        }),
+      ),
+    ).rejects.toThrow("REQUEST_BODY_TOO_LARGE");
+
+    await expect(
+      enforceRequestBodyLimit(
+        new Request("https://bajihears.com/action", {
+          method: "POST",
+          body: "x".repeat(MAX_REQUEST_BODY_BYTES + 1),
+        }),
+      ),
+    ).rejects.toThrow("REQUEST_BODY_TOO_LARGE");
+  });
+  it("redacts credentials from production log text", () => {
+    const text = redactSensitiveText(
+      "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.signature password=hunter2hunter2 postgresql://user:secret@db.example/app",
+    );
+    expect(text).not.toContain("hunter2hunter2");
+    expect(text).not.toContain("signature");
+    expect(text).not.toContain(":secret@");
+  });
+  it("compares cron credentials in constant work over fixed-length digests", async () => {
+    await expect(secretsMatch("correct-secret", "correct-secret")).resolves.toBe(true);
+    await expect(secretsMatch("correct-secret", "incorrect-secret")).resolves.toBe(false);
+  });
+  it("never resolves a service-role credential from a browser-exposed VITE variable", () => {
+    const serverSecret = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+    const browserSecret = process.env["VITE_SUPABASE_SERVICE_ROLE_KEY"];
+    delete process.env["SUPABASE_SERVICE_ROLE_KEY"];
+    process.env["VITE_SUPABASE_SERVICE_ROLE_KEY"] = "must-not-be-trusted";
+    try {
+      expect(getServerEnv().SUPABASE_SERVICE_ROLE_KEY).toBeUndefined();
+    } finally {
+      if (serverSecret) process.env["SUPABASE_SERVICE_ROLE_KEY"] = serverSecret;
+      else delete process.env["SUPABASE_SERVICE_ROLE_KEY"];
+      if (browserSecret) process.env["VITE_SUPABASE_SERVICE_ROLE_KEY"] = browserSecret;
+      else delete process.env["VITE_SUPABASE_SERVICE_ROLE_KEY"];
+    }
   });
   it("never returns internal exception details to visitors", () => {
     const response = mapErrorToResponse(new Error("database credential xyz connection failure"));
@@ -116,20 +179,18 @@ describe("Public release security", () => {
     expect(getSupabaseAdminClient).not.toHaveBeenCalled();
   });
   it("ignores forged account ownership on a guest post", async () => {
-    const rpc = vi
-      .fn()
-      .mockImplementation(async (name: string) =>
-        name === "record_and_check_rate_limit"
-          ? { data: { allowed: true, remaining: 2 }, error: null }
-          : {
-              data: {
-                id: "33333333-3333-4333-8333-333333333333",
-                created_at: new Date().toISOString(),
-                status: "published",
-              },
-              error: null,
+    const rpc = vi.fn().mockImplementation(async (name: string) =>
+      name === "record_and_check_rate_limit"
+        ? { data: { allowed: true, remaining: 2 }, error: null }
+        : {
+            data: {
+              id: "33333333-3333-4333-8333-333333333333",
+              created_at: new Date().toISOString(),
+              status: "published",
             },
-      );
+            error: null,
+          },
+    );
     vi.mocked(getSupabaseAdminClient).mockReturnValue({ rpc } as never);
     const result = await handleSubmitPost({
       text: "A quiet afternoon in the garden.",

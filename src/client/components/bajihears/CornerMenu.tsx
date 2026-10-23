@@ -1,11 +1,35 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
-import { Settings2, Share2, X, LogIn, LogOut, CheckCircle2, MessageCircle, Image as ImageIcon } from "lucide-react";
+import {
+  Settings2,
+  Share2,
+  X,
+  LogIn,
+  LogOut,
+  CheckCircle2,
+  MessageCircle,
+  Image as ImageIcon,
+} from "lucide-react";
 import { CornerAvatar } from "./CornerAvatar";
 import { useAuth } from "@/client/stores/auth-context";
 import { readAvatarPhoto, writeAvatarPhoto } from "@/client/lib/local-storage";
 import { triggerHaptic } from "@/client/lib/haptics";
+import { toast } from "sonner";
+
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
+const MAX_AVATAR_PIXELS = 16_000_000;
+
+function hasSupportedImageSignature(bytes: Uint8Array): boolean {
+  const jpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  const png = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a].every(
+    (value, index) => bytes[index] === value,
+  );
+  const webp =
+    String.fromCharCode(...bytes.slice(0, 4)) === "RIFF" &&
+    String.fromCharCode(...bytes.slice(8, 12)) === "WEBP";
+  return jpeg || png || webp;
+}
 
 export function CornerMenu({ seed }: { seed: string }) {
   const [open, setOpen] = useState(false);
@@ -20,14 +44,30 @@ export function CornerMenu({ seed }: { seed: string }) {
     };
   }, [open]);
 
-  const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.size <= 0 || file.size > MAX_AVATAR_BYTES) {
+      toast.error("Choose a JPG, PNG, or WebP image smaller than 5 MB.");
+      e.target.value = "";
+      return;
+    }
+    const header = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+    if (!hasSupportedImageSignature(header)) {
+      toast.error("That file is not a supported JPG, PNG, or WebP image.");
+      e.target.value = "";
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
+        if (!img.width || !img.height || img.width * img.height > MAX_AVATAR_PIXELS) {
+          toast.error("That image is too large to process safely.");
+          return;
+        }
         const canvas = document.createElement("canvas");
         const maxSize = 256;
         let width = img.width;
@@ -56,6 +96,7 @@ export function CornerMenu({ seed }: { seed: string }) {
           triggerHaptic("selection");
         }
       };
+      img.onerror = () => toast.error("That image could not be decoded.");
       img.src = event.target?.result as string;
     };
     reader.readAsDataURL(file);
@@ -106,7 +147,8 @@ export function CornerMenu({ seed }: { seed: string }) {
                   <CornerAvatar seed={seed} photoUrl={customPhoto} size={42} />
                   <div className="min-w-0">
                     <p className="font-display truncate text-base font-bold text-foreground">
-                      {profile?.handle || (user?.email ? user.email.split("@")[0] : "Your Public Corner")}
+                      {profile?.handle ||
+                        (user?.email ? user.email.split("@")[0] : "Your Public Corner")}
                     </p>
                     <p className="font-sans text-[11px] text-muted-foreground flex items-center gap-1">
                       {user ? (
@@ -137,7 +179,7 @@ export function CornerMenu({ seed }: { seed: string }) {
                   <span>Choose from Gallery</span>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/webp"
                     onChange={handleGalleryUpload}
                     className="hidden"
                   />
@@ -148,7 +190,8 @@ export function CornerMenu({ seed }: { seed: string }) {
               {!user ? (
                 <div className="mt-3.5 rounded-2xl border border-border-card bg-secondary/40 p-3.5 text-center">
                   <p className="font-sans text-xs text-muted-foreground mb-3 leading-snug">
-                    Keep your Corner across devices. Posts and Echoes you share can sync with your profile.
+                    Keep your Corner across devices. Posts and Echoes you share can sync with your
+                    profile.
                   </p>
                   <button
                     type="button"
@@ -183,7 +226,9 @@ export function CornerMenu({ seed }: { seed: string }) {
               ) : (
                 <div className="mt-4 rounded-2xl border border-border-card bg-secondary/50 p-3 text-left">
                   <p className="font-vibe text-[11px] text-muted-foreground">Connected Email</p>
-                  <p className="font-vibe text-xs font-medium text-foreground truncate">{user.email}</p>
+                  <p className="font-vibe text-xs font-medium text-foreground truncate">
+                    {user.email}
+                  </p>
                 </div>
               )}
 

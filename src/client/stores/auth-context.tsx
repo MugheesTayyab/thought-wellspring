@@ -5,6 +5,7 @@ import type { DbProfile } from "@/shared/types/profile";
 import { apiRefreshProfile } from "@/routes/api/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { authHeaders } from "@/client/lib/auth-headers";
 
 export interface AuthContextType {
   user: User | null;
@@ -30,10 +31,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     profileEpoch.current += 1;
   };
 
-  const fetchProfile = async (jwt: string) => {
+  const fetchProfile = async () => {
     const epoch = profileEpoch.current;
     try {
-      const res = await apiRefreshProfile({ data: { jwt } });
+      const res = await apiRefreshProfile({ headers: await authHeaders() });
       if (epoch === profileEpoch.current && res.ok && res.data?.profile) {
         setProfile(res.data.profile);
       }
@@ -55,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(initialSession);
         setUser(initialSession?.user ?? null);
         if (initialSession?.access_token) {
-          fetchProfile(initialSession.access_token).finally(() => {
+          fetchProfile().finally(() => {
             if (mounted) setIsLoading(false);
           });
         } else {
@@ -78,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (newSession?.access_token) {
         // Leave the auth client's lock before starting asynchronous profile work.
         window.setTimeout(() => {
-          if (mounted) void fetchProfile(newSession.access_token);
+          if (mounted) void fetchProfile();
         }, 0);
       } else {
         setProfile(null);
@@ -130,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfileManual = async () => {
     if (session?.access_token) {
-      await fetchProfile(session.access_token);
+      await fetchProfile();
     }
   };
 

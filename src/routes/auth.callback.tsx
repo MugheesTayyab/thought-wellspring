@@ -5,6 +5,7 @@ import { getOrCreateIdentity } from "@/client/lib/identity";
 import { apiMigrateGuestToAccount } from "@/routes/api/auth";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/client/stores/auth-context";
+import { authHeaders } from "@/client/lib/auth-headers";
 
 export const Route = createFileRoute("/auth/callback")({
   head: () => ({
@@ -53,11 +54,11 @@ function AuthCallbackPage() {
 
         // 3. Call server migration handler
         const result = await apiMigrateGuestToAccount({
+          headers: await authHeaders(),
           data: {
             deviceToken: identity.deviceToken,
             handle: identity.handle,
             avatarSeed: identity.avatarSeed,
-            jwt: activeSession.access_token,
           },
         });
 

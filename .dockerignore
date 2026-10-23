@@ -1,0 +1,48 @@
+# Git and documentation
+.git
+.gitignore
+.gitattributes
+README.md
+AGENTS.md
+PROJECT_VISION.md
+RELEASE_READINESS.md
+SECURITY_AUDIT_REPORT.md
+plans/
+artifacts/
+
+# Dependency and build directories
+node_modules/
+.output/
+.tanstack/
+.vinxi/
+.nitro/
+dist/
+dist-ssr/
+.wrangler/
+supabase/.temp/
+
+# Environment files and credentials
+.env*
+!.env.example
+.dev.vars
+*.local
+
+# Private keys and database files
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+*.sqlite
+*.sqlite3
+*.db
+
+# Logs and test artifacts
+*.log
+logs/
+dev-server.*.log
+local-vite.*.log
+readiness-*.log
+debug.log
+.tmp-edge-*/

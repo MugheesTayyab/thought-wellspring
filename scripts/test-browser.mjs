@@ -1,15 +1,44 @@
 import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 
 // Controlled server-function fixtures exercise the browser UI without writing
 // public posts or pretending to validate the unavailable production backend.
 const base = process.env.TEST_BASE_URL || "http://127.0.0.1:4175";
-const browser = await chromium.launch({ channel: "chrome", headless: true });
+const browser = await chromium.launch({
+  channel: "chrome",
+  headless: true,
+  args: ["--disable-quic"],
+});
 mkdirSync("artifacts/browser", { recursive: true });
 const postId = "33333333-3333-4333-8333-333333333333";
 const duelId = "00000000-0000-0000-0000-000000000001";
+const resolverFile = readdirSync(".output/server").find((name) =>
+  name.includes("tanstack-start-server-fn-resolver"),
+);
+assert.ok(resolverFile, "Run the production build before browser tests so server-function IDs can be mapped");
+const resolverSource = readFileSync(join(".output/server", resolverFile), "utf8");
+const serverFunctionNames = new Map(
+  [...resolverSource.matchAll(/"([a-f0-9]{64})":\s*\{\s*functionName:\s*"([^"]+)"/g)].map(
+    ([, id, name]) => [id, name.replace(/_createServerFn_handler$/, "")],
+  ),
+);
+assert.ok(serverFunctionNames.size > 0, "Could not read server-function IDs from the production build");
 let checks = 0;
+async function navigate(page, url) {
+  let lastError;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      return await page.goto(url);
+    } catch (error) {
+      lastError = error;
+      if (!String(error).includes("net::ERR_") || attempt === 4) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+    }
+  }
+  throw lastError;
+}
 async function setup(viewport) {
   const context = await browser.newContext({ viewport, reducedMotion: "reduce" });
   const page = await context.newPage();
@@ -25,7 +54,9 @@ async function setup(viewport) {
   page.on("pageerror", (error) => state.errors.push(error.message));
   await page.route("**/_serverFn/**", async (route) => {
     const encoded = new URL(route.request().url()).pathname.split("/").pop();
-    const name = Buffer.from(encoded, "base64url").toString("utf8");
+    const id = encoded;
+    const name = serverFunctionNames.get(id);
+    assert.ok(name, `Unhandled server-function fixture ID: ${id}`);
     const post = {
       id: postId,
       text: "Some days I just need a quiet place to think.",
@@ -147,7 +178,7 @@ try {
     [1440, 900],
   ]) {
     const { context, page, state } = await setup({ width, height });
-    await page.goto(`${base}/duel`);
+    await navigate(page, `${base}/duel`);
     await page.getByRole("button", { name: /^Option A:/ }).waitFor();
     await fits(page);
     await page.getByRole("button", { name: /^Option A:/ }).click();
@@ -161,7 +192,7 @@ try {
   }
   const { context, page, state } = await setup({ width: 390, height: 844 });
   state.voteFails = true;
-  await page.goto(`${base}/duel`);
+  await navigate(page, `${base}/duel`);
   await page.getByRole("button", { name: /^Option A:/ }).click();
   await page.getByRole("alert").filter({ hasText: "Your vote was not saved" }).waitFor();
   assert.equal(await page.getByRole("button", { name: /^Option A:/ }).isEnabled(), true);
@@ -174,7 +205,7 @@ try {
   );
   checks++;
   console.log("PASS Failed vote rolls back and remains retryable");
-  await page.goto(`${base}/`);
+  await navigate(page, `${base}/`);
   const react = page.getByRole("button", { name: "Relate to this thought", exact: true });
   await react.click();
   await page.waitForFunction(
@@ -198,15 +229,15 @@ try {
   await page.getByText("Some days I just need a quiet place to think.").waitFor();
   checks++;
   console.log("PASS Saved thought appears in Corner");
-  await page.goto(`${base}/read`);
+  await navigate(page, `${base}/read`);
   await page.waitForURL(`${base}/`);
   checks++;
   console.log("PASS Old Read links redirect to Wall");
-  await page.goto(`${base}/?unsaid=55555555-5555-4555-8555-555555555555`);
+  await navigate(page, `${base}/?unsaid=55555555-5555-4555-8555-555555555555`);
   await page.getByText("A shared thought from an earlier day.", { exact: true }).waitFor();
   checks++;
   console.log("PASS Shared links load thoughts outside the first feed page");
-  await page.goto(`${base}/`);
+  await navigate(page, `${base}/`);
   await page.getByText("Some days I just need a quiet place to think.", { exact: true }).waitFor();
   await page.getByRole("button", { name: "Write a thought", exact: true }).click();
   await page
@@ -220,14 +251,14 @@ try {
   await page.getByRole("heading", { name: "Your thought is on the Wall." }).waitFor();
   checks++;
   console.log("PASS Composer publishes and displays server acknowledgment");
-  await page.goto(`${base}/auth/callback?error=access_denied`);
+  await navigate(page, `${base}/auth/callback?error=access_denied`);
   await page
     .getByText("Sign-in was cancelled or declined. You can try again from Your Corner.")
     .waitFor();
   checks++;
   console.log("PASS Declined authentication displays a recovery path");
   state.feedFails = true;
-  await page.goto(`${base}/`);
+  await navigate(page, `${base}/`);
   await page.getByText("Couldn't load the Wall just now.").waitFor();
   checks++;
   console.log("PASS Backend outage displays an error instead of an empty community");

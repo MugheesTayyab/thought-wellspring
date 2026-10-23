@@ -32,10 +32,7 @@ async function migrate() {
   loadEnv();
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-  const serviceRoleKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.VITE_SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.VITE_SUPABASE_ANON_KEY;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !serviceRoleKey) {
     console.error("Missing Supabase credentials in environment or .env.local");
@@ -56,7 +53,7 @@ async function migrate() {
     console.warn(`[Seed Migration] Could not verify existing count: ${countErr.message}`);
   } else if ((count ?? 0) >= 50) {
     console.log(
-      `[Seed Migration] Database already has ${count} confessions. Skipping duplicate migration.`
+      `[Seed Migration] Database already has ${count} confessions. Skipping duplicate migration.`,
     );
     return;
   }
@@ -79,23 +76,21 @@ async function migrate() {
         reactions: item.reactions,
         status: "published",
         created_at: new Date(item.createdAt).toISOString(),
-        device_token: "00000000seed0001",
+        device_token: "00000000feed0001",
       };
     });
 
-    const { error: upsertErr } = await supabase
-      .from("unsaids")
-      .upsert(batch, { onConflict: "id" });
+    const { error: upsertErr } = await supabase.from("unsaids").upsert(batch, { onConflict: "id" });
 
     if (upsertErr) {
       console.error(
         `[Seed Migration] Error inserting batch ${i / BATCH_SIZE + 1}:`,
-        upsertErr.message
+        upsertErr.message,
       );
     } else {
       migrated += batch.length;
       console.log(
-        `[Seed Migration] Migrated batch ${i / BATCH_SIZE + 1} (${migrated}/${SEED_DATA.length} records)`
+        `[Seed Migration] Migrated batch ${i / BATCH_SIZE + 1} (${migrated}/${SEED_DATA.length} records)`,
       );
     }
   }

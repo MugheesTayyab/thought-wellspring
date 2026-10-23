@@ -1,7 +1,8 @@
 import type { DatabaseEnv } from "../db/client";
 import { getSupabaseAdminClient } from "../db/client";
 
-export type RateLimitAction = "submit_post" | "react" | "echo" | "report" | "duel_vote";
+export type RateLimitAction =
+  "submit_post" | "react" | "echo" | "report" | "duel_vote" | "auth" | "push_subscription";
 
 export interface RateLimitConfig {
   limit: number;
@@ -10,6 +11,16 @@ export interface RateLimitConfig {
 }
 
 export const RATE_LIMIT_CONFIGS: Record<RateLimitAction, RateLimitConfig> = {
+  auth: {
+    limit: 20,
+    windowMinutes: 15,
+    errorMessage: "Too many account requests. Please try again later.",
+  },
+  push_subscription: {
+    limit: 10,
+    windowMinutes: 60,
+    errorMessage: "Too many notification subscription attempts. Please try again later.",
+  },
   duel_vote: {
     limit: 10,
     windowMinutes: 60,
@@ -77,36 +88,82 @@ export async function checkRateLimit(
 
   try {
     const adminClient = getSupabaseAdminClient(env);
-    const { data, error } = await adminClient.rpc("record_and_check_rate_limit", {
-      p_device_token: deviceToken,
-      p_action_type: action,
-      p_limit: config.limit,
-      p_window_minutes: config.windowMinutes,
-    });
+    await recordRateLimitAttempt(adminClient, action, deviceToken, config);
 
-    if (error) {
-      console.error("Rate limit check RPC failed:", error);
-      throw new Error("Rate limit service unavailable");
-    }
-
-    if (!data.allowed) {
-      throw new RateLimitError(
-        config.errorMessage,
-        data.limit,
-        0,
-        Date.now() + data.retry_after_seconds * 1000,
-      );
+    const requestFingerprint = await getRequestFingerprint();
+    if (requestFingerprint && requestFingerprint !== deviceToken) {
+      await recordRateLimitAttempt(adminClient, action, requestFingerprint, config);
     }
 
     return {
       allowed: true,
       limit: config.limit,
-      remaining: data.remaining,
+      remaining: Math.max(0, config.limit - 1),
       resetTime: Date.now() + config.windowMinutes * 60000,
     };
   } catch (err) {
     if (err instanceof RateLimitError) throw err;
     console.error("Rate limit evaluation error:", err);
+    throw new Error("Rate limit service unavailable");
+  }
+}
+
+type RateLimitClient = ReturnType<typeof getSupabaseAdminClient>;
+
+async function recordRateLimitAttempt(
+  adminClient: RateLimitClient,
+  action: RateLimitAction,
+  key: string,
+  config: RateLimitConfig,
+): Promise<void> {
+  const { data, error } = await adminClient.rpc("record_and_check_rate_limit", {
+    p_device_token: key,
+    p_action_type: action,
+    p_limit: config.limit,
+    p_window_minutes: config.windowMinutes,
+  });
+
+  if (error) {
+    console.error("Rate limit check RPC failed:", error);
+    throw new Error("Rate limit service unavailable");
+  }
+
+  if (!data?.allowed) {
+    throw new RateLimitError(
+      config.errorMessage,
+      data.limit,
+      0,
+      Date.now() + data.retry_after_seconds * 1000,
+    );
+  }
+}
+
+async function getRequestFingerprint(): Promise<string | null> {
+  try {
+    const { getRequestHeader } = await import("@tanstack/react-start/server");
+    const ip = getRequestHeader("cf-connecting-ip")?.trim();
+    if (!ip || ip.length > 64) return null;
+    const digest = new Uint8Array(
+      await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`bajihears-rate-limit:${ip}`)),
+    );
+    return Array.from(digest.slice(0, 8), (byte) => byte.toString(16).padStart(2, "0")).join("");
+  } catch {
+    return null;
+  }
+}
+
+export async function checkRequestRateLimit(
+  env: DatabaseEnv | undefined,
+  action: RateLimitAction,
+): Promise<void> {
+  const fingerprint = await getRequestFingerprint();
+  if (!fingerprint) return;
+  const config = RATE_LIMIT_CONFIGS[action];
+  try {
+    await recordRateLimitAttempt(getSupabaseAdminClient(env), action, fingerprint, config);
+  } catch (err) {
+    if (err instanceof RateLimitError) throw err;
+    console.error("Request rate limit evaluation error:", err);
     throw new Error("Rate limit service unavailable");
   }
 }

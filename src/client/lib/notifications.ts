@@ -1,6 +1,7 @@
 // Web push notification utilities with safe SSR fallbacks and real VAPID subscription delivery
 import { apiSavePushSubscription } from "@/routes/api/notifications";
 import { getOrCreateIdentity } from "./identity";
+import { authHeaders } from "./auth-headers";
 
 const PUSH_PROMPT_KEY = "bh:pushPromptShown";
 const PUSH_ENABLED_KEY = "bh:pushEnabled";
@@ -117,7 +118,6 @@ function arrayBufferToBase64Url(buffer: ArrayBuffer | null): string {
 
 export interface SubscribePushOptions {
   deviceToken?: string;
-  jwt?: string;
 }
 
 /**
@@ -191,6 +191,7 @@ export async function subscribeDeviceToPush(
     const deviceToken = options.deviceToken || getOrCreateIdentity().deviceToken;
 
     const result = await apiSavePushSubscription({
+      headers: await authHeaders(),
       data: {
         subscription: {
           endpoint: subscription.endpoint,
@@ -200,7 +201,6 @@ export async function subscribeDeviceToPush(
           },
         },
         deviceToken,
-        ...(options.jwt ? { jwt: options.jwt } : {}),
         userAgent: navigator.userAgent,
       },
     });

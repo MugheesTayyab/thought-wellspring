@@ -3,6 +3,7 @@ import { appendVeto } from "../db/unsaids";
 import { reportEcho as persistEchoReport } from "../db/echoes";
 import { validateDeviceToken } from "../middleware/device-token";
 import { checkRateLimit } from "../middleware/rate-limit";
+import { z } from "zod";
 
 export interface ReportPostInput {
   postId: string;
@@ -17,12 +18,13 @@ export async function reportPost(
   input: ReportPostInput,
 ): Promise<{ reported: boolean; message: string }> {
   const token = validateDeviceToken(input.deviceToken);
+  const postId = z.string().uuid().parse(input.postId);
 
   // 1. Rate limiting: 5 reports per 24 hours
   await checkRateLimit(env, "report", token);
 
   // 2. Append veto record
-  const res = await appendVeto(env, input.postId, token);
+  const res = await appendVeto(env, postId, token);
 
   if (res.error) {
     throw new Error(res.error.message);
@@ -45,11 +47,17 @@ export async function reportEcho(
   input: ReportEchoInput,
 ): Promise<{ reported: boolean; message: string }> {
   const token = validateDeviceToken(input.deviceToken);
-  const reason = input.reason?.trim().slice(0, 120) || "Community safety concern";
+  const echoId = z.string().uuid().parse(input.echoId);
+  const reason = z
+    .string()
+    .trim()
+    .min(1)
+    .max(120)
+    .parse(input.reason || "Community safety concern");
 
   await checkRateLimit(env, "report", token);
   const res = await persistEchoReport(env, {
-    echoId: input.echoId,
+    echoId,
     reporterDeviceToken: token,
     reason,
   });

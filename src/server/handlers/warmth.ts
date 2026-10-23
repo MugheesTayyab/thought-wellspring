@@ -9,12 +9,12 @@ import { getSupabaseAnonClient } from "@/server/db/client";
 import { verifiedProfileId } from "@/server/lib/authorization";
 import { claimDailyBonus, purchaseStoreItem, syncWarmth } from "@/server/functions/warmth";
 
-export async function handleClaimDailyBonus(data?: {
-  jwt?: string;
-}): Promise<ServerFnResult<ClaimBonusResponseData>> {
+export async function handleClaimDailyBonus(
+  _data?: undefined,
+): Promise<ServerFnResult<ClaimBonusResponseData>> {
   return wrapServerFn(async () => {
     const env = getServerEnv();
-    const jwt = await extractBearerJwt(data?.jwt);
+    const jwt = await extractBearerJwt();
 
     if (!jwt) {
       throw new Error("Missing required authorization token (UNAUTHORIZED)");
@@ -33,11 +33,10 @@ export async function handleClaimDailyBonus(data?: {
 
 export async function handlePurchaseStoreItem(data: {
   itemId: string;
-  jwt?: string;
 }): Promise<ServerFnResult<PurchaseStoreItemResponseData>> {
   return wrapServerFn(async () => {
     const env = getServerEnv();
-    const jwt = await extractBearerJwt(data?.jwt);
+    const jwt = await extractBearerJwt();
 
     if (!jwt) {
       throw new Error("Missing required authorization token (UNAUTHORIZED)");

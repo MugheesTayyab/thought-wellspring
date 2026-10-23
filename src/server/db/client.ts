@@ -119,9 +119,5 @@ export function getSupabaseAnonClient(env?: DatabaseEnv): SupabaseClient {
  * Prefers Admin Client with fallback to Anon Client.
  */
 export function getSupabaseClient(env?: DatabaseEnv): SupabaseClient {
-  try {
-    return getSupabaseAdminClient(env);
-  } catch {
-    return getSupabaseAnonClient(env);
-  }
+  return getSupabaseAdminClient(env);
 }

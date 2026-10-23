@@ -45,7 +45,13 @@ export async function submitPost(
   z.object({
     text: z.string(),
     category: z.enum(CATEGORIES),
-    handle: z.string().max(40).nullable().optional(),
+    handle: z
+      .string()
+      .trim()
+      .max(40)
+      .regex(/^@?[a-zA-Z0-9_.-]+$/)
+      .nullable()
+      .optional(),
     preset: z
       .string()
       .refine((p) => PRESETS.some((x) => x.key === p), "Invalid preset")
@@ -259,7 +265,13 @@ export async function addEcho(
   z.object({
     unsaidId: z.string().uuid(),
     text: z.string(),
-    handle: z.string().max(40).nullable().optional(),
+    handle: z
+      .string()
+      .trim()
+      .max(40)
+      .regex(/^@?[a-zA-Z0-9_.-]+$/)
+      .nullable()
+      .optional(),
   }).parse(input);
   const text = input.text?.trim() || "";
   if (text.length < 1) {
