@@ -1,29 +1,16 @@
-import { useState } from "react";
 import { cn } from "@/shared/utils";
 
 export function Logo({ size = 34, className }: { size?: number; className?: string }) {
-  const [imgSrc, setImgSrc] = useState("/logo.png");
-
   return (
-    <div
+    <span
+      aria-label="BajiHears"
       className={cn(
-        "relative shrink-0 rounded-full border border-[#E3B8B1] overflow-hidden bg-[#FBE6E4]",
+        "inline-flex shrink-0 items-center justify-center rounded-xl bg-primary font-serif font-semibold text-primary-foreground",
         className,
       )}
-      style={{ width: size, height: size }}
+      style={{ width: size, height: size, fontSize: size * 0.44 }}
     >
-      <img
-        src={imgSrc}
-        width={size}
-        height={size}
-        alt="BajiHears mascot with listening horn"
-        className="w-full h-full object-cover transition-opacity duration-200"
-        onError={() => {
-          if (imgSrc !== "/favicon.png") {
-            setImgSrc("/favicon.png");
-          }
-        }}
-      />
-    </div>
+      bh
+    </span>
   );
 }

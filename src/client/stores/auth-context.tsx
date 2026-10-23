@@ -1,8 +1,10 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from "react";
 import type { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/client/lib/supabase";
 import type { DbProfile } from "@/shared/types/profile";
 import { apiRefreshProfile } from "@/routes/api/auth";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export interface AuthContextType {
   user: User | null;
@@ -18,15 +20,21 @@ export interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<DbProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const profileEpoch = useRef(0);
+  const invalidateProfileRequests = () => {
+    profileEpoch.current += 1;
+  };
 
   const fetchProfile = async (jwt: string) => {
+    const epoch = profileEpoch.current;
     try {
       const res = await apiRefreshProfile({ data: { jwt } });
-      if (res.success && res.data?.profile) {
+      if (epoch === profileEpoch.current && res.ok && res.data?.profile) {
         setProfile(res.data.profile);
       }
     } catch (err) {
@@ -38,29 +46,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let mounted = true;
 
     // Check active session on mount
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      if (!mounted) return;
-      setSession(initialSession);
-      setUser(initialSession?.user ?? null);
-      if (initialSession?.access_token) {
-        fetchProfile(initialSession.access_token).finally(() => {
-          if (mounted) setIsLoading(false);
-        });
-      } else {
-        setIsLoading(false);
-      }
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data: { session: initialSession }, error }) => {
+        if (!mounted) return;
+        invalidateProfileRequests();
+        if (error) toast.error("Your session could not be restored. Please sign in again.");
+        setSession(initialSession);
+        setUser(initialSession?.user ?? null);
+        if (initialSession?.access_token) {
+          fetchProfile(initialSession.access_token).finally(() => {
+            if (mounted) setIsLoading(false);
+          });
+        } else {
+          setIsLoading(false);
+        }
+      })
+      .catch(() => {
+        if (mounted) setIsLoading(false);
+      });
 
     // Subscribe to auth state changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
       if (!mounted) return;
+      invalidateProfileRequests();
       setSession(newSession);
       setUser(newSession?.user ?? null);
 
       if (newSession?.access_token) {
-        await fetchProfile(newSession.access_token);
+        // Leave the auth client's lock before starting asynchronous profile work.
+        window.setTimeout(() => {
+          if (mounted) void fetchProfile(newSession.access_token);
+        }, 0);
       } else {
         setProfile(null);
       }
@@ -69,30 +88,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       mounted = false;
+      invalidateProfileRequests();
       subscription.unsubscribe();
     };
   }, []);
 
   const signInWithGoogle = async () => {
     if (typeof window === "undefined") return;
-    const origin = window.location.origin;
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${origin}/auth/callback`,
-        queryParams: {
-          prompt: "select_account",
-          access_type: "offline",
+    try {
+      const origin = window.location.origin;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${origin}/auth/callback`,
+          queryParams: {
+            prompt: "select_account",
+          },
         },
-      },
-    });
+      });
+      if (error) toast.error("Sign-in could not start. Please try again.");
+    } catch {
+      toast.error("Sign-in could not start. Check your connection and try again.");
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setSession(null);
-    setUser(null);
-    setProfile(null);
+    try {
+      const { error } = await supabase.auth.signOut({ scope: "local" });
+      if (error) {
+        toast.error("Sign-out failed. Please try again.");
+        return;
+      }
+      setSession(null);
+      setUser(null);
+      setProfile(null);
+      queryClient.clear();
+    } catch {
+      toast.error("Sign-out failed. Check your connection and try again.");
+    }
   };
 
   const refreshProfileManual = async () => {

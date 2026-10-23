@@ -1,11 +1,12 @@
+import { useHydrated } from "@/client/hooks/use-hydrated";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/client/lib/query-keys";
+import { authHeaders } from "@/client/lib/auth-headers";
 import { apiFetchActiveDuel, apiSubmitDuelVote } from "@/routes/api/duels";
 import { useDeviceToken } from "@/client/hooks/use-device-token";
 import { useWarmth } from "@/client/stores/warmth-context";
 import { readAnsweredDuels, writeAnsweredDuels } from "@/client/lib/local-storage";
-import { MOCK_DUELS } from "@/shared/constants/duels";
 import type { Duel, AnsweredDuelRecord } from "@/shared/types/duel";
 
 export interface UseDuelReturn {
@@ -31,6 +32,7 @@ export interface UseDuelReturn {
  * Guaranteed never to freeze indefinitely in loading state.
  */
 export function useDuel(): UseDuelReturn {
+  const hydrated = useHydrated();
   const queryClient = useQueryClient();
   const { deviceToken } = useDeviceToken();
   const { awardWarmth } = useWarmth();
@@ -49,27 +51,11 @@ export function useDuel(): UseDuelReturn {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: queryKeys.duels.active(deviceToken),
     queryFn: async () => {
-      try {
-        const res = await apiFetchActiveDuel({
-          data: deviceToken ? { deviceToken } : undefined,
-        });
-        if (res.ok && res.data?.duel) return res.data;
-        if (res.ok && !res.data?.duel) {
-          // If no duel is marked active in database, use community fallback
-          return {
-            duel: MOCK_DUELS[0],
-            alreadyVoted: false,
-          };
-        }
-      } catch (err) {
-        console.warn("[useDuel] Network/server fetch failed, using daily community pick:", err);
-      }
-      // Resilient fallback so the user is never stuck in endless "Loading the current Duel..."
-      return {
-        duel: MOCK_DUELS[0],
-        alreadyVoted: false,
-      };
+      const res = await apiFetchActiveDuel({ data: deviceToken ? { deviceToken } : undefined });
+      if (!res.ok) throw new Error(res.error.message);
+      return res.data;
     },
+    retry: 1,
     staleTime: 60_000,
     gcTime: 300_000,
   });
@@ -102,29 +88,18 @@ export function useDuel(): UseDuelReturn {
   const voteMutation = useMutation({
     mutationFn: async ({ duelId, choiceIndex }: { duelId: string; choiceIndex: 0 | 1 }) => {
       if (!deviceToken) {
-        return {
+        throw new Error("Your device identity is not ready. Please try again.");
+      }
+      const res = await apiSubmitDuelVote({
+        headers: await authHeaders(),
+        data: {
+          duelId,
           choiceIndex,
-          votesA: votesA + (choiceIndex === 0 ? 1 : 0),
-          votesB: votesB + (choiceIndex === 1 ? 1 : 0),
-        };
-      }
-      try {
-        const res = await apiSubmitDuelVote({
-          data: {
-            duelId,
-            choiceIndex,
-            deviceToken,
-          },
-        });
-        if (res.ok && res.data) return res.data;
-      } catch (err) {
-        console.warn("[useDuel] Server vote recording skipped/offline, vote persisted locally:", err);
-      }
-      return {
-        choiceIndex,
-        votesA: votesA + (choiceIndex === 0 ? 1 : 0),
-        votesB: votesB + (choiceIndex === 1 ? 1 : 0),
-      };
+          deviceToken,
+        },
+      });
+      if (!res.ok) throw new Error(res.error.message);
+      return res.data;
     },
     onMutate: async ({ duelId, choiceIndex }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.duels.active(deviceToken) });
@@ -202,7 +177,11 @@ export function useDuel(): UseDuelReturn {
 
   const vote = async (choiceIndex: 0 | 1) => {
     if (!duel?.id || alreadyVoted || voteMutation.isPending) return;
-    await voteMutation.mutateAsync({ duelId: duel.id, choiceIndex });
+    try {
+      await voteMutation.mutateAsync({ duelId: duel.id, choiceIndex });
+    } catch {
+      /* Error is rendered below the Duel. */
+    }
   };
 
   return {
@@ -215,10 +194,10 @@ export function useDuel(): UseDuelReturn {
     votesB,
     isLoading,
     isVoting: voteMutation.isPending,
-    error: (error as Error) || null,
+    error: voteMutation.error || (error as Error) || null,
     vote,
     refetch,
-    answeredCount: Object.keys(answeredRecord).length,
+    answeredCount: hydrated ? Object.keys(answeredRecord).length : 0,
     answeredRecord,
   };
 }

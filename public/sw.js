@@ -12,10 +12,11 @@ self.addEventListener("push", (event) => {
   const title = data.title || "The new winner is in ✨";
   const options = {
     body: data.body || "Someone won the daily crown. Check it out on BajiHears.",
-    icon: "/favicon.png",
-    badge: "/favicon.png",
+    icon: "/brand.svg",
+    badge: "/brand.svg",
     tag: data.tag || "bajihears-winner",
     renotify: true,
+    silent: false,
     vibrate: [100, 50, 100],
     data: {
       url: data.url || "/",
@@ -29,7 +30,8 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const targetPath = event.notification.data?.url || "/";
+  const candidate = new URL(event.notification.data?.url || "/", self.location.origin);
+  const targetPath = candidate.origin === self.location.origin ? candidate.href : "/";
 
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {

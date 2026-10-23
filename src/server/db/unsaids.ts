@@ -31,10 +31,8 @@ export function mapRowToUnsaid(row: any): Unsaid {
     reactions: row.reactions || { heart: 0, sad: 0, fire: 0, hug: 0 },
     echoes: [],
     status: row.status,
-    deviceToken: row.device_token,
-    profileId: row.profile_id ?? null,
+    profileId: row.handle ? (row.profile_id ?? null) : null,
     vetoCount: row.veto_count ?? 0,
-    vetoedBy: row.vetoed_by ?? [],
     isWinner: row.is_winner ?? false,
     winnerCycle: row.winner_cycle ? new Date(row.winner_cycle).getTime() : undefined,
     winnerHook: row.winner_hook ?? null,
@@ -51,8 +49,8 @@ export async function fetchPublishedFeed(
   options?: FeedOptions,
 ): Promise<{ data: Unsaid[]; error: { code: string; message: string } | null }> {
   try {
-    const client = getSupabaseAnonClient(env);
-    const limit = Math.min(options?.limit ?? 20, 50);
+    const client = getSupabaseAdminClient(env);
+    const limit = Math.min(options?.limit ?? 20, 51);
     const offset = options?.offset ?? 0;
 
     let query = client
@@ -106,13 +104,14 @@ export async function fetchWinner(
   env?: DatabaseEnv,
 ): Promise<{ data: Unsaid | null; error: { code: string; message: string } | null }> {
   try {
-    const client = getSupabaseAnonClient(env);
+    const client = getSupabaseAdminClient(env);
     const { data, error } = await client
       .from("unsaids")
       .select(
         "id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, profile_id, is_winner, winner_cycle, winner_hook, winner_score",
       )
       .eq("is_winner", true)
+      .eq("status", "published")
       .order("winner_cycle", { ascending: false, nullsFirst: false })
       .limit(1)
       .maybeSingle();
@@ -145,14 +144,14 @@ export async function fetchPostById(
   id: string,
 ): Promise<{ data: Unsaid | null; error: { code: string; message: string } | null }> {
   try {
-    const client = getSupabaseAnonClient(env);
+    const client = getSupabaseAdminClient(env);
     const { data, error } = await client
       .from("unsaids")
       .select(
         "id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, status",
       )
       .eq("id", id)
-      .in("status", ["published", "review"])
+      .eq("status", "published")
       .maybeSingle();
 
     if (error) {
@@ -177,20 +176,15 @@ export async function insertPost(
 }> {
   try {
     const client = getSupabaseAdminClient(env);
-    const { data, error } = await client
-      .from("unsaids")
-      .insert({
-        text: postData.text,
-        handle: postData.handle ?? null,
-        device_token: postData.deviceToken,
-        profile_id: postData.profileId ?? null,
-        category: postData.category,
-        preset: postData.preset || "midnight-static",
-        status: postData.status || "published",
-        reactions: { heart: 0, sad: 0, fire: 0, hug: 0 },
-      })
-      .select("id, created_at, status")
-      .single();
+    const { data, error } = await client.rpc("insert_post_atomic", {
+      p_text: postData.text,
+      p_handle: postData.handle ?? null,
+      p_device_token: postData.deviceToken,
+      p_profile_id: postData.profileId ?? null,
+      p_category: postData.category,
+      p_preset: postData.preset || "midnight-static",
+      p_status: postData.status || "published",
+    });
 
     if (error) {
       return { data: null, error: { code: error.code, message: error.message } };
@@ -495,12 +489,10 @@ export async function fetchUserThoughtsActivity(
 
     let query = client.from("unsaids").select("*");
 
-    if (profileId && deviceToken) {
-      query = query.or(`profile_id.eq.${profileId},device_token.eq.${deviceToken}`);
-    } else if (profileId) {
+    if (profileId) {
       query = query.eq("profile_id", profileId);
     } else if (deviceToken) {
-      query = query.eq("device_token", deviceToken);
+      query = query.eq("device_token", deviceToken).is("profile_id", null);
     } else {
       return {
         data: { posts: [], totalLikesReceived: 0, totalPosts: 0, likedPosts: [] },
@@ -508,7 +500,7 @@ export async function fetchUserThoughtsActivity(
       };
     }
 
-    query = query.order("created_at", { ascending: false });
+    query = query.order("created_at", { ascending: false }).limit(100);
     const { data: rawPosts, error: postErr } = await query;
 
     if (postErr) {
@@ -519,7 +511,7 @@ export async function fetchUserThoughtsActivity(
     const postIds = (rawPosts || []).map((p: any) => p.id);
 
     // Fetch echoes for all user posts in bulk
-    let echoesByPost: Record<
+    const echoesByPost: Record<
       string,
       Array<{ id: string; text: string; handle: string | null; createdAt: number }>
     > = {};
@@ -640,7 +632,7 @@ export async function fetchPublicProfileWithPosts(
     if (isUuid) {
       query = query.eq("id", cleanId);
     } else {
-      query = query.ilike("handle", cleanId);
+      query = query.eq("handle", cleanId);
     }
 
     const { data: profileRow, error: pErr } = await query.maybeSingle();
@@ -656,7 +648,7 @@ export async function fetchPublicProfileWithPosts(
         .select(
           "id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, profile_id",
         )
-        .ilike("handle", cleanId)
+        .in("handle", [cleanId, `@${cleanId}`])
         .eq("status", "published")
         .order("created_at", { ascending: false });
 
@@ -679,8 +671,8 @@ export async function fetchPublicProfileWithPosts(
             handle: cleanId,
             avatarSeed: 42,
             memberSince: new Date().toISOString().split("T")[0]!,
-            visitStreak: 1,
-            warmthTotal: 50,
+            visitStreak: 0,
+            warmthTotal: 0,
             totalActions: posts.length,
           },
           posts,
@@ -696,7 +688,8 @@ export async function fetchPublicProfileWithPosts(
       .select(
         "id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, profile_id",
       )
-      .or(`profile_id.eq.${profileRow.id},handle.ilike.${profileRow.handle}`)
+      .eq("profile_id", profileRow.id)
+      .not("handle", "is", null)
       .eq("status", "published")
       .order("created_at", { ascending: false });
 

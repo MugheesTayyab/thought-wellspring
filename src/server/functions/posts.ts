@@ -1,19 +1,19 @@
+import { z } from "zod";
+import { PRESETS } from "@/shared/constants/presets";
+import { getSupabaseAdminClient } from "../db/client";
 import type { DatabaseEnv } from "../db/client";
 import {
   fetchPublishedFeed,
   fetchWinner as dbFetchWinner,
   fetchPostById as dbFetchPostById,
   insertPost,
-  incrementReaction,
-  decrementReaction,
 } from "../db/unsaids";
-import { recordReaction, hasDeviceReacted, removeReaction } from "../db/reactions";
 import { insertEcho } from "../db/echoes";
 import { incrementTotalActions } from "../db/profiles";
 import { validateDeviceToken } from "../middleware/device-token";
 import { checkRateLimit } from "../middleware/rate-limit";
 import { normalizeText } from "../lib/moderation/normalize";
-import { checkHardFilters, escapeHtml } from "../lib/moderation/hard-filters";
+import { checkHardFilters } from "../lib/moderation/hard-filters";
 import { checkSoftFilters } from "../lib/moderation/soft-filters";
 import { FALLBACK_WINNER } from "../lib/fallback-winner";
 import { CATEGORIES } from "@/shared/constants/categories";
@@ -40,8 +40,17 @@ export interface SubmitPostResult {
  */
 export async function submitPost(
   env: DatabaseEnv | undefined,
-  input: SubmitPostInput
+  input: SubmitPostInput,
 ): Promise<SubmitPostResult> {
+  z.object({
+    text: z.string(),
+    category: z.enum(CATEGORIES),
+    handle: z.string().max(40).nullable().optional(),
+    preset: z
+      .string()
+      .refine((p) => PRESETS.some((x) => x.key === p), "Invalid preset")
+      .optional(),
+  }).parse(input);
   const token = validateDeviceToken(input.deviceToken);
 
   const text = input.text?.trim() || "";
@@ -61,18 +70,18 @@ export async function submitPost(
 
   // 2. Moderation Pipeline Check
   const normalizedPayload = normalizeText(text);
-  
+
   const hardResult = checkHardFilters(normalizedPayload);
   if (hardResult.blocked) {
     const error = new Error(hardResult.details || "CONTENT_VIOLATION");
-    (error as any).code = 'CONTENT_VIOLATION';
+    (error as any).code = "CONTENT_VIOLATION";
     throw error;
   }
-  
+
   const softResult = checkSoftFilters(normalizedPayload);
   const status: "published" | "review" = softResult.flagged ? "review" : "published";
 
-  const safeText = escapeHtml(text);
+  const safeText = text;
 
   // 3. Database insert
   const res = await insertPost(env, {
@@ -92,7 +101,7 @@ export async function submitPost(
   // 4. Update profile actions if signed in
   if (input.profileId) {
     await incrementTotalActions(env, input.profileId).catch((err) =>
-      console.error("[submitPost] incrementTotalActions error:", err)
+      console.error("[submitPost] incrementTotalActions error:", err),
     );
   }
 
@@ -112,8 +121,13 @@ export async function submitPost(
  */
 export async function fetchFeed(
   env: DatabaseEnv | undefined,
-  options?: { category?: Category; page?: number; limit?: number }
+  options?: { category?: Category; page?: number; limit?: number },
 ): Promise<{ posts: Unsaid[]; page: number; limit: number; hasMore: boolean }> {
+  z.object({
+    page: z.number().int().min(0).max(10000).optional(),
+    limit: z.number().int().min(1).max(50).optional(),
+    category: z.enum(CATEGORIES).optional(),
+  }).parse(options ?? {});
   const page = Math.max(0, options?.page ?? 0);
   const limit = Math.min(Math.max(1, options?.limit ?? 20), 50);
   const offset = page * limit;
@@ -144,7 +158,7 @@ export async function fetchFeed(
  * Fetch latest cycle winner with automatic fallback
  */
 export async function fetchWinner(
-  env?: DatabaseEnv
+  env?: DatabaseEnv,
 ): Promise<{ winner: Unsaid; hook: string; isFallback: boolean }> {
   const res = await dbFetchWinner(env);
 
@@ -168,8 +182,9 @@ export async function fetchWinner(
  */
 export async function fetchPostById(
   env: DatabaseEnv | undefined,
-  id: string
+  id: string,
 ): Promise<Unsaid | null> {
+  z.string().uuid().parse(id);
   const res = await dbFetchPostById(env, id);
   if (res.error) {
     throw new Error(res.error.message);
@@ -180,6 +195,29 @@ export async function fetchPostById(
 /**
  * React to post with rate limiting and deduplication
  */
+async function setReaction(
+  env: DatabaseEnv | undefined,
+  input: {
+    postId: string;
+    reactionKey: ReactionKey;
+    deviceToken: string;
+    profileId?: string | null;
+  },
+  add: boolean,
+): Promise<{ reactions: Record<ReactionKey, number> }> {
+  z.string().uuid().parse(input.postId);
+  z.enum(["heart", "sad", "fire", "hug"]).parse(input.reactionKey);
+  const token = validateDeviceToken(input.deviceToken);
+  await checkRateLimit(env, "react", token);
+  const { data, error } = await getSupabaseAdminClient(env).rpc("set_reaction_atomic", {
+    p_post_id: input.postId,
+    p_device_token: token,
+    p_reaction_key: input.reactionKey,
+    p_add: add,
+  });
+  if (error || !data) throw new Error(error?.message || "Reaction could not be saved");
+  return { reactions: data };
+}
 export async function reactToPost(
   env: DatabaseEnv | undefined,
   input: {
@@ -187,44 +225,10 @@ export async function reactToPost(
     reactionKey: ReactionKey;
     deviceToken: string;
     profileId?: string | null;
-  }
-): Promise<{ reactions: Record<ReactionKey, number> }> {
-  const token = validateDeviceToken(input.deviceToken);
-
-  // 1. Rate limiting: 10 reactions per hour
-  await checkRateLimit(env, "react", token);
-
-  // 2. Check deduplication: has this device already used this emoji?
-  const alreadyReacted = await hasDeviceReacted(env, input.postId, token, input.reactionKey);
-  if (alreadyReacted) {
-    throw new Error("Device has already submitted this reaction.");
-  }
-
-  // 3. Record reaction in deduplication ledger
-  const recordRes = await recordReaction(env, input.postId, token, input.reactionKey);
-  if (recordRes.error) {
-    throw new Error(recordRes.error.message);
-  }
-
-  // 4. Increment counter on post
-  const counterRes = await incrementReaction(env, input.postId, input.reactionKey);
-  if (counterRes.error || !counterRes.data) {
-    throw new Error(counterRes.error?.message || "Failed to record reaction");
-  }
-
-  // 5. Update user activity if signed in
-  if (input.profileId) {
-    await incrementTotalActions(env, input.profileId).catch((err) =>
-      console.error("[reactToPost] incrementTotalActions error:", err)
-    );
-  }
-
-  return { reactions: counterRes.data };
+  },
+) {
+  return setReaction(env, input, true);
 }
-
-/**
- * Unreact to post with deduplication removal
- */
 export async function unreactToPost(
   env: DatabaseEnv | undefined,
   input: {
@@ -232,31 +236,9 @@ export async function unreactToPost(
     reactionKey: ReactionKey;
     deviceToken: string;
     profileId?: string | null;
-  }
-): Promise<{ reactions: Record<ReactionKey, number> }> {
-  const token = validateDeviceToken(input.deviceToken);
-
-  // 1. Check deduplication: did this device react with this emoji?
-  const alreadyReacted = await hasDeviceReacted(env, input.postId, token, input.reactionKey);
-  if (!alreadyReacted) {
-    // Idempotent: nothing to unreact
-    const postRes = await dbFetchPostById(env, input.postId);
-    return { reactions: postRes.data?.reactions || { heart: 0, sad: 0, fire: 0, hug: 0 } };
-  }
-
-  // 2. Remove reaction from ledger
-  const removeRes = await removeReaction(env, input.postId, token, input.reactionKey);
-  if (removeRes.error) {
-    throw new Error(removeRes.error.message);
-  }
-
-  // 3. Decrement counter on post
-  const counterRes = await decrementReaction(env, input.postId, input.reactionKey);
-  if (counterRes.error || !counterRes.data) {
-    throw new Error(counterRes.error?.message || "Failed to decrement reaction");
-  }
-
-  return { reactions: counterRes.data };
+  },
+) {
+  return setReaction(env, input, false);
 }
 
 /**
@@ -270,10 +252,15 @@ export async function addEcho(
     deviceToken: string;
     handle?: string | null;
     profileId?: string | null;
-  }
+  },
 ): Promise<Echo> {
   const token = validateDeviceToken(input.deviceToken);
 
+  z.object({
+    unsaidId: z.string().uuid(),
+    text: z.string(),
+    handle: z.string().max(40).nullable().optional(),
+  }).parse(input);
   const text = input.text?.trim() || "";
   if (text.length < 1) {
     throw new Error("Echo cannot be empty.");
@@ -287,11 +274,11 @@ export async function addEcho(
 
   // Moderation pipeline check
   const normalizedPayload = normalizeText(text);
-  
+
   const hardResult = checkHardFilters(normalizedPayload);
   if (hardResult.blocked) {
     const error = new Error(hardResult.details || "CONTENT_VIOLATION");
-    (error as any).code = 'CONTENT_VIOLATION';
+    (error as any).code = "CONTENT_VIOLATION";
     throw error;
   }
 
@@ -300,7 +287,7 @@ export async function addEcho(
     throw new Error("Echo was flagged for community review.");
   }
 
-  const safeText = escapeHtml(text);
+  const safeText = text;
 
   const res = await insertEcho(env, {
     unsaidId: input.unsaidId,
@@ -316,7 +303,7 @@ export async function addEcho(
 
   if (input.profileId) {
     await incrementTotalActions(env, input.profileId).catch((err) =>
-      console.error("[addEcho] incrementTotalActions error:", err)
+      console.error("[addEcho] incrementTotalActions error:", err),
     );
   }
 
@@ -326,6 +313,5 @@ export async function addEcho(
     handle: input.handle ?? null,
     createdAt: res.data.createdAt,
     profileId: input.profileId ?? null,
-    deviceToken: token,
   };
 }

@@ -1,3 +1,4 @@
+import { useHydrated } from "@/client/hooks/use-hydrated";
 import { useCallback, useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -19,6 +20,8 @@ import { useAuth } from "@/client/stores/auth-context";
 import { useWarmth } from "@/client/stores/warmth-context";
 import { useDeviceToken } from "@/client/hooks/use-device-token";
 import { apiFetchUserActivity } from "@/routes/api/wall";
+import { authHeaders } from "@/client/lib/auth-headers";
+import { isPushSupported, subscribeDeviceToPush } from "@/client/lib/notifications";
 import { randomSeed, relativeTime, stripHandle } from "@/shared/utils";
 import type { Category, Unsaid } from "@/shared/types/unsaid";
 import {
@@ -36,7 +39,8 @@ export const Route = createFileRoute("/corner")({
       { title: "Your Corner · A Quiet Space | BajiHears" },
       {
         name: "description",
-        content: "A spot for the things you choose to keep close. Your thoughts, saved notes, identity, and settings.",
+        content:
+          "A spot for the things you choose to keep close. Your thoughts, saved notes, identity, and settings.",
       },
     ],
   }),
@@ -64,6 +68,7 @@ interface Activity {
 }
 
 function CornerPage() {
+  const hydrated = useHydrated();
   const { user, profile, signInWithGoogle, signOut, isLoading: authLoading } = useAuth();
   const { deviceToken } = useDeviceToken();
   const { totalWarmth, openWarmthSheet, isFlashingOrb } = useWarmth();
@@ -75,6 +80,8 @@ function CornerPage() {
   const [activityLoading, setActivityLoading] = useState(true);
   const [activityError, setActivityError] = useState(false);
   const [savedNotice, setSavedNotice] = useState(false);
+  const [notificationNotice, setNotificationNotice] = useState<string | null>(null);
+  const [enablingNotifications, setEnablingNotifications] = useState(false);
 
   const loadActivity = useCallback(async () => {
     if (!deviceToken) return;
@@ -83,6 +90,7 @@ function CornerPage() {
     try {
       const result = await apiFetchUserActivity({
         data: { profileId: user?.id ?? null, deviceToken },
+        headers: await authHeaders(),
       });
       if (!result.ok) throw new Error(result.error.message);
       setActivity(result.data as Activity);
@@ -117,6 +125,13 @@ function CornerPage() {
     ["settings", "Settings"],
   ];
 
+  if (!hydrated)
+    return (
+      <main className="min-h-screen p-6">
+        <p role="status">Loading your Corner…</p>
+        <BottomNav />
+      </main>
+    );
   return (
     <main className="mx-auto min-h-screen w-full max-w-lg bg-background px-4 pb-32 pt-5 text-foreground sm:px-6">
       {/* Top Header */}
@@ -130,7 +145,9 @@ function CornerPage() {
         </Link>
         <div className="text-center">
           <h1 className="font-display text-lg font-bold text-ink">Your Corner</h1>
-          <p className="text-[11px] text-muted-foreground">A spot for the things you choose to keep close.</p>
+          <p className="text-[11px] text-muted-foreground">
+            A spot for the things you choose to keep close.
+          </p>
         </div>
         <span className="w-16" aria-hidden />
       </header>
@@ -199,9 +216,7 @@ function CornerPage() {
             type="button"
             onClick={() => setTab(key)}
             className={`min-h-11 rounded-xl text-xs font-bold transition ${
-              tab === key
-                ? "bg-coral text-white shadow-xs"
-                : "text-muted-foreground hover:text-ink"
+              tab === key ? "bg-coral text-white shadow-xs" : "text-muted-foreground hover:text-ink"
             }`}
           >
             {label}
@@ -281,9 +296,12 @@ function CornerPage() {
               <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-cream text-coral">
                 <PenLine className="size-5" />
               </div>
-              <h3 className="mt-3 font-display text-lg font-bold text-ink">A quiet corner, for now</h3>
+              <h3 className="mt-3 font-display text-lg font-bold text-ink">
+                A quiet corner, for now
+              </h3>
               <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                No thoughts from you yet. You can write whenever you're ready. Reading along is completely good too.
+                No thoughts from you yet. You can write whenever you're ready. Reading along is
+                completely good too.
               </p>
               <Link
                 to="/"
@@ -323,7 +341,9 @@ function CornerPage() {
               <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-cream text-coral">
                 <Bookmark className="size-5" />
               </div>
-              <h3 className="mt-3 font-display text-lg font-bold text-ink">Nothing saved just yet</h3>
+              <h3 className="mt-3 font-display text-lg font-bold text-ink">
+                Nothing saved just yet
+              </h3>
               <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
                 If a thought stays with you on the Wall, tap its bookmark to save it for later.
               </p>
@@ -373,18 +393,17 @@ function CornerPage() {
             </div>
 
             <div className="mt-5 pt-4 border-t border-border/70">
-              <label
-                className="block text-xs font-bold text-ink"
-                htmlFor="corner-handle"
-              >
+              <label className="block text-xs font-bold text-ink" htmlFor="corner-handle">
                 Optional Public Handle
               </label>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Shown publicly only when you deliberately choose "With a handle" while posting or echoing.
+                Shown publicly only when you deliberately choose "With a handle" while posting or
+                echoing.
               </p>
               <div className="mt-2.5 flex gap-2">
                 <input
                   id="corner-handle"
+                  maxLength={39}
                   value={handle}
                   onChange={(event) => setHandle(event.target.value)}
                   placeholder="yourhandle"
@@ -404,9 +423,7 @@ function CornerPage() {
           {/* Account Sync Card */}
           <div className="paper-card p-5">
             <h3 className="font-display text-base font-bold text-ink">Account Sync</h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Keep your Corner across devices.
-            </p>
+            <p className="mt-1 text-xs text-muted-foreground">Keep your Corner across devices.</p>
 
             {authLoading ? (
               <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
@@ -416,7 +433,8 @@ function CornerPage() {
             ) : user ? (
               <div className="mt-3.5">
                 <p className="text-xs leading-relaxed text-muted-foreground">
-                  Connected as <span className="font-semibold text-ink">{user.email ?? "your account"}</span>.
+                  Connected as{" "}
+                  <span className="font-semibold text-ink">{user.email ?? "your account"}</span>.
                   Server-backed thoughts and Echoes stay attached to your profile.
                 </p>
                 <button
@@ -430,7 +448,8 @@ function CornerPage() {
             ) : (
               <div className="mt-3.5">
                 <p className="text-xs leading-relaxed text-muted-foreground">
-                  Continue as a guest, or connect Google so your thoughts and Echoes can follow you across devices. Drafts and saves remain safely on this device.
+                  Continue as a guest, or connect Google so your thoughts and Echoes can follow you
+                  across devices. Drafts and saves remain safely on this device.
                 </p>
                 <button
                   type="button"
@@ -462,12 +481,52 @@ function CornerPage() {
           </div>
 
           {/* Privacy & Notification Reassurance */}
+          <div className="paper-card p-5">
+            <h3 className="font-display text-base font-bold text-ink">Notifications</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Optional alerts for the community pick. You can turn them off in your browser
+              settings.
+            </p>
+            <button
+              type="button"
+              disabled={enablingNotifications}
+              className="mt-3 tap-44 rounded-xl border border-border px-4 text-xs font-semibold disabled:opacity-50"
+              onClick={async () => {
+                if (!isPushSupported()) {
+                  setNotificationNotice(
+                    "This browser does not support push notifications. On iPhone, add the app to your Home Screen first.",
+                  );
+                  return;
+                }
+                setEnablingNotifications(true);
+                try {
+                  const result = await subscribeDeviceToPush({ deviceToken });
+                  setNotificationNotice(
+                    result.success
+                      ? "Notifications are enabled for this browser."
+                      : result.error || "Notifications could not be enabled.",
+                  );
+                } finally {
+                  setEnablingNotifications(false);
+                }
+              }}
+            >
+              {enablingNotifications ? "Enabling…" : "Enable notifications"}
+            </button>
+            {notificationNotice && (
+              <p role="status" className="mt-2 text-xs text-muted-foreground">
+                {notificationNotice}
+              </p>
+            )}
+          </div>
           <div className="rounded-2xl border border-border/80 bg-paper/60 p-4 text-xs leading-relaxed text-muted-foreground flex items-start gap-2.5">
             <ShieldCheck className="size-4 text-coral shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold text-ink">Quiet defaults &amp; privacy</p>
               <p className="mt-0.5">
-                We only notify you when someone echoes your thoughts. Your connected email or private account information is never shown publicly on your posts.
+                Notifications announce community picks when you opt in. Your email stays private.
+                Choosing Anonymous hides your account link from public posts. Drafts, saved notes,
+                avatars, and Ember remain in this browser.
               </p>
             </div>
           </div>

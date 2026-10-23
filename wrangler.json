@@ -2,9 +2,7 @@
   "name": "bajihears",
   "main": ".output/server/index.mjs",
   "compatibility_date": "2026-09-25",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
+  "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "binding": "ASSETS",
     "directory": ".output/public"
@@ -12,12 +10,10 @@
   "vars": {
     "SUPABASE_URL": "https://qsloqqvdunfuyqqdmgil.supabase.co",
     "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzbG9xcXZkdW5mdXlxcWRtZ2lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNjg3MDcsImV4cCI6MjEwNTg0NDcwN30.Hi4UGMoRlKDKKmSmstY4Ues7XrGD3XvGSYLxeWqLhiA",
-    "VAPID_PUBLIC_KEY": "BC2J76RtDSeeFuYN3VnrvChrz3qKHVD_bhO1eKaFHl3RO5dz3CUA8JOMIoicqBQG5XBrE1WvriUXP5RDAOmugsI",
+    "VAPID_PUBLIC_KEY": "BN83GQ5ieNfM4B4EZnKupKwD6l5n4XrpWFlcDQG9E5CFtIpQ60yI2HVAkHnjfE3gIdXxZ4G7M02LRDdMJ1sB7PM",
     "VAPID_SUBJECT": "mailto:admin@bajihears.com"
   },
   "triggers": {
-    "crons": [
-      "0 0,12 * * *"
-    ]
+    "crons": ["* * * * *"]
   }
 }

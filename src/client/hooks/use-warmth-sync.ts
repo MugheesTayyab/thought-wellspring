@@ -3,6 +3,7 @@ import { useWarmth } from "@/client/stores/warmth-context";
 import { readWarmth } from "@/client/lib/local-storage";
 import { useDeviceToken } from "@/client/hooks/use-device-token";
 import { apiSyncWarmth } from "@/routes/api/warmth";
+import { authHeaders } from "@/client/lib/auth-headers";
 
 export interface UseWarmthSyncReturn {
   isSyncing: boolean;
@@ -33,6 +34,7 @@ export function useWarmthSync(): UseWarmthSyncReturn {
       const effectiveWarmth = Math.max(localWarmth, totalWarmth || 0);
 
       const result = await apiSyncWarmth({
+        headers: await authHeaders(),
         data: {
           deviceToken,
           localWarmth: effectiveWarmth,

@@ -59,17 +59,21 @@ export function getSupabaseAdminClient(env?: DatabaseEnv): SupabaseClient {
 
   if (!url) {
     throw new Error(
-      "Missing SUPABASE_URL in environment bindings. Check .env.local or runtime config."
+      "Missing SUPABASE_URL in environment bindings. Check .env.local or runtime config.",
     );
   }
 
   if (!serviceRoleKey) {
     throw new Error(
-      "Missing SUPABASE_SERVICE_ROLE_KEY in environment bindings. Check .env.local or runtime config."
+      "Missing SUPABASE_SERVICE_ROLE_KEY in environment bindings. Check .env.local or runtime config.",
     );
   }
 
   return createClient(url, serviceRoleKey, {
+    global: {
+      fetch: (input, init) =>
+        fetch(input, { ...init, signal: init?.signal ?? AbortSignal.timeout(15000) }),
+    },
     auth: {
       persistSession: false,
       detectSessionInUrl: false,
@@ -87,17 +91,21 @@ export function getSupabaseAnonClient(env?: DatabaseEnv): SupabaseClient {
 
   if (!url) {
     throw new Error(
-      "Missing SUPABASE_URL in environment bindings. Check .env.local or runtime config."
+      "Missing SUPABASE_URL in environment bindings. Check .env.local or runtime config.",
     );
   }
 
   if (!anonKey) {
     throw new Error(
-      "Missing SUPABASE_ANON_KEY in environment bindings. Check .env.local or runtime config."
+      "Missing SUPABASE_ANON_KEY in environment bindings. Check .env.local or runtime config.",
     );
   }
 
   return createClient(url, anonKey, {
+    global: {
+      fetch: (input, init) =>
+        fetch(input, { ...init, signal: init?.signal ?? AbortSignal.timeout(15000) }),
+    },
     auth: {
       persistSession: false,
       detectSessionInUrl: false,
@@ -117,4 +125,3 @@ export function getSupabaseClient(env?: DatabaseEnv): SupabaseClient {
     return getSupabaseAnonClient(env);
   }
 }
-

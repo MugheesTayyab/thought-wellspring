@@ -40,7 +40,7 @@ export function useWinner(): UseWinnerReturn {
       };
     },
     staleTime: 300_000, // 5 minutes
-    gcTime: 900_000,    // 15 minutes
+    gcTime: 900_000, // 15 minutes
   });
 
   // Automated revalidation on 12-hour cycle boundary (+30s grace window)
@@ -59,7 +59,7 @@ export function useWinner(): UseWinnerReturn {
 
   const winner = data?.winner || FALLBACK_WINNER.unsaid;
   const hook = data?.hook || FALLBACK_WINNER.hook;
-  const isFallback = data?.isFallback ?? isError;
+  const isFallback = data?.isFallback ?? true;
 
   // Determine if this device already reacted to the winner post
   const myReactions = typeof window !== "undefined" ? readMyReactions() : {};

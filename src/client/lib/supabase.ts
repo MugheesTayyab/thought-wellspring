@@ -1,17 +1,22 @@
 import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL =
-  (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_URL) ||
-  "https://qsloqqvdunfuyqqdmgil.supabase.co";
+const SUPABASE_URL = import.meta.env["VITE_SUPABASE_URL"];
 
-const SUPABASE_ANON_KEY =
-  (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_ANON_KEY) ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzbG9xcXZkdW5mdXlxcWRtZ2lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNjg3MDcsImV4cCI6MjEwNTg0NDcwN30.Hi4UGMoRlKDKKmSmstY4Ues7XrGD3XvGSYLxeWqLhiA";
+const SUPABASE_ANON_KEY = import.meta.env["VITE_SUPABASE_ANON_KEY"];
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  throw new Error("Configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY before building.");
+}
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  global: {
+    fetch: (input, init) =>
+      fetch(input, { ...init, signal: init?.signal ?? AbortSignal.timeout(15000) }),
+  },
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
+    flowType: "pkce",
   },
 });

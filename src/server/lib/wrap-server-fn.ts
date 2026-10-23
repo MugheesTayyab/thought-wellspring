@@ -7,6 +7,7 @@
  */
 import { DeviceTokenError } from "../middleware/device-token";
 import { RateLimitError } from "../middleware/rate-limit";
+import { ZodError } from "zod";
 
 export type ServerFnSuccess<T> = {
   ok: true;
@@ -25,6 +26,16 @@ export type ServerFnFailure = {
 export type ServerFnResult<T> = ServerFnSuccess<T> | ServerFnFailure;
 
 export function mapErrorToResponse(error: unknown): ServerFnFailure {
+  if (error instanceof ZodError) {
+    return {
+      ok: false,
+      error: {
+        code: "VALIDATION_ERROR",
+        message: error.issues[0]?.message ?? "Invalid input.",
+        statusCode: 400,
+      },
+    };
+  }
   // 1. Device Token Error
   if (
     error instanceof DeviceTokenError ||
@@ -64,6 +75,8 @@ export function mapErrorToResponse(error: unknown): ServerFnFailure {
       : typeof error === "string"
         ? error
         : "Unknown error occurred";
+  if (/one thought every 12 hours/i.test(message))
+    return { ok: false, error: { code: "POST_COOLDOWN", message, statusCode: 429 } };
 
   if (/already reacted|already submitted this reaction/i.test(message)) {
     return {
@@ -205,7 +218,7 @@ export function mapErrorToResponse(error: unknown): ServerFnFailure {
     ok: false,
     error: {
       code: "UNEXPECTED_ERROR",
-      message: message || "Something went wrong, please try again.",
+      message: "Something went wrong. Please try again shortly.",
       statusCode: 500,
     },
   };

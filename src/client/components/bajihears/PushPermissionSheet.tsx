@@ -16,31 +16,38 @@ interface PushPermissionSheetProps {
 }
 
 export const PushPermissionSheet: React.FC<PushPermissionSheetProps> = ({ isOpen, onClose }) => {
-  const deviceToken = useDeviceToken();
+  const { deviceToken } = useDeviceToken();
+  const [error, setError] = useState<string | null>(null);
   const [isSubscribing, setIsSubscribing] = useState(false);
   const isIosBrowser = isIosDevice() && !isStandalonePwa();
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isSubscribing) return;
     const timer = window.setTimeout(() => {
       markPushPromptShown();
       onClose();
     }, 12000);
     return () => window.clearTimeout(timer);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isSubscribing]);
 
   if (!isOpen || typeof document === "undefined") return null;
 
   const handleAccept = async () => {
     setIsSubscribing(true);
+    setError(null);
     triggerHaptic("celebration");
     try {
-      await subscribeDeviceToPush({ deviceToken });
+      const result = await subscribeDeviceToPush({ deviceToken });
+      if (!result.success) {
+        setError(result.error || "Notifications could not be enabled.");
+        return;
+      }
+      onClose();
     } catch (err) {
       console.warn("[PushSheet] Subscription attempt failed:", err);
+      setError("Notifications could not be enabled. Try again.");
     } finally {
       setIsSubscribing(false);
-      onClose();
     }
   };
 
@@ -61,20 +68,25 @@ export const PushPermissionSheet: React.FC<PushPermissionSheetProps> = ({ isOpen
           <Bell className="size-4" />
         </div>
 
-        <h3 className="text-base font-bold text-foreground">
-          Get notified?
-        </h3>
+        <h3 className="text-base font-bold text-foreground">Get notified?</h3>
         <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-          Alerts when your thoughts get Echoes or when new thoughts reach the Wall.
+          Get a notification when a new community pick is selected.
         </p>
 
         {isIosBrowser && (
           <div className="mt-3 flex items-center gap-2 rounded-xl bg-secondary/60 border border-border-card p-2 text-[11px] text-foreground text-left">
             <Smartphone className="size-3.5 text-primary shrink-0" />
-            <span>On iPhone: Tap <strong>Share</strong> → <strong>Add to Home Screen</strong>.</span>
+            <span>
+              On iPhone: Tap <strong>Share</strong> → <strong>Add to Home Screen</strong>.
+            </span>
           </div>
         )}
 
+        {error && (
+          <p role="alert" className="mt-3 text-xs text-destructive">
+            {error}
+          </p>
+        )}
         <div className="mt-4 flex items-center justify-end gap-2">
           <button
             type="button"

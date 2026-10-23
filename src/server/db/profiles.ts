@@ -25,7 +25,9 @@ export function mapRowToProfile(row: any): DbProfile {
     id: row.id,
     handle: row.handle,
     avatarSeed: row.avatar_seed ?? 1,
-    memberSince: row.member_since ? String(row.member_since) : (new Date().toISOString().split("T")[0] ?? ""),
+    memberSince: row.member_since
+      ? String(row.member_since)
+      : (new Date().toISOString().split("T")[0] ?? ""),
     deviceToken: row.device_token ?? null,
     visitStreak: row.visit_streak ?? 0,
     lastVisit: row.last_visit ? String(row.last_visit) : null,
@@ -43,13 +45,15 @@ export function mapRowToProfile(row: any): DbProfile {
  */
 export async function fetchProfileById(
   env: DatabaseEnv | undefined,
-  userId: string
+  userId: string,
 ): Promise<{ data: DbProfile | null; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAdminClient(env);
     const { data, error } = await client
       .from("profiles")
-      .select("id, handle, avatar_seed, member_since, visit_streak, last_visit, streak_freeze_used, total_actions, warmth_total, warmth_log, purchased_items, tabs_unlocked")
+      .select(
+        "id, handle, avatar_seed, member_since, visit_streak, last_visit, streak_freeze_used, total_actions, warmth_total, warmth_log, purchased_items, tabs_unlocked",
+      )
       .eq("id", userId)
       .maybeSingle();
 
@@ -68,8 +72,11 @@ export async function fetchProfileById(
  */
 export async function fetchProfileByDeviceToken(
   env: DatabaseEnv | undefined,
-  deviceToken: string
-): Promise<{ data: { id: string; handle: string } | null; error: { code: string; message: string } | null }> {
+  deviceToken: string,
+): Promise<{
+  data: { id: string; handle: string } | null;
+  error: { code: string; message: string } | null;
+}> {
   try {
     const client = getSupabaseAdminClient(env);
     const { data, error } = await client
@@ -99,7 +106,7 @@ export async function upsertProfile(
     handle: string;
     avatarSeed?: number;
     deviceToken?: string | null;
-  }
+  },
 ): Promise<{ data: { id: string } | null; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAdminClient(env);
@@ -114,7 +121,7 @@ export async function upsertProfile(
           device_token: profileData.deviceToken ?? null,
           updated_at: new Date().toISOString(),
         },
-        { onConflict: "id" }
+        { onConflict: "id" },
       )
       .select("id")
       .single();
@@ -136,42 +143,32 @@ export async function incrementWarmth(
   env: DatabaseEnv | undefined,
   userId: string,
   amount: number,
-  logEntry: WarmthLogEntry
-): Promise<{ data: { warmthTotal: number; warmthLog: WarmthLogEntry[] } | null; error: { code: string; message: string } | null }> {
+  logEntry: WarmthLogEntry,
+): Promise<{
+  data: { warmthTotal: number; warmthLog: WarmthLogEntry[] } | null;
+  error: { code: string; message: string } | null;
+}> {
   try {
     const client = getSupabaseAdminClient(env);
 
-    const { data: current, error: fetchErr } = await client
-      .from("profiles")
-      .select("warmth_total, warmth_log")
-      .eq("id", userId)
-      .maybeSingle();
-
-    if (fetchErr) {
-      return { data: null, error: { code: fetchErr.code, message: fetchErr.message } };
-    }
-    if (!current) {
-      return { data: null, error: { code: "NOT_FOUND", message: "Profile not found" } };
-    }
-
-    const newTotal = (current.warmth_total ?? 0) + amount;
-    const currentLog: WarmthLogEntry[] = Array.isArray(current.warmth_log) ? current.warmth_log : [];
-    // Prepend new entry and cap at 50
-    const newLog = [logEntry, ...currentLog].slice(0, 50);
-
-    const { error: updateErr } = await client
-      .from("profiles")
-      .update({
-        warmth_total: newTotal,
-        warmth_log: newLog,
-      })
-      .eq("id", userId);
-
-    if (updateErr) {
-      return { data: null, error: { code: updateErr.code, message: updateErr.message } };
-    }
-
-    return { data: { warmthTotal: newTotal, warmthLog: newLog }, error: null };
+    const { data, error } = await client.rpc("increment_profile_warmth", {
+      p_user_id: userId,
+      p_amount: amount,
+      p_entry: logEntry,
+    });
+    if (error || !data)
+      return {
+        data: null,
+        error: {
+          code: error?.code || "UPDATE_FAILED",
+          message: error?.message || "Could not award points",
+        },
+      };
+    const profile = mapRowToProfile(data);
+    return {
+      data: { warmthTotal: profile.warmthTotal, warmthLog: profile.warmthLog },
+      error: null,
+    };
   } catch (err: any) {
     return { data: null, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
   }
@@ -184,8 +181,11 @@ export async function updateVisitStreak(
   env: DatabaseEnv | undefined,
   userId: string,
   newStreak: number,
-  lastVisitDate: string
-): Promise<{ data: { visitStreak: number; lastVisit: string } | null; error: { code: string; message: string } | null }> {
+  lastVisitDate: string,
+): Promise<{
+  data: { visitStreak: number; lastVisit: string } | null;
+  error: { code: string; message: string } | null;
+}> {
   try {
     const client = getSupabaseAdminClient(env);
     const { error } = await client
@@ -211,44 +211,28 @@ export async function updateVisitStreak(
  */
 export async function incrementTotalActions(
   env: DatabaseEnv | undefined,
-  userId: string
-): Promise<{ data: { totalActions: number; tabsUnlocked: { duel: boolean; read: boolean } } | null; error: { code: string; message: string } | null }> {
+  userId: string,
+): Promise<{
+  data: { totalActions: number; tabsUnlocked: { duel: boolean; read: boolean } } | null;
+  error: { code: string; message: string } | null;
+}> {
   try {
     const client = getSupabaseAdminClient(env);
 
-    const { data: current, error: fetchErr } = await client
-      .from("profiles")
-      .select("total_actions, tabs_unlocked")
-      .eq("id", userId)
-      .maybeSingle();
-
-    if (fetchErr) {
-      return { data: null, error: { code: fetchErr.code, message: fetchErr.message } };
-    }
-    if (!current) {
-      return { data: null, error: { code: "NOT_FOUND", message: "Profile not found" } };
-    }
-
-    const newTotal = (current.total_actions ?? 0) + 1;
-    const currentTabs = current.tabs_unlocked || { duel: false, read: false };
-    const newTabs = {
-      duel: currentTabs.duel || newTotal >= 3,
-      read: currentTabs.read || newTotal >= 5,
+    const { data, error } = await client.rpc("increment_profile_actions", { p_user_id: userId });
+    if (error || !data)
+      return {
+        data: null,
+        error: {
+          code: error?.code || "UPDATE_FAILED",
+          message: error?.message || "Could not update activity",
+        },
+      };
+    const profile = mapRowToProfile(data);
+    return {
+      data: { totalActions: profile.totalActions, tabsUnlocked: profile.tabsUnlocked },
+      error: null,
     };
-
-    const { error: updateErr } = await client
-      .from("profiles")
-      .update({
-        total_actions: newTotal,
-        tabs_unlocked: newTabs,
-      })
-      .eq("id", userId);
-
-    if (updateErr) {
-      return { data: null, error: { code: updateErr.code, message: updateErr.message } };
-    }
-
-    return { data: { totalActions: newTotal, tabsUnlocked: newTabs }, error: null };
   } catch (err: any) {
     return { data: null, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
   }
@@ -260,7 +244,7 @@ export async function incrementTotalActions(
 export async function savePushSubscription(
   env: DatabaseEnv | undefined,
   userId: string,
-  subscription: any
+  subscription: any,
 ): Promise<{ success: boolean; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAdminClient(env);
@@ -275,6 +259,9 @@ export async function savePushSubscription(
 
     return { success: true, error: null };
   } catch (err: any) {
-    return { success: false, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
+    return {
+      success: false,
+      error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) },
+    };
   }
 }

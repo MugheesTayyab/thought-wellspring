@@ -77,32 +77,32 @@
 :root {
   --radius: 1.25rem;
   /* Phase 01 Color System: intentional, light and cozy */
-  --background: #faf7f3;        /* Canvas / warm paper */
-  --foreground: #272027;        /* Ink / primary */
-  --card: #ffffff;              /* Surface / clean sheet */
-  --card-foreground: #272027;   /* Ink / primary */
+  --background: #faf7f3; /* Canvas / warm paper */
+  --foreground: #272027; /* Ink / primary */
+  --card: #ffffff; /* Surface / clean sheet */
+  --card-foreground: #272027; /* Ink / primary */
   --popover: #ffffff;
   --popover-foreground: #272027;
-  --primary: #ae4335;           /* Coral / accessible action (5.8:1 contrast on white) */
+  --primary: #ae4335; /* Coral / accessible action (5.8:1 contrast on white) */
   --primary-foreground: #ffffff;
   --coral-action: #ae4335;
-  --coral-expressive: #d65a49;  /* Coral / expressive accent */
-  --secondary: #f4ede6;         /* Surface / soft oat */
+  --coral-expressive: #d65a49; /* Coral / expressive accent */
+  --secondary: #f4ede6; /* Surface / soft oat */
   --secondary-foreground: #272027;
   --muted: #f4ede6;
-  --muted-foreground: #665a60;  /* Ink / secondary (6.2:1 contrast on warm paper) */
+  --muted-foreground: #665a60; /* Ink / secondary (6.2:1 contrast on warm paper) */
   --ink-primary: #272027;
   --ink-secondary: #665a60;
-  --ink-quiet: #776b72;         /* Ink / quiet */
-  --accent: #fbe6e4;            /* Blush / thought */
+  --ink-quiet: #776b72; /* Ink / quiet */
+  --accent: #fbe6e4; /* Blush / thought */
   --accent-foreground: #7d3028;
   --destructive: #a43d3d;
   --destructive-foreground: #ffffff;
-  --border: #e8dfdc;            /* Divider / warm line */
+  --border: #e8dfdc; /* Divider / warm line */
   --border-subtle: #f0e9e6;
-  --border-card: #dccdcb;       /* Card border / visible (stronger warm edge) */
-  --input: #dccdcb;             /* Input resting border */
-  --input-active: #a94a40;      /* Input border / active focus */
+  --border-card: #dccdcb; /* Card border / visible (stronger warm edge) */
+  --input: #dccdcb; /* Input resting border */
+  --input-active: #a94a40; /* Input border / active focus */
   --ring: #ae4335;
   --ember: #d65a49;
   --flame: #ae4335;
@@ -761,5 +761,73 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+/* Duel uses the available viewport; no nested scroll areas. Enlarged text and
+   unusually long content retain normal document scrolling for accessibility. */
+.duel-page {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(76px + env(safe-area-inset-bottom));
+}
+.duel-main {
+  flex: 1;
+}
+.duel-option {
+  min-height: 112px;
+}
+@media (max-height: 740px) {
+  .duel-page > header {
+    padding-block: 6px;
+  }
+  .duel-content {
+    --duel-gap: 8px;
+  }
+  .duel-content > * + * {
+    margin-top: var(--duel-gap);
+  }
+  .duel-option {
+    min-height: 90px;
+    padding: 10px;
+  }
+  .duel-option-text {
+    font-size: 14px;
+  }
+  .duel-description {
+    display: none;
+  }
+  .duel-result {
+    padding: 8px;
+  }
+  .duel-result p {
+    margin-top: 2px;
+  }
+}
+@media (max-height: 650px) {
+  .duel-main {
+    padding-block: 6px;
+  }
+  .duel-content > div:first-child > div:first-child {
+    display: none;
+  }
+  .duel-content h2 {
+    margin-top: 0;
+    font-size: 18px;
+    line-height: 1.25;
+  }
+  .duel-option-text {
+    font-size: 13px;
+    margin-top: 6px;
+  }
+  .duel-option > .relative {
+    gap: 4px;
+  }
+  .duel-result > div {
+    display: none;
+  }
+  .duel-result p:last-of-type {
+    font-size: 11px;
+    line-height: 1.3;
   }
 }

@@ -6,6 +6,7 @@ import {
   type InfiniteData,
 } from "@tanstack/react-query";
 import { queryKeys } from "@/client/lib/query-keys";
+import { authHeaders } from "@/client/lib/auth-headers";
 import {
   apiFetchFeed,
   apiSubmitPost,
@@ -51,6 +52,7 @@ export interface UseWallReturn {
     category: Category;
     preset?: string;
     handle?: string | null;
+    profileId?: string | null;
   }) => Promise<SubmitPostResult>;
   isSubmitting: boolean;
   submitError: string | null;
@@ -137,16 +139,12 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       if (res.ok) {
         return res.data;
       }
-      return {
-        posts: [],
-        page: pageParam,
-        limit: pageSize,
-        hasMore: false,
-      };
+      throw new Error(res.error.message);
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.page + 1 : undefined),
     staleTime: 120_000, // 2 minutes
+    retry: 1,
     gcTime: 600_000, // 10 minutes
   });
 
@@ -194,12 +192,14 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       if (action === "react") {
         const res = await apiReactToPost({
           data: { postId, reactionKey, deviceToken },
+          headers: await authHeaders(),
         });
         if (!res.ok) throw new Error(res.error.message);
         return res.data;
       } else {
         const res = await apiUnreactToPost({
           data: { postId, reactionKey, deviceToken },
+          headers: await authHeaders(),
         });
         if (!res.ok) throw new Error(res.error.message);
         return res.data;
@@ -303,7 +303,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       if (handle !== undefined) {
         echoInput.handle = handle;
       }
-      const res = await apiAddEcho({ data: echoInput });
+      const res = await apiAddEcho({ data: echoInput, headers: await authHeaders() });
       if (!res.ok) throw new Error(res.error.message);
       return res.data;
     },
@@ -427,7 +427,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
         postPayload.profileId = input.profileId;
       }
 
-      const res = await apiSubmitPost({ data: postPayload });
+      const res = await apiSubmitPost({ data: postPayload, headers: await authHeaders() });
       if (!res.ok) throw new Error(res.error.message);
       return res.data;
     },

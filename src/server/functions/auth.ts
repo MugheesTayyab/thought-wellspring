@@ -1,6 +1,7 @@
 import { getSupabaseAdminClient, type DatabaseEnv } from "../db/client";
-import { fetchProfileById, upsertProfile, type DbProfile } from "../db/profiles";
+import { fetchProfileById, mapRowToProfile, type DbProfile } from "../db/profiles";
 import { validateDeviceToken } from "../middleware/device-token";
+import { z } from "zod";
 
 export interface MigrateGuestInput {
   userId: string;
@@ -9,66 +10,33 @@ export interface MigrateGuestInput {
   avatarSeed?: number | undefined;
 }
 
-/**
- * Migrates pseudonymous local guest state into an authenticated Supabase profile
- */
 export async function migrateGuestToAccount(
   env: DatabaseEnv | undefined,
-  input: MigrateGuestInput
+  input: MigrateGuestInput,
 ): Promise<DbProfile> {
   const token = validateDeviceToken(input.deviceToken);
-
-  // 1. Check if profile already exists for userId
-  const existing = await fetchProfileById(env, input.userId);
-  if (existing.data) {
-    return existing.data;
-  }
-
-  // 2. Create the profile row with user's anonymous handle & avatar
-  const createRes = await upsertProfile(env, {
-    id: input.userId,
-    handle: input.handle,
-    avatarSeed: input.avatarSeed ?? 1,
-    deviceToken: token,
+  const handle = z.string().min(1).max(40).parse(input.handle);
+  const avatar = z
+    .number()
+    .int()
+    .min(1)
+    .max(500)
+    .parse(input.avatarSeed ?? 1);
+  const { data, error } = await getSupabaseAdminClient(env).rpc("link_guest_account", {
+    p_user_id: input.userId,
+    p_device_token: token,
+    p_handle: handle,
+    p_avatar_seed: avatar,
   });
-
-  if (createRes.error || !createRes.data) {
-    throw new Error(createRes.error?.message || "Failed to initialize user profile");
-  }
-
-  // 3. Link previously submitted guest posts to this new profile
-  const adminClient = getSupabaseAdminClient(env);
-  await adminClient
-    .from("unsaids")
-    .update({ profile_id: input.userId })
-    .eq("device_token", token)
-    .is("profile_id", null);
-
-  // 4. Link previously submitted guest echoes to this new profile
-  await adminClient
-    .from("echoes")
-    .update({ profile_id: input.userId })
-    .eq("device_token", token)
-    .is("profile_id", null);
-
-  const finalProfile = await fetchProfileById(env, input.userId);
-  if (!finalProfile.data) {
-    throw new Error("Profile created but failed to retrieve");
-  }
-
-  return finalProfile.data;
+  if (error || !data) throw new Error(error?.message || "Could not initialize profile");
+  return mapRowToProfile(data);
 }
 
-/**
- * Fetch latest hydrated profile for active session
- */
 export async function refreshProfile(
   env: DatabaseEnv | undefined,
-  userId: string
+  userId: string,
 ): Promise<DbProfile> {
   const res = await fetchProfileById(env, userId);
-  if (res.error || !res.data) {
-    throw new Error(res.error?.message || "Profile not found");
-  }
+  if (res.error || !res.data) throw new Error(res.error?.message || "Profile not found");
   return res.data;
 }

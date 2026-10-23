@@ -149,10 +149,10 @@ export function QuoteCardDialog({
           onClick={share}
           className="bg-primary text-white mt-4 w-full min-h-11 rounded-2xl py-2.5 text-sm font-semibold shadow-xs hover:bg-primary/90 active:scale-[0.98] transition-all cursor-pointer"
         >
-          Share to Instagram Story
+          Share or download image
         </button>
         <p className="text-muted-foreground mt-2 text-center text-[11px] leading-tight">
-          If sharing isn&apos;t available, the image saves to your photos instead.
+          Opens your share menu, or downloads a PNG if sharing isn&apos;t available.
         </p>
       </div>
     </div>

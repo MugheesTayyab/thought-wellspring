@@ -1,6 +1,9 @@
 import type { DatabaseEnv } from "../db/client";
 import { savePushSubscription as dbSavePushSubscription } from "../db/profiles";
 import { upsertAnonymousSubscription } from "../db/push-subscriptions";
+import { validateDeviceToken } from "../middleware/device-token";
+import { validatePushEndpoint } from "@/shared/lib/push-validation";
+import { z } from "zod";
 
 export interface PushSubscriptionPayload {
   endpoint: string;
@@ -12,9 +15,9 @@ export interface PushSubscriptionPayload {
 
 export interface SavePushSubscriptionInput {
   subscription: PushSubscriptionPayload;
-  userId?: string;
-  deviceToken?: string;
-  userAgent?: string;
+  userId?: string | undefined;
+  deviceToken?: string | undefined;
+  userAgent?: string | undefined;
 }
 
 /**
@@ -23,7 +26,7 @@ export interface SavePushSubscriptionInput {
  */
 export async function savePushSubscription(
   env: DatabaseEnv | undefined,
-  input: SavePushSubscriptionInput
+  input: SavePushSubscriptionInput,
 ): Promise<{ saved: boolean }> {
   if (!input.subscription || !input.subscription.endpoint) {
     throw new Error("Invalid push subscription: missing endpoint.");
@@ -31,18 +34,23 @@ export async function savePushSubscription(
   if (!input.subscription.keys?.p256dh || !input.subscription.keys?.auth) {
     throw new Error("Invalid push subscription: missing encryption keys.");
   }
+  validatePushEndpoint(input.subscription.endpoint);
+  z.object({
+    p256dh: z.string().regex(/^[A-Za-z0-9_-]{87}$/),
+    auth: z.string().regex(/^[A-Za-z0-9_-]{22}$/),
+  }).parse(input.subscription.keys);
 
   // 1. If deviceToken provided, register in anonymous_subscriptions
   if (input.deviceToken) {
     const anonRes = await upsertAnonymousSubscription(env, {
-      device_token: input.deviceToken,
+      device_token: validateDeviceToken(input.deviceToken),
       endpoint: input.subscription.endpoint,
       p256dh: input.subscription.keys.p256dh,
       auth: input.subscription.keys.auth,
-      user_agent: input.userAgent,
+      ...(input.userAgent ? { user_agent: input.userAgent.slice(0, 512) } : {}),
     });
     if (!anonRes.success) {
-      console.warn("[Notifications] Failed saving anonymous subscription:", anonRes.error);
+      throw new Error("Could not save notification subscription");
     }
   }
 

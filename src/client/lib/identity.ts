@@ -434,6 +434,7 @@ const SUFFIXES = [
 ];
 
 const IDENTITY_KEY = "bh:identity";
+let memoryIdentity: BajiIdentity | null = null;
 
 function generateHandle(): string {
   const p = PREFIXES[Math.floor(Math.random() * PREFIXES.length)] ?? "chaiwala";
@@ -447,7 +448,7 @@ function generateDeviceToken(): string {
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
   }
-  return Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
+  throw new Error("A secure browser context is required to create your identity.");
 }
 
 function getTodayStr(): string {
@@ -474,6 +475,7 @@ export function getOrCreateIdentity(): BajiIdentity {
     const raw = localStorage.getItem(IDENTITY_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as BajiIdentity;
+      if (!/^[0-9a-f]{16}$/.test(parsed.deviceToken)) throw new Error("Invalid stored identity");
       // Ensure schema backwards-compatibility
       if (!parsed.tabsUnlocked) {
         parsed.tabsUnlocked = {
@@ -484,12 +486,14 @@ export function getOrCreateIdentity(): BajiIdentity {
       if (typeof parsed.totalActions !== "number") {
         parsed.totalActions = 0;
       }
+      memoryIdentity = parsed;
       return parsed;
     }
   } catch {
     // Corrupt storage; recreate
   }
 
+  if (memoryIdentity) return memoryIdentity;
   const fresh: BajiIdentity = {
     handle: generateHandle(),
     avatarSeed: Math.floor(Math.random() * 500) + 1,
@@ -508,6 +512,7 @@ export function getOrCreateIdentity(): BajiIdentity {
     // Storage quota or privacy mode
   }
 
+  memoryIdentity = fresh;
   return fresh;
 }
 

@@ -28,7 +28,7 @@ export function mapRowToDuel(row: any): Duel {
  * Fetch the currently active duel
  */
 export async function fetchActiveDuel(
-  env?: DatabaseEnv
+  env?: DatabaseEnv,
 ): Promise<{ data: Duel | null; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAnonClient(env);
@@ -55,15 +55,11 @@ export async function fetchActiveDuel(
  */
 export async function fetchDuelById(
   env: DatabaseEnv | undefined,
-  duelId: string
+  duelId: string,
 ): Promise<{ data: Duel | null; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAnonClient(env);
-    const { data, error } = await client
-      .from("duels")
-      .select("*")
-      .eq("id", duelId)
-      .maybeSingle();
+    const { data, error } = await client.from("duels").select("*").eq("id", duelId).maybeSingle();
 
     if (error) {
       return { data: null, error: { code: error.code, message: error.message } };
@@ -81,7 +77,7 @@ export async function fetchDuelById(
 export async function hasDeviceVotedOnDuel(
   env: DatabaseEnv | undefined,
   duelId: string,
-  deviceToken: string
+  deviceToken: string,
 ): Promise<{ voted: boolean; choiceIndex?: 0 | 1 }> {
   try {
     const client = getSupabaseAdminClient(env);
@@ -110,8 +106,11 @@ export async function recordDuelVote(
   env: DatabaseEnv | undefined,
   duelId: string,
   deviceToken: string,
-  choiceIndex: 0 | 1
-): Promise<{ data: { choiceIndex: 0 | 1; votesA: number; votesB: number } | null; error: { code: string; message: string } | null }> {
+  choiceIndex: 0 | 1,
+): Promise<{
+  data: { choiceIndex: 0 | 1; votesA: number; votesB: number } | null;
+  error: { code: string; message: string } | null;
+}> {
   try {
     const client = getSupabaseAdminClient(env);
 
@@ -135,56 +134,19 @@ export async function recordDuelVote(
       }
       return {
         data: null,
-        error: { code: rpcData.code || "VOTE_FAILED", message: rpcData.message || "Failed to record vote" },
+        error: {
+          code: rpcData.code || "VOTE_FAILED",
+          message: rpcData.message || "Failed to record vote",
+        },
       };
     }
 
-    // 2. Fallback Path: Standard multi-step transaction
-    const { error: insertErr } = await client.from("duel_votes").insert({
-      duel_id: duelId,
-      device_token: deviceToken,
-      choice_index: choiceIndex,
-    });
-
-    if (insertErr) {
-      if (insertErr.code === "23505") {
-        return { data: null, error: { code: "ALREADY_VOTED", message: "You have already voted on this duel" } };
-      }
-      return { data: null, error: { code: insertErr.code, message: insertErr.message } };
-    }
-
-    const { data: duel, error: fetchErr } = await client
-      .from("duels")
-      .select("votes_a, votes_b")
-      .eq("id", duelId)
-      .single();
-
-    if (fetchErr || !duel) {
-      return { data: null, error: { code: "DUEL_NOT_FOUND", message: "Duel not found" } };
-    }
-
-    const newVotesA = choiceIndex === 0 ? (duel.votes_a ?? 0) + 1 : (duel.votes_a ?? 0);
-    const newVotesB = choiceIndex === 1 ? (duel.votes_b ?? 0) + 1 : (duel.votes_b ?? 0);
-
-    const { error: updateErr } = await client
-      .from("duels")
-      .update({
-        votes_a: newVotesA,
-        votes_b: newVotesB,
-      })
-      .eq("id", duelId);
-
-    if (updateErr) {
-      return { data: null, error: { code: updateErr.code, message: updateErr.message } };
-    }
-
     return {
-      data: {
-        choiceIndex,
-        votesA: newVotesA,
-        votesB: newVotesB,
+      data: null,
+      error: {
+        code: rpcErr?.code || "VOTE_FAILED",
+        message: rpcErr?.message || "Could not record vote",
       },
-      error: null,
     };
   } catch (err: any) {
     return { data: null, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };

@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { apiFetchPostById } from "@/routes/api/wall";
+import { queryKeys } from "@/client/lib/query-keys";
 import { ArrowUp, Info, PencilLine } from "lucide-react";
 import { UnsaidCard } from "@/client/components/bajihears/UnsaidCard";
 import { FeedSkeleton } from "@/client/components/bajihears/FeedSkeleton";
@@ -84,6 +87,7 @@ function Home() {
     hook: winnerHook,
     onReact: onWinnerReact,
     userReaction: winnerUserReaction,
+    isFallback: winnerIsFallback,
   } = useWinner();
 
   const [myReports, setMyReports] = useState<string[]>([]);
@@ -96,6 +100,28 @@ function Home() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showPushSheet, setShowPushSheet] = useState(false);
   const [showComposer, setShowComposer] = useState(false);
+  const [sharedPostId, setSharedPostId] = useState("");
+  useEffect(() => {
+    const readTarget = () => {
+      const id =
+        new URLSearchParams(window.location.search).get("unsaid") ||
+        window.location.hash.replace(/^#thought-/, "");
+      setSharedPostId(/^[0-9a-f-]{36}$/i.test(id) ? id : "");
+    };
+    readTarget();
+    window.addEventListener("hashchange", readTarget);
+    return () => window.removeEventListener("hashchange", readTarget);
+  }, []);
+  const { data: sharedPost, isError: sharedPostError } = useQuery({
+    queryKey: queryKeys.posts.detail(sharedPostId),
+    enabled: Boolean(sharedPostId),
+    queryFn: async () => {
+      const result = await apiFetchPostById({ data: { id: sharedPostId } });
+      if (!result.ok) throw new Error(result.error.message);
+      return result.data.post;
+    },
+    retry: 1,
+  });
   const [feedSort, setFeedSort] = useState<"most-reacted" | "recent">(() => {
     if (typeof window === "undefined") return "most-reacted";
     return sessionStorage.getItem("bh:wall-sort") === "recent" ? "recent" : "most-reacted";
@@ -219,7 +245,11 @@ function Home() {
   };
 
   const visiblePosts = useMemo(() => {
-    const unhidden = posts.filter((u) => !hiddenIds.includes(u.id));
+    const combined =
+      sharedPost && !posts.some((post) => post.id === sharedPost.id)
+        ? [sharedPost, ...posts]
+        : posts;
+    const unhidden = combined.filter((u) => !hiddenIds.includes(u.id));
     if (feedSort === "most-reacted") {
       return [...unhidden].sort((a, b) => {
         const aTotal = Object.values(a.reactions).reduce((sum, count) => sum + count, 0);
@@ -228,13 +258,13 @@ function Home() {
       });
     }
     return [...unhidden].sort((a, b) => b.createdAt - a.createdAt);
-  }, [posts, hiddenIds, feedSort]);
+  }, [posts, sharedPost, hiddenIds, feedSort]);
 
   useEffect(() => {
-    if (!window.location.hash.startsWith("#thought-")) return;
-    const target = document.getElementById(window.location.hash.slice(1));
+    if (!sharedPostId) return;
+    const target = document.getElementById(`thought-${sharedPostId}`);
     if (target) target.scrollIntoView({ block: "center" });
-  }, [visiblePosts.length]);
+  }, [visiblePosts.length, sharedPostId]);
 
   const openComposer = () => {
     setShowComposer(true);
@@ -263,9 +293,17 @@ function Home() {
         <div className="mt-3 space-y-4 sm:space-y-5">
           {/* 5-Second Comprehension Hero Banner */}
           <HeroIntro />
+          {sharedPostId && (sharedPostError || sharedPost === null) && (
+            <p
+              role="status"
+              className="rounded-xl border border-border p-3 text-sm text-muted-foreground"
+            >
+              That shared thought is unavailable. It may have been removed or sent for review.
+            </p>
+          )}
 
           {/* Winner Card */}
-          {winner && (
+          {winner && !winnerIsFallback && (
             <UnsaidCard
               unsaid={winner}
               hero
@@ -431,7 +469,9 @@ function Home() {
           {/* Error State */}
           {isFeedError && visiblePosts.length === 0 && (
             <div className="bg-card border-border-card rounded-3xl border p-6 text-center font-sans shadow-soft">
-              <p className="font-serif text-xl text-foreground">Couldn&apos;t load the Wall just now.</p>
+              <p className="font-serif text-xl text-foreground">
+                Couldn&apos;t load the Wall just now.
+              </p>
               <p className="text-muted-foreground mt-2 text-sm leading-6">
                 Your place is still here. Check your connection and try again.
               </p>
@@ -448,7 +488,9 @@ function Home() {
           {/* Honest empty state */}
           {!isFeedLoading && !isFeedError && visiblePosts.length === 0 && (
             <div className="paper-card space-y-4 p-7 text-center">
-              <p className="font-serif text-2xl font-normal text-foreground">A little quiet here.</p>
+              <p className="font-serif text-2xl font-normal text-foreground">
+                A little quiet here.
+              </p>
               <p className="mx-auto max-w-sm text-sm leading-relaxed text-muted-foreground">
                 {filters.length > 0
                   ? "No thoughts in this corner yet. Want to look around somewhere else?"
@@ -505,9 +547,7 @@ function Home() {
                   </ul>
                 </aside>
               )}
-              {index === 4 && (
-                <FeedWritingPrompt onWriteClick={openComposer} />
-              )}
+              {index === 4 && <FeedWritingPrompt onWriteClick={openComposer} />}
             </Fragment>
           ))}
 

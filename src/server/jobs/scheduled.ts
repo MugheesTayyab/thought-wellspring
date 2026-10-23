@@ -1,0 +1,18 @@
+import { getServerEnv, setWorkerEnv } from "../lib/get-env";
+import { getSupabaseAdminClient } from "../db/client";
+import { executeWinnerSelection } from "./winner-selection";
+import { drainPushOutbox } from "./push-outbox";
+
+export async function runScheduledTasks(bindings: unknown): Promise<void> {
+  setWorkerEnv(bindings);
+  const env = getServerEnv();
+  // A failed selection must not stop notifications already in the durable queue.
+  try {
+    await executeWinnerSelection(env, { triggeredBy: "cron" });
+  } catch (error) {
+    console.error("[Cron] Winner selection failed", error);
+  }
+  await drainPushOutbox(env);
+  const { error } = await getSupabaseAdminClient(env).rpc("purge_old_device_actions");
+  if (error) console.error("[Cron] Rate limit cleanup failed", error.code);
+}

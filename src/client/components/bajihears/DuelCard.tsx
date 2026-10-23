@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Check, Loader2, ArrowLeft, Sparkles } from "lucide-react";
+import { Check, Loader2, ArrowLeft } from "lucide-react";
 import type { Duel, DuelOption } from "@/shared/types/duel";
 import { triggerHaptic } from "@/client/lib/haptics";
 
@@ -31,7 +31,7 @@ export function DuelCard({
           triggerHaptic("selection");
           onAnswer(index);
         }}
-        className={`motion-note-in relative min-h-[140px] w-full overflow-hidden rounded-3xl border p-5 sm:p-6 text-left transition-all duration-200 cursor-pointer ${
+        className={`duel-option relative w-full overflow-hidden rounded-2xl border p-3 sm:p-4 text-left transition-colors cursor-pointer ${
           isSelected
             ? "border-amber-400/90 bg-amber-50/70 shadow-sm"
             : answeredState
@@ -49,14 +49,12 @@ export function DuelCard({
           />
         )}
 
-        <div className="relative flex h-full flex-col justify-between gap-4">
+        <div className="relative flex h-full flex-col justify-between gap-2">
           <div>
             <div className="flex items-center justify-between">
               <span
                 className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
-                  isSelected
-                    ? "bg-amber-200 text-amber-900"
-                    : "bg-cream text-muted-foreground"
+                  isSelected ? "bg-amber-200 text-amber-900" : "bg-cream text-muted-foreground"
                 }`}
               >
                 {index === 0 ? "Option A" : "Option B"}
@@ -64,20 +62,24 @@ export function DuelCard({
               </span>
 
               {item.handle && (
-                <span className="text-[11px] font-medium text-muted-foreground">
-                  {item.handle}
-                </span>
+                <span className="text-[11px] font-medium text-muted-foreground">{item.handle}</span>
               )}
             </div>
 
-            <p className="mt-3.5 font-quote text-lg leading-relaxed text-ink sm:text-xl">
+            <p className="duel-option-text mt-2 font-quote text-base leading-snug text-ink sm:text-lg">
               “{item.text}”
             </p>
           </div>
 
-          <div className="flex min-h-6 items-center justify-between border-t border-border/60 pt-3 text-xs font-semibold text-muted-foreground">
+          <div className="flex items-center justify-between border-t border-border/60 pt-2 text-xs font-semibold text-muted-foreground">
             {answeredState ? (
-              <span className={isSelected ? "font-bold text-amber-900 flex items-center gap-1" : "text-muted-foreground"}>
+              <span
+                className={
+                  isSelected
+                    ? "font-bold text-amber-900 flex items-center gap-1"
+                    : "text-muted-foreground"
+                }
+              >
                 {isSelected ? (
                   <>
                     <Check className="size-4 text-amber-600" />
@@ -94,9 +96,7 @@ export function DuelCard({
             )}
 
             {showSplit && (
-              <span className="font-sans text-sm font-bold tabular-nums text-ink">
-                {percent}%
-              </span>
+              <span className="font-sans text-sm font-bold tabular-nums text-ink">{percent}%</span>
             )}
 
             {isVoting && !answeredState && (
@@ -109,22 +109,21 @@ export function DuelCard({
   };
 
   return (
-    <section className="w-full max-w-lg space-y-5" aria-labelledby="duel-heading">
+    <section className="duel-content w-full max-w-lg space-y-3" aria-labelledby="duel-heading">
       {/* Intro Header */}
       <div className="text-center">
         <div className="inline-flex items-center gap-1.5 rounded-full bg-butter/60 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-ink">
-          <Sparkles className="size-3 text-amber-600" />
           <span>Today's Duel</span>
         </div>
 
         <h2
           id="duel-heading"
-          className="mt-3 font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl"
+          className="mt-2 font-display text-xl font-bold tracking-tight text-ink sm:text-2xl"
         >
           {duel.prompt || "Which one is more you?"}
         </h2>
 
-        <p className="mt-1.5 text-sm text-muted-foreground">
+        <p className="duel-description mt-1 text-xs text-muted-foreground">
           Two thoughts. Pick the one that feels closer today.
         </p>
       </div>
@@ -148,7 +147,7 @@ export function DuelCard({
       {/* Post-Choice Result Banner */}
       {answeredState && (
         <div
-          className="paper-card motion-note-in mt-6 rounded-3xl border border-border bg-butter/50 p-5 text-center"
+          className="duel-result rounded-2xl border border-border bg-butter/50 p-3 text-center"
           aria-live="polite"
         >
           <p className="font-display text-base font-bold text-ink">
@@ -158,10 +157,10 @@ export function DuelCard({
           <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
             {showSplit
               ? `Based on ${totalVotes} real community choices.`
-              : "Still early. There aren't enough picks to show a meaningful split yet."}
+              : "Results appear after five votes."}
           </p>
 
-          <div className="mt-4 pt-3 border-t border-border/70">
+          <div className="mt-2">
             <Link
               to="/"
               className="inline-flex items-center gap-1.5 text-xs font-bold text-coral hover:underline"

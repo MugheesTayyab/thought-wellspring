@@ -1,3 +1,4 @@
+import { useHydrated } from "@/client/hooks/use-hydrated";
 import { useMemo } from "react";
 import { PRESETS } from "@/shared/constants/presets";
 import { readAvatarPhoto } from "@/client/lib/local-storage";
@@ -18,7 +19,8 @@ export function CornerAvatar({
   size?: number;
   photoUrl?: string | null;
 }) {
-  const activePhoto = photoUrl !== undefined ? photoUrl : readAvatarPhoto();
+  const hydrated = useHydrated();
+  const activePhoto = hydrated ? (photoUrl !== undefined ? photoUrl : readAvatarPhoto()) : null;
 
   const face = useMemo(() => {
     const h = hash(seed);
@@ -36,11 +38,7 @@ export function CornerAvatar({
         style={{ width: size, height: size }}
         className="border-white/15 relative flex shrink-0 overflow-hidden rounded-full border bg-[#17110D] shadow-sm select-none"
       >
-        <img
-          src={activePhoto}
-          alt="Avatar"
-          className="w-full h-full object-cover rounded-full"
-        />
+        <img src={activePhoto} alt="Avatar" className="w-full h-full object-cover rounded-full" />
       </span>
     );
   }

@@ -3,6 +3,7 @@ import "./server/lib/error-capture";
 import { consumeLastCapturedError } from "./server/lib/error-capture";
 import { renderErrorPage } from "./server/lib/error-page";
 import { setWorkerEnv } from "./server/lib/get-env";
+import { isCrossOriginMutation, secureResponse } from "./server/lib/request-security";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -17,17 +18,6 @@ async function getServerEntry(): Promise<ServerEntry> {
     );
   }
   return serverEntryPromise;
-}
-
-function isOriginAllowed(origin: string): boolean {
-  if (!origin) return false;
-  return (
-    origin === "https://bajihears.com" ||
-    origin.endsWith(".pages.dev") ||
-    origin.endsWith(".workers.dev") ||
-    origin === "http://localhost:3000" ||
-    origin === "http://localhost:5173"
-  );
 }
 
 // h3 swallows in-handler throws into a normal 500 Response with body
@@ -61,14 +51,17 @@ export default {
     setWorkerEnv(env);
 
     const origin = request.headers.get("origin") || "";
-    const allowed = isOriginAllowed(origin);
+    const allowed = origin === new URL(request.url).origin;
+    if (isCrossOriginMutation(request))
+      return secureResponse(new Response("Forbidden", { status: 403 }));
 
     // Handle CORS preflight OPTIONS request
     if (request.method === "OPTIONS") {
+      if (origin && !allowed) return new Response(null, { status: 403 });
       return new Response(null, {
         status: 204,
         headers: {
-          "Access-Control-Allow-Origin": allowed ? origin : "https://bajihears.com",
+          "Access-Control-Allow-Origin": allowed ? origin : new URL(request.url).origin,
           "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
           "Access-Control-Allow-Headers": "Content-Type, X-Device-Token, Authorization",
           "Access-Control-Max-Age": "86400",
@@ -84,20 +77,29 @@ export default {
       if (allowed && origin) {
         normalized.headers.set("Access-Control-Allow-Origin", origin);
         normalized.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        normalized.headers.set("Access-Control-Allow-Headers", "Content-Type, X-Device-Token, Authorization");
+        normalized.headers.set(
+          "Access-Control-Allow-Headers",
+          "Content-Type, X-Device-Token, Authorization",
+        );
       }
 
-      return normalized;
+      return secureResponse(normalized);
     } catch (error) {
       console.error(error);
-      return new Response(renderErrorPage(), {
-        status: 500,
-        headers: { "content-type": "text/html; charset=utf-8" },
-      });
+      return secureResponse(
+        new Response(renderErrorPage(), {
+          status: 500,
+          headers: { "content-type": "text/html; charset=utf-8" },
+        }),
+      );
     }
   },
 
-  async scheduled(event: unknown, env: unknown, ctx: { waitUntil?: (p: Promise<unknown>) => void }) {
+  async scheduled(
+    event: unknown,
+    env: unknown,
+    ctx: { waitUntil?: (p: Promise<unknown>) => void },
+  ) {
     setWorkerEnv(env);
     try {
       const { getServerEnv } = await import("./server/lib/get-env");

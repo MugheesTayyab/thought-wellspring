@@ -1,5 +1,6 @@
 // Web push notification utilities with safe SSR fallbacks and real VAPID subscription delivery
 import { apiSavePushSubscription } from "@/routes/api/notifications";
+import { getOrCreateIdentity } from "./identity";
 
 const PUSH_PROMPT_KEY = "bh:pushPromptShown";
 const PUSH_ENABLED_KEY = "bh:pushEnabled";
@@ -15,22 +16,23 @@ export function isPushSupported(): boolean {
 
 export function isStandalonePwa(): boolean {
   if (typeof window === "undefined") return false;
+  const standaloneNavigator = window.navigator as Navigator & { standalone?: boolean };
   return (
     window.matchMedia("(display-mode: standalone)").matches ||
-    (window.navigator as any).standalone === true
+    standaloneNavigator.standalone === true
   );
 }
 
 export function isIosDevice(): boolean {
   if (typeof window === "undefined") return false;
   return (
-    /iPad|iPhone|iPod/.test(navigator.userAgent) &&
-    !(window as any).MSStream
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
   );
 }
 
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
-  if (!isPushSupported()) {
+  if (typeof window === "undefined" || !window.isSecureContext || !("serviceWorker" in navigator)) {
     return null;
   }
   try {
@@ -62,10 +64,16 @@ export function hasPushPermission(): boolean {
 }
 
 export function shouldShowPushPrompt(): boolean {
+  if (!import.meta.env["VITE_VAPID_PUBLIC_KEY"]) return false;
   if (!isPushSupported()) {
     return false;
   }
-  const alreadyShown = localStorage.getItem(PUSH_PROMPT_KEY);
+  let alreadyShown: string | null = null;
+  try {
+    alreadyShown = localStorage.getItem(PUSH_PROMPT_KEY);
+  } catch {
+    return false;
+  }
   return !alreadyShown && Notification.permission === "default";
 }
 
@@ -81,11 +89,9 @@ export function markPushPromptShown(): void {
 /**
  * Converts a URL-safe Base64 string to a Uint8Array for PushManager.subscribe()
  */
-export function urlBase64ToUint8Array(base64String: string): Uint8Array {
+export function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, "+")
-    .replace(/_/g, "/");
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
 
   const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
@@ -104,12 +110,9 @@ function arrayBufferToBase64Url(buffer: ArrayBuffer | null): string {
   const bytes = new Uint8Array(buffer);
   let binary = "";
   for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
+    binary += String.fromCharCode(bytes[i]!);
   }
-  return window.btoa(binary)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
+  return window.btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 export interface SubscribePushOptions {
@@ -121,7 +124,7 @@ export interface SubscribePushOptions {
  * Subscribes the current device to Web Push and transmits the keys to the server
  */
 export async function subscribeDeviceToPush(
-  options: SubscribePushOptions = {}
+  options: SubscribePushOptions = {},
 ): Promise<{ success: boolean; error?: string }> {
   if (!isPushSupported()) {
     return { success: false, error: "Web push is not supported in this browser." };
@@ -137,7 +140,8 @@ export async function subscribeDeviceToPush(
     }
 
     // 2. Retrieve service worker registration
-    let registration = await navigator.serviceWorker.getRegistration();
+    let registration: ServiceWorkerRegistration | null | undefined =
+      await navigator.serviceWorker.getRegistration();
     if (!registration) {
       registration = await registerServiceWorker();
     }
@@ -149,14 +153,22 @@ export async function subscribeDeviceToPush(
     await navigator.serviceWorker.ready;
 
     // 3. Resolve VAPID Public Key
-    const vapidPublicKey =
-      import.meta.env.VITE_VAPID_PUBLIC_KEY ||
-      "BC2J76RtDSeeFuYN3VnrvChrz3qKHVD_bhO1eKaFHl3RO5dz3CUA8JOMIoicqBQG5XBrE1WvriUXP5RDAOmugsI";
+    const vapidPublicKey = import.meta.env["VITE_VAPID_PUBLIC_KEY"];
+    if (!vapidPublicKey) return { success: false, error: "Notifications are not configured yet." };
 
     const convertedKey = urlBase64ToUint8Array(vapidPublicKey);
 
     // 4. Subscribe or retrieve existing subscription
     let subscription = await registration.pushManager.getSubscription();
+    const activeKey = subscription?.options.applicationServerKey;
+    if (
+      subscription &&
+      activeKey &&
+      !new Uint8Array(activeKey).every((value, index) => value === convertedKey[index])
+    ) {
+      await subscription.unsubscribe();
+      subscription = null;
+    }
     if (!subscription) {
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
@@ -176,10 +188,7 @@ export async function subscribeDeviceToPush(
     }
 
     // 6. Transmit to server function
-    const deviceToken =
-      options.deviceToken ||
-      localStorage.getItem("bh:device_token") ||
-      crypto.randomUUID();
+    const deviceToken = options.deviceToken || getOrCreateIdentity().deviceToken;
 
     const result = await apiSavePushSubscription({
       data: {
@@ -191,20 +200,24 @@ export async function subscribeDeviceToPush(
           },
         },
         deviceToken,
-        jwt: options.jwt,
+        ...(options.jwt ? { jwt: options.jwt } : {}),
         userAgent: navigator.userAgent,
       },
     });
 
-    if (result && "success" in result && !result.success) {
+    if (!result.ok) {
       return { success: false, error: result.error?.message || "Server rejected subscription." };
     }
 
-    localStorage.setItem(PUSH_ENABLED_KEY, "true");
+    try {
+      localStorage.setItem(PUSH_ENABLED_KEY, "true");
+    } catch {
+      /* Browser subscription is already saved. */
+    }
     markPushPromptShown();
     return { success: true };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[Push] Exception subscribing device:", err);
-    return { success: false, error: err.message || String(err) };
+    return { success: false, error: err instanceof Error ? err.message : String(err) };
   }
 }

@@ -117,7 +117,11 @@ export function WritingBox({
   useEffect(() => {
     if (result) return;
     const draft: Draft = { text, anonymous, handle, category, preset };
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    } catch {
+      /* The composer remains usable when storage is blocked. */
+    }
   }, [anonymous, category, handle, preset, result, text]);
 
   useEffect(() => {
@@ -146,7 +150,11 @@ export function WritingBox({
         category,
         preset,
       });
-      localStorage.removeItem(DRAFT_KEY);
+      try {
+        localStorage.removeItem(DRAFT_KEY);
+      } catch {
+        /* Publishing already succeeded. */
+      }
       setResult(submission);
       triggerHaptic("celebration");
     } catch (error) {
@@ -296,7 +304,9 @@ export function WritingBox({
                         }}
                         className={cn(
                           "min-w-[96px] shrink-0 rounded-2xl border p-2 text-left transition-all duration-200 cursor-pointer",
-                          selected ? "border-primary ring-2 ring-primary/20 bg-accent/25" : "border-border-card bg-card hover:border-primary/40",
+                          selected
+                            ? "border-primary ring-2 ring-primary/20 bg-accent/25"
+                            : "border-border-card bg-card hover:border-primary/40",
                         )}
                       >
                         <span
@@ -323,7 +333,9 @@ export function WritingBox({
                     onClick={() => setAnonymous(true)}
                     className={cn(
                       "min-h-[72px] rounded-2xl border p-3 text-left transition-colors cursor-pointer",
-                      anonymous ? "border-primary bg-accent" : "border-border-card bg-card hover:border-primary/40",
+                      anonymous
+                        ? "border-primary bg-accent"
+                        : "border-border-card bg-card hover:border-primary/40",
                     )}
                   >
                     <span className="block text-sm font-semibold text-foreground">Anonymous</span>
@@ -337,7 +349,9 @@ export function WritingBox({
                     onClick={() => setAnonymous(false)}
                     className={cn(
                       "min-h-[72px] rounded-2xl border p-3 text-left transition-colors cursor-pointer",
-                      !anonymous ? "border-primary bg-accent" : "border-border-card bg-card hover:border-primary/40",
+                      !anonymous
+                        ? "border-primary bg-accent"
+                        : "border-border-card bg-card hover:border-primary/40",
                     )}
                   >
                     <span className="block text-sm font-semibold text-foreground">

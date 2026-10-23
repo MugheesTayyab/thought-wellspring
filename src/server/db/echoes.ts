@@ -7,7 +7,7 @@ export function mapRowToEcho(row: any): Echo {
     text: row.text,
     handle: row.handle ?? null,
     createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
-    profileId: row.profile_id ?? null,
+    profileId: row.handle ? (row.profile_id ?? null) : null,
   };
 }
 
@@ -19,7 +19,7 @@ export async function fetchEchoesForPost(
   postId: string,
 ): Promise<{ data: Echo[]; error: { code: string; message: string } | null }> {
   try {
-    const client = getSupabaseAnonClient(env);
+    const client = getSupabaseAdminClient(env);
     const { data, error } = await client
       .from("echoes")
       .select("id, text, handle, created_at, profile_id")
@@ -56,37 +56,13 @@ export async function insertEcho(
   try {
     const client = getSupabaseAdminClient(env);
 
-    // Guard: max 50 echoes per confession
-    const { count, error: countErr } = await client
-      .from("echoes")
-      .select("id", { count: "exact", head: true })
-      .eq("unsaid_id", echoData.unsaidId);
-
-    if (countErr) {
-      return { data: null, error: { code: countErr.code, message: countErr.message } };
-    }
-
-    if ((count ?? 0) >= 50) {
-      return {
-        data: null,
-        error: {
-          code: "ECHO_LIMIT_REACHED",
-          message: "This confession has reached the maximum of 50 echoes",
-        },
-      };
-    }
-
-    const { data, error } = await client
-      .from("echoes")
-      .insert({
-        unsaid_id: echoData.unsaidId,
-        text: echoData.text,
-        handle: echoData.handle ?? null,
-        device_token: echoData.deviceToken,
-        profile_id: echoData.profileId ?? null,
-      })
-      .select("id, created_at")
-      .single();
+    const { data, error } = await client.rpc("insert_echo_atomic", {
+      p_post_id: echoData.unsaidId,
+      p_text: echoData.text,
+      p_handle: echoData.handle ?? null,
+      p_device_token: echoData.deviceToken,
+      p_profile_id: echoData.profileId ?? null,
+    });
 
     if (error) {
       return { data: null, error: { code: error.code, message: error.message } };
@@ -110,7 +86,7 @@ export async function fetchEchoesForPosts(
 ): Promise<{ data: Record<string, Echo[]>; error: { code: string; message: string } | null }> {
   if (postIds.length === 0) return { data: {}, error: null };
   try {
-    const client = getSupabaseAnonClient(env);
+    const client = getSupabaseAdminClient(env);
     const { data, error } = await client
       .from("echoes")
       .select("id, unsaid_id, text, handle, created_at, profile_id")

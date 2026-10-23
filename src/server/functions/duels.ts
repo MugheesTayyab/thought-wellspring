@@ -7,6 +7,7 @@ import {
 } from "../db/duels";
 import { incrementTotalActions, incrementWarmth } from "../db/profiles";
 import { validateDeviceToken } from "../middleware/device-token";
+import { checkRateLimit } from "../middleware/rate-limit";
 import type { Duel } from "@/shared/types/duel";
 
 export interface ActiveDuelResponse {
@@ -20,7 +21,7 @@ export interface ActiveDuelResponse {
  */
 export async function fetchActiveDuel(
   env: DatabaseEnv | undefined,
-  deviceToken?: string | null
+  deviceToken?: string | null,
 ): Promise<ActiveDuelResponse> {
   const res = await dbFetchActiveDuel(env);
 
@@ -64,7 +65,7 @@ export async function submitDuelVote(
     choiceIndex: 0 | 1;
     deviceToken: string;
     profileId?: string | null;
-  }
+  },
 ): Promise<{ choiceIndex: 0 | 1; votesA: number; votesB: number }> {
   const token = validateDeviceToken(input.deviceToken);
 
@@ -73,6 +74,7 @@ export async function submitDuelVote(
   }
 
   // Record vote in DB
+  await checkRateLimit(env, "duel_vote", token);
   const voteRes = await recordDuelVote(env, input.duelId, token, input.choiceIndex);
 
   if (voteRes.error || !voteRes.data) {
@@ -82,7 +84,7 @@ export async function submitDuelVote(
   // Reward signed-in user if profileId provided
   if (input.profileId) {
     await incrementTotalActions(env, input.profileId).catch((err) =>
-      console.error("[submitDuelVote] incrementTotalActions error:", err)
+      console.error("[submitDuelVote] incrementTotalActions error:", err),
     );
 
     const warmthReward = 10;

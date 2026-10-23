@@ -1,3 +1,4 @@
+import { useHydrated } from "@/client/hooks/use-hydrated";
 import { useEffect, useState, createContext, useContext, type ReactNode } from "react";
 import type { ActionType, WarmthLogEntry, DailyCapState, StreakState } from "@/shared/types/warmth";
 import { AWARD_VALUES, DAILY_PASSIVE_CAP } from "@/shared/constants/warmth";
@@ -54,6 +55,7 @@ export function useWarmth() {
 }
 
 export function WarmthProvider({ children }: { children: ReactNode }) {
+  const hydrated = useHydrated();
   const [totalWarmth, setTotalWarmth] = useState(() => readWarmth());
   const [warmthLog, setWarmthLog] = useState<WarmthLogEntry[]>(() => readWarmthLog());
   const [dailyCap, setDailyCap] = useState<DailyCapState>(() => readDailyCap());
@@ -192,7 +194,7 @@ export function WarmthProvider({ children }: { children: ReactNode }) {
   return (
     <WarmthContext.Provider
       value={{
-        totalWarmth,
+        totalWarmth: hydrated ? totalWarmth : 0,
         warmthLog,
         dailyCap,
         streak,

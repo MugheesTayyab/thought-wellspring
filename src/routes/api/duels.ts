@@ -3,7 +3,7 @@ import type { DuelVoteResponseData } from "@/shared/types/api";
 
 export type { DuelVoteResponseData };
 
-export const apiFetchActiveDuel = createServerFn({ method: "GET" })
+export const apiFetchActiveDuel = createServerFn({ method: "POST" })
   .validator((data?: { deviceToken?: string }) => data)
   .handler(async ({ data }) => {
     const { handleFetchActiveDuel } = await import("@/server/handlers/duels");
@@ -17,7 +17,7 @@ export const apiSubmitDuelVote = createServerFn({ method: "POST" })
       choiceIndex: 0 | 1;
       deviceToken: string;
       profileId?: string | null;
-    }) => data
+    }) => data,
   )
   .handler(async ({ data }) => {
     const { handleSubmitDuelVote } = await import("@/server/handlers/duels");

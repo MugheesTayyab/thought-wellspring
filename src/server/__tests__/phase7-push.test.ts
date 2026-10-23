@@ -1,3 +1,4 @@
+import { createECDH } from "node:crypto";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   base64UrlToUint8Array,
@@ -12,10 +13,12 @@ import { dispatchWinnerPushNotification } from "../jobs/push-dispatch";
 import * as pushDb from "../db/push-subscriptions";
 
 describe("Phase 7: Web Push Native WebCrypto Engine", () => {
+  const keyPair = createECDH("prime256v1");
+  const testPublicKey = keyPair.generateKeys().toString("base64url");
   const testVapid: VapidDetails = {
     subject: "mailto:admin@bajihears.com",
-    publicKey: "BC2J76RtDSeeFuYN3VnrvChrz3qKHVD_bhO1eKaFHl3RO5dz3CUA8JOMIoicqBQG5XBrE1WvriUXP5RDAOmugsI",
-    privateKey: "6IdFNGeTGKN_FA6gGG2JRDl-BD00sq0MtieScMuD8mo",
+    publicKey: testPublicKey,
+    privateKey: keyPair.getPrivateKey().toString("base64url"),
   };
 
   it("safely round-trips URL-safe Base64 and Uint8Array", () => {
@@ -34,10 +37,10 @@ describe("Phase 7: Web Push Native WebCrypto Engine", () => {
     expect(parts.length).toBe(3);
 
     // Decode header & payload
-    const header = JSON.parse(new TextDecoder().decode(base64UrlToUint8Array(parts[0])));
+    const header = JSON.parse(new TextDecoder().decode(base64UrlToUint8Array(parts[0]!)));
     expect(header).toEqual({ typ: "JWT", alg: "ES256" });
 
-    const payload = JSON.parse(new TextDecoder().decode(base64UrlToUint8Array(parts[1])));
+    const payload = JSON.parse(new TextDecoder().decode(base64UrlToUint8Array(parts[1]!)));
     expect(payload.aud).toBe(audience);
     expect(payload.sub).toBe(testVapid.subject);
     expect(payload.exp).toBeGreaterThan(Math.floor(Date.now() / 1000));
@@ -48,9 +51,11 @@ describe("Phase 7: Web Push Native WebCrypto Engine", () => {
     const subscriberKeyPair = await crypto.subtle.generateKey(
       { name: "ECDH", namedCurve: "P-256" },
       true,
-      ["deriveBits"]
+      ["deriveBits"],
     );
-    const pubRaw = new Uint8Array(await crypto.subtle.exportKey("raw", subscriberKeyPair.publicKey));
+    const pubRaw = new Uint8Array(
+      await crypto.subtle.exportKey("raw", subscriberKeyPair.publicKey),
+    );
     const authRaw = crypto.getRandomValues(new Uint8Array(16));
 
     const subscription: WebPushSubscription = {
@@ -77,9 +82,11 @@ describe("Phase 7: Web Push Native WebCrypto Engine", () => {
     const subscriberKeyPair = await crypto.subtle.generateKey(
       { name: "ECDH", namedCurve: "P-256" },
       true,
-      ["deriveBits"]
+      ["deriveBits"],
     );
-    const pubRaw = new Uint8Array(await crypto.subtle.exportKey("raw", subscriberKeyPair.publicKey));
+    const pubRaw = new Uint8Array(
+      await crypto.subtle.exportKey("raw", subscriberKeyPair.publicKey),
+    );
     const authRaw = crypto.getRandomValues(new Uint8Array(16));
 
     const sub: WebPushSubscription = {
@@ -114,13 +121,16 @@ describe("Phase 7: Web Push Native WebCrypto Engine", () => {
   it("skips dispatch if push was already delivered for the cycle (idempotency)", async () => {
     vi.spyOn(pushDb, "hasCyclePushDispatched").mockResolvedValue(true);
 
-    const result = await dispatchWinnerPushNotification({
-      winnerId: "123e4567-e89b-12d3-a456-426614174000",
-      hook: "Tonight's Crowned Unsaid",
-      excerpt: "Sample excerpt",
-      category: "Confession",
-      cycleTimestamp: 1727280000000,
-    });
+    const result = await dispatchWinnerPushNotification(
+      {
+        winnerId: "123e4567-e89b-12d3-a456-426614174000",
+        hook: "Tonight's Crowned Unsaid",
+        excerpt: "Sample excerpt",
+        category: "Confession",
+        cycleTimestamp: 1727280000000,
+      },
+      { VAPID_PUBLIC_KEY: testVapid.publicKey, VAPID_PRIVATE_KEY: testVapid.privateKey },
+    );
 
     expect(result.dispatched).toBe(true);
     expect(result.skippedReason).toBe("ALREADY_DISPATCHED");
