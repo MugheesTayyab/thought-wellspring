@@ -521,13 +521,26 @@ function CornerPage() {
           </div>
           <div className="rounded-2xl border border-border/80 bg-paper/60 p-4 text-xs leading-relaxed text-muted-foreground flex items-start gap-2.5">
             <ShieldCheck className="size-4 text-coral shrink-0 mt-0.5" />
-            <div>
+            <div className="w-full">
               <p className="font-semibold text-ink">Quiet defaults &amp; privacy</p>
               <p className="mt-0.5">
                 Notifications announce community picks when you opt in. Your email stays private.
                 Choosing Anonymous hides your account link from public posts. Drafts, saved notes,
                 avatars, and Ember remain in this browser.
               </p>
+              <div className="mt-2.5 flex items-center gap-3 pt-2 border-t border-border/60 text-[11px] font-medium">
+                <Link to="/about" className="text-primary hover:underline">
+                  About BajiHears
+                </Link>
+                <span>&middot;</span>
+                <Link to="/privacy" className="text-primary hover:underline">
+                  Privacy Policy
+                </Link>
+                <span>&middot;</span>
+                <Link to="/terms" className="text-primary hover:underline">
+                  Terms of Service
+                </Link>
+              </div>
             </div>
           </div>
         </section>

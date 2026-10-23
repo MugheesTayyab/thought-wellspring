@@ -1,0 +1,8 @@
+# BajiHears (https://bajihears.app) - Authorized Digital Sellers (ads.txt)
+# Google AdSense authorized inventory specification
+#
+# ACTIVATION INSTRUCTION:
+# When your Google AdSense account is approved, replace 'pub-XXXXXXXXXXXXXXXX' below with
+# your verified publisher client ID and uncomment the directive line:
+#
+# google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0

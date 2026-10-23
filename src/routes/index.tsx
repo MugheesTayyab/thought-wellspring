@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetchPostById } from "@/routes/api/wall";
@@ -559,9 +559,24 @@ function Home() {
 
           {/* End of Wall */}
           {!hasNextPage && visiblePosts.length > 0 && (
-            <p className="text-muted-foreground/80 py-6 text-center text-xs font-semibold font-vibe tracking-wide">
-              You&apos;re caught up for now. Come back whenever you feel like it.
-            </p>
+            <div className="py-6 text-center">
+              <p className="text-muted-foreground/80 text-xs font-semibold font-vibe tracking-wide">
+                You&apos;re caught up for now. Come back whenever you feel like it.
+              </p>
+              <footer className="mt-4 flex items-center justify-center gap-3 text-[11px] text-muted-foreground/70 font-medium">
+                <Link to="/about" className="hover:text-foreground transition">
+                  About
+                </Link>
+                <span>&middot;</span>
+                <Link to="/privacy" className="hover:text-foreground transition">
+                  Privacy Policy
+                </Link>
+                <span>&middot;</span>
+                <Link to="/terms" className="hover:text-foreground transition">
+                  Terms of Service
+                </Link>
+              </footer>
+            </div>
           )}
         </div>
       </div>

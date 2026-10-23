@@ -263,6 +263,33 @@ export function CornerMenu({ seed }: { seed: string }) {
                   <span>Sign Out</span>
                 </button>
               )}
+
+              {/* Legal & About links */}
+              <div className="mt-3.5 pt-3 border-t border-border flex items-center justify-center gap-2.5 text-[11px] text-muted-foreground font-medium">
+                <Link
+                  to="/about"
+                  onClick={() => setOpen(false)}
+                  className="hover:text-foreground transition"
+                >
+                  About
+                </Link>
+                <span>&middot;</span>
+                <Link
+                  to="/privacy"
+                  onClick={() => setOpen(false)}
+                  className="hover:text-foreground transition"
+                >
+                  Privacy
+                </Link>
+                <span>&middot;</span>
+                <Link
+                  to="/terms"
+                  onClick={() => setOpen(false)}
+                  className="hover:text-foreground transition"
+                >
+                  Terms
+                </Link>
+              </div>
             </div>
           </div>,
           document.body,

@@ -99,7 +99,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { name: "apple-mobile-web-app-title", content: "BajiHears" },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://bajihears.mugheestayyab4.workers.dev/" },
+      { property: "og:url", content: "https://bajihears.app/" },
       { property: "og:title", content: "BajiHears | Say the Unsaid" },
       {
         property: "og:description",
@@ -107,7 +107,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       {
         property: "og:image",
-        content: "https://bajihears.mugheestayyab4.workers.dev/og-image.png",
+        content: "https://bajihears.app/og-image.png",
       },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
@@ -120,10 +120,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       {
         name: "twitter:image",
-        content: "https://bajihears.mugheestayyab4.workers.dev/og-image.png",
+        content: "https://bajihears.app/og-image.png",
       },
     ],
     links: [
+      { rel: "canonical", href: "https://bajihears.app/" },
       {
         rel: "stylesheet",
         href: appCss,
