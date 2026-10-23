@@ -55,6 +55,17 @@ try {
   assert.deepEqual(pageErrors, []);
   assert.deepEqual(serverErrors, []);
   console.log("PASS live browser smoke test with no page or HTTP 5xx errors");
+
+  if (process.env.TEST_OAUTH_START === "1") {
+    await page.goto(`${base}/corner`, { waitUntil: "domcontentloaded" });
+    await page
+      .getByRole("navigation", { name: "Your Corner sections" })
+      .getByRole("button", { name: "Settings" })
+      .click();
+    await page.getByRole("button", { name: "Continue with Google" }).click();
+    await page.waitForURL((url) => url.hostname === "accounts.google.com", { timeout: 30000 });
+    console.log("PASS live Google OAuth reaches the Google authorization screen");
+  }
 } finally {
   await browser.close();
 }
