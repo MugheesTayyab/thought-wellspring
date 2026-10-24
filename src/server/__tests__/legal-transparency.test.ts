@@ -11,12 +11,16 @@ describe("Legal pages, transparency & AdSense readiness", () => {
     expect(content).toContain("bajihears.app");
     expect(content).toContain("google.com");
     expect(content).toContain("f08c47fec0942fa0");
-    // Ensure example pub-ID is NOT published as active uncommented seller
+    expect(content).toContain("pub-3506843405786818");
+    expect(content).not.toContain("pub-XXXXXXXXXXXXXXXX");
+
+    // Ensure active uncommented seller is strictly our single Google publisher entry
     const activeLines = content
       .split(/\r?\n/)
       .map((l) => l.trim())
       .filter((l) => l && !l.startsWith("#"));
-    expect(activeLines.length).toBe(0);
+    expect(activeLines).toEqual(["google.com, pub-3506843405786818, DIRECT, f08c47fec0942fa0"]);
+    expect(activeLines.length).toBe(1);
   });
 
   it("provides sitemap.xml listing all canonical public routes", () => {
