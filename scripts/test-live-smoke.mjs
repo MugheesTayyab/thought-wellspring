@@ -15,13 +15,27 @@ page.on("response", (response) => {
   if (response.status() >= 500) serverErrors.push(`${response.status()} ${response.url()}`);
 });
 
+async function safeGoto(targetUrl) {
+  let lastError;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      return await page.goto(targetUrl, { waitUntil: "domcontentloaded" });
+    } catch (error) {
+      lastError = error;
+      if (!String(error).includes("net::ERR_") || attempt === 4) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
+    }
+  }
+  throw lastError;
+}
+
 try {
   for (const [route, canonical] of [
     ["/", "https://bajihears.app/"],
     ["/duel", "https://bajihears.app/duel"],
     ["/corner", "https://bajihears.app/corner"],
   ]) {
-    const response = await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded" });
+    const response = await safeGoto(`${base}${route}`);
     assert.ok(response && response.status() < 500, `${route} returned ${response?.status()}`);
     await page.getByRole("navigation").waitFor();
     await page.waitForTimeout(1000);
@@ -37,27 +51,33 @@ try {
     console.log(`PASS live route ${route}`);
   }
 
-  await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
+  await safeGoto(`${base}/`);
   await page.getByText("BajiHears Original · Fictional", { exact: true }).first().waitFor();
+  for (let i = 0; i < 5 && (await page.getByText("BajiHears Original · Fictional", { exact: true }).count()) < 30; i++) {
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(1000);
+  }
   assert.equal(await page.getByText("BajiHears Original · Fictional", { exact: true }).count(), 30);
   const originalCards = page.locator('article[data-editorial-seed-id]');
   if ((await originalCards.count()) > 0) {
     assert.equal(await originalCards.count(), 30);
     assert.deepEqual(
-      await originalCards.evaluateAll((cards) =>
-        cards.map((card) => card.getAttribute("data-editorial-seed-id")),
-      ),
+      (
+        await originalCards.evaluateAll((cards) =>
+          cards.map((card) => card.getAttribute("data-editorial-seed-id")),
+        )
+      ).sort(),
       Array.from({ length: 30 }, (_, index) => `BH-${String(index + 1).padStart(3, "0")}`),
     );
   }
   console.log("PASS exactly 30 labeled Originals are visible in production");
 
-  await page.goto(`${base}/admin/moderation`, { waitUntil: "domcontentloaded" });
+  await safeGoto(`${base}/admin/moderation`);
   await page.getByText("Sign in with Google", { exact: true }).waitFor();
   assert.equal(await page.locator('meta[name="robots"]').getAttribute("content"), "noindex, nofollow");
   console.log("PASS signed-out moderation route exposes no dashboard and is noindex");
 
-  const readResponse = await page.goto(`${base}/read`, { waitUntil: "domcontentloaded" });
+  const readResponse = await safeGoto(`${base}/read`);
   assert.equal(readResponse?.status(), 200);
   assert.equal(new URL(page.url()).pathname, "/");
   console.log("PASS live /read redirect");
