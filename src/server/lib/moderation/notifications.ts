@@ -132,6 +132,14 @@ export async function drainModerationNotifications(
   leaseSeconds: number = 120,
 ): Promise<{ processed: number; failed: number }> {
   const env = envInput || getServerEnv();
+  const telegramConfigured = Boolean(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID);
+  const webhookConfigured = Boolean(env.MODERATION_WEBHOOK_URL);
+  if (!telegramConfigured && !webhookConfigured) {
+    console.info(
+      "[Moderation Notification] External provider not configured; pending alerts remain queued.",
+    );
+    return { processed: 0, failed: 0 };
+  }
   const client = getSupabaseAdminClient(env);
 
   try {

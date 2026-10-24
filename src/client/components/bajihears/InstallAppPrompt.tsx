@@ -169,7 +169,7 @@ export function InstallAppPrompt() {
     >
       <DialogContent className="w-[calc(100%-2rem)] max-w-sm max-h-[90dvh] overflow-y-auto rounded-3xl border-border-card bg-card p-6 text-center sm:rounded-3xl">
         <div className="mx-auto flex size-16 items-center justify-center rounded-2xl border border-primary/15 bg-secondary">
-          <img src="/favicon.png" alt="" className="size-12 rounded-xl" />
+          <img src="/icon-192.png" alt="BajiHears" className="size-12 rounded-xl" />
         </div>
         <div>
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-primary">

@@ -6,6 +6,7 @@ import {
   fetchPublishedFeed,
   fetchWinner as dbFetchWinner,
   fetchPostById as dbFetchPostById,
+  fetchEditorialOriginals,
   insertPost,
 } from "../db/unsaids";
 import { insertEcho } from "../db/echoes";
@@ -228,6 +229,19 @@ export async function fetchPostById(
     throw new Error(res.error.message);
   }
   return res.data;
+}
+
+/**
+ * Fetch BajiHears Originals in exact CSV display order
+ */
+export async function getEditorialOriginals(
+  env?: DatabaseEnv,
+): Promise<{ posts: Unsaid[] }> {
+  const res = await fetchEditorialOriginals(env);
+  if (res.error) {
+    throw new Error(res.error.message);
+  }
+  return { posts: res.data };
 }
 
 /**

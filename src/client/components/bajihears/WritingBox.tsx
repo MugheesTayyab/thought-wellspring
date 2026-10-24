@@ -84,6 +84,7 @@ export function WritingBox({
   const [showPreview, setShowPreview] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const submitInFlightRef = useRef(false);
 
   const sending = isSubmitting || localSending;
   const cleanHandle = stripHandle(handle)
@@ -139,7 +140,8 @@ export function WritingBox({
   };
 
   const submit = async () => {
-    if (!valid || !category || sending) return;
+    if (!valid || !category || sending || submitInFlightRef.current) return;
+    submitInFlightRef.current = true;
     triggerHaptic("impactMedium");
     setLocalError(null);
     setLocalSending(true);
@@ -160,6 +162,7 @@ export function WritingBox({
     } catch (error) {
       setLocalError(error instanceof Error ? error.message : "Couldn't post that just yet.");
     } finally {
+      submitInFlightRef.current = false;
       setLocalSending(false);
     }
   };

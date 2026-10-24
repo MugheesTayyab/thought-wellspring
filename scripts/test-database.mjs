@@ -666,6 +666,86 @@ try {
     assert.equal(typeof counts.recently_resolved_24h, "number");
     assert.equal(counts.recently_resolved_24h >= 2, true);
   });
+  await test("Editorial Collection: Atomic import, deterministic ordering, and idempotent re-run", async () => {
+    // 1. Import BH-001
+    const res1 = await rpc("import_editorial_seed_atomic", [
+      "BH-001",
+      1,
+      "I told my family I had an early lecture so I could escape the mehndi before the aunties asked about marriage.",
+      "Spill The Tea",
+      "BajiHears Original / Fictional Scenario",
+      JSON.stringify({ language: "Roman Urdu", country: "Pakistan", quality_score: 92 }),
+      "published",
+    ]);
+    assert.equal(res1.success, true);
+    assert.equal(res1.seed_id, "BH-001");
+    const postUuid1 = res1.id;
+
+    // 2. Import BH-002
+    const res2 = await rpc("import_editorial_seed_atomic", [
+      "BH-002",
+      2,
+      "For six months, I thought the encouraging notes on my desk were from my manager.",
+      "Plot Twist",
+      "BajiHears Original / Fictional Scenario",
+      JSON.stringify({ language: "Natural English", country: "India", quality_score: 93 }),
+      "published",
+    ]);
+    assert.equal(res2.success, true);
+
+    // 3. Verify provenance: source_type is 'editorial', device_token is NULL, handle is NULL
+    const [row1] = await query("SELECT * FROM public.unsaids WHERE editorial_seed_id = 'BH-001'");
+    assert.equal(row1.source_type, "editorial");
+    assert.equal(row1.device_token, null, "device_token must be strictly NULL for editorial posts");
+    assert.equal(row1.handle, null);
+    assert.equal(row1.display_order, 1);
+    assert.equal(row1.editorial_label, "BajiHears Original / Fictional Scenario");
+    assert.equal(row1.reactions.heart, 0);
+
+    // 4. Idempotency test: Re-importing BH-001 updates in-place and preserves the UUID
+    const res1Re = await rpc("import_editorial_seed_atomic", [
+      "BH-001",
+      1,
+      "I told my family I had an early lecture so I could escape the mehndi before the aunties asked about marriage (updated).",
+      "Spill The Tea",
+      "BajiHears Original / Fictional Scenario",
+      JSON.stringify({ language: "Roman Urdu", country: "Pakistan", quality_score: 92 }),
+      "published",
+    ]);
+    assert.equal(res1Re.success, true);
+    assert.equal(res1Re.id, postUuid1, "Re-run must update existing row in-place and retain stable UUID");
+
+    const [row1Re] = await query("SELECT text FROM public.unsaids WHERE editorial_seed_id = 'BH-001'");
+    assert.ok(row1Re.text.includes("(updated)"));
+
+    // 5. Query via get_editorial_originals: verified ordered results
+    const originals = await query("SELECT * FROM public.get_editorial_originals('published')");
+    assert.equal(originals.length >= 2, true);
+    assert.equal(originals[0].editorial_seed_id, "BH-001");
+    assert.equal(originals[1].editorial_seed_id, "BH-002");
+    assert.equal(originals[0].display_order < originals[1].display_order, true);
+
+    // 6. Reader engagement: readers CAN react and comment on editorial stories
+    const readerDevice = "fedcba0987654321";
+    await rpc("set_reaction_atomic", [postUuid1, readerDevice, "heart", true]);
+    const [reactedRow] = await query("SELECT reactions FROM public.unsaids WHERE id = $1", [postUuid1]);
+    assert.equal(reactedRow.reactions.heart, 1);
+
+    // 7. Moderation safety: readers can report editorial stories if needed
+    const reportRes = await rpc("report_post_atomic", [postUuid1, readerDevice, "Testing editorial report"]);
+    assert.equal(reportRes.success, true);
+
+    // 8. Safe rollback: deleting editorial posts removes ONLY editorial rows, never community posts
+    const communityCountBefore = (await query("SELECT count(*)::int AS n FROM public.unsaids WHERE source_type = 'community'"))[0].n;
+    assert.ok(communityCountBefore > 0);
+
+    await query("DELETE FROM public.unsaids WHERE source_type = 'editorial'");
+    const editorialCountAfter = (await query("SELECT count(*)::int AS n FROM public.unsaids WHERE source_type = 'editorial'"))[0].n;
+    assert.equal(editorialCountAfter, 0);
+
+    const communityCountAfter = (await query("SELECT count(*)::int AS n FROM public.unsaids WHERE source_type = 'community'"))[0].n;
+    assert.equal(communityCountAfter, communityCountBefore, "Rollback must never delete or modify community posts");
+  });
   await test("Both public roles are denied private tables and all mutation RPCs", async () => {
     for (const role of ["anon", "authenticated"]) {
       for (const table of [

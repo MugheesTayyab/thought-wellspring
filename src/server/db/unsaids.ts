@@ -6,6 +6,7 @@ export interface FeedOptions {
   category?: Category | undefined;
   limit?: number | undefined;
   offset?: number | undefined;
+  sourceType?: "community" | "editorial" | "all" | undefined;
 }
 
 export interface InsertPostInput {
@@ -38,6 +39,11 @@ export function mapRowToUnsaid(row: any): Unsaid {
     winnerHook: row.winner_hook ?? null,
     winnerScore: row.winner_score != null ? Number(row.winner_score) : null,
     pinnedUntil: row.pinned_until ? new Date(row.pinned_until).getTime() : null,
+    sourceType: row.source_type || "community",
+    editorialSeedId: row.editorial_seed_id ?? null,
+    editorialLabel: row.editorial_label ?? null,
+    displayOrder: row.display_order != null ? Number(row.display_order) : null,
+    editorialMetadata: row.editorial_metadata ?? null,
   };
 }
 
@@ -56,12 +62,17 @@ export async function fetchPublishedFeed(
     let query = client
       .from("unsaids")
       .select(
-        "id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, profile_id",
+        "id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, profile_id, status, source_type, editorial_seed_id, editorial_label, display_order, editorial_metadata",
       )
       .eq("status", "published");
 
     if (options?.category) {
       query = query.eq("category", options.category);
+    }
+
+    const sourceType = options?.sourceType ?? "community";
+    if (sourceType !== "all") {
+      query = query.eq("source_type", sourceType);
     }
 
     // Order by created_at DESC (primary feed index)
@@ -148,7 +159,7 @@ export async function fetchPostById(
     const { data, error } = await client
       .from("unsaids")
       .select(
-        "id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, status",
+        "id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, status, source_type, editorial_seed_id, editorial_label, display_order, editorial_metadata",
       )
       .eq("id", id)
       .eq("status", "published")
@@ -161,6 +172,34 @@ export async function fetchPostById(
     return { data: data ? mapRowToUnsaid(data) : null, error: null };
   } catch (err: any) {
     return { data: null, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
+  }
+}
+
+/**
+ * Fetch BajiHears Originals in exact CSV display order
+ */
+export async function fetchEditorialOriginals(
+  env?: DatabaseEnv,
+): Promise<{ data: Unsaid[]; error: { code: string; message: string } | null }> {
+  try {
+    const client = getSupabaseAdminClient(env);
+    const { data, error } = await client
+      .from("unsaids")
+      .select(
+        "id, text, handle, category, preset, reactions, veto_count, created_at, pinned_until, status, source_type, editorial_seed_id, editorial_label, display_order, editorial_metadata",
+      )
+      .eq("source_type", "editorial")
+      .eq("status", "published")
+      .order("display_order", { ascending: true });
+
+    if (error) {
+      return { data: [], error: { code: error.code, message: error.message } };
+    }
+
+    const unsaids = (data || []).map(mapRowToUnsaid);
+    return { data: unsaids, error: null };
+  } catch (err: any) {
+    return { data: [], error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
   }
 }
 

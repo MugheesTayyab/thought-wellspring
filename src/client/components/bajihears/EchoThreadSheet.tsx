@@ -99,7 +99,13 @@ export function EchoThreadSheet({ open, post, myHandle, onClose, onEcho, onRepor
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5">
           <article className="rounded-[22px] border border-primary/20 bg-[#FFF9F6] p-4">
             <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-              <span>{post.handle ? `@${stripHandle(post.handle)}` : "Anonymous"}</span>
+              {post.sourceType === "editorial" ? (
+                <span className="font-semibold text-[#7D3028]">
+                  BajiHears Original · Fictional Story
+                </span>
+              ) : (
+                <span>{post.handle ? `@${stripHandle(post.handle)}` : "Anonymous"}</span>
+              )}
               <span>{post.category}</span>
             </div>
             <p className="mt-3 whitespace-pre-wrap text-[18px] leading-7 text-foreground">

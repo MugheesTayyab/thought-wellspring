@@ -23,8 +23,10 @@ try {
   const objects = await client.query(`
     SELECT
       to_regclass('public.push_outbox') IS NOT NULL AS push_outbox,
+      to_regclass('public.moderation_notifications') IS NOT NULL AS moderation_notifications,
       to_regprocedure('public.insert_post_atomic(text,text,text,uuid,text,text,text)') IS NOT NULL AS insert_post,
       to_regprocedure('public.enqueue_winner_push(bigint,jsonb)') IS NOT NULL AS enqueue_push,
+      to_regprocedure('public.get_editorial_originals(text)') IS NOT NULL AS get_editorial_originals,
       has_table_privilege('anon', 'public.unsaids', 'select') AS anon_unsaids_select,
       has_table_privilege('anon', 'public.profiles', 'select') AS anon_profiles_select
   `);
@@ -46,7 +48,12 @@ try {
   } catch (error) {
     migrations = [{ error: error.code }];
   }
-  const requiredTables = ["echo_reports", "push_outbox"];
+  const requiredTables = [
+    "echo_reports",
+    "moderation_notifications",
+    "post_reports",
+    "push_outbox",
+  ];
   const requiredMigrations = [
     "20260924000000",
     "20260925000000",
@@ -58,9 +65,49 @@ try {
     "20261022010000",
     "20261022020000",
     "20261023000000",
+    "20261024000000",
+    "20261025000000",
   ];
   const tableNames = tables.rows.map(({ table_name }) => table_name);
   const appliedVersions = migrations.map(({ version }) => version).filter(Boolean);
+  const operational = {};
+  if (tableNames.includes("moderation_notifications")) {
+    operational.moderationNotifications = (
+      await client.query(`
+        SELECT status, count(*)::int AS count, min(created_at) AS oldest
+        FROM public.moderation_notifications GROUP BY status ORDER BY status
+      `)
+    ).rows;
+  }
+  if (tableNames.includes("push_outbox")) {
+    operational.pushOutbox = (
+      await client.query(`
+        SELECT state, count(*)::int AS count, min(created_at) AS oldest
+        FROM public.push_outbox GROUP BY state ORDER BY state
+      `)
+    ).rows;
+  }
+  if (tableNames.includes("winner_cycles")) {
+    operational.latestWinnerCycle = (
+      await client.query(`
+        SELECT cycle_start, cycle_end, status, created_at
+        FROM public.winner_cycles ORDER BY cycle_end DESC LIMIT 1
+      `)
+    ).rows[0] ?? null;
+  }
+  if (objects.rows[0].get_editorial_originals) {
+    operational.editorial = (
+      await client.query(`
+        SELECT count(*)::int AS count,
+          min(display_order)::int AS first_order,
+          max(display_order)::int AS last_order,
+          count(*) FILTER (WHERE status <> 'published')::int AS not_published
+        FROM public.unsaids WHERE source_type = 'editorial'
+      `)
+    ).rows[0];
+  } else {
+    operational.editorial = { available: false };
+  }
   const missingTables = requiredTables.filter((table) => !tableNames.includes(table));
   const missingMigrations = requiredMigrations.filter(
     (version) => !appliedVersions.includes(version),
@@ -72,6 +119,7 @@ try {
         objects: objects.rows[0],
         tables: tableNames,
         migrations,
+        operational,
       },
       null,
       2,
@@ -82,6 +130,8 @@ try {
     missingMigrations.length ||
     !objects.rows[0].insert_post ||
     !objects.rows[0].enqueue_push ||
+    !objects.rows[0].moderation_notifications ||
+    !objects.rows[0].get_editorial_originals ||
     objects.rows[0].anon_unsaids_select ||
     objects.rows[0].anon_profiles_select
   ) {

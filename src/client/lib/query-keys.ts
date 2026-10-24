@@ -11,6 +11,7 @@ export const queryKeys = {
       ["posts", "feed", { filters: filters || [], sort: sort || "latest" }] as const,
     detail: (id: string) => ["posts", "detail", id] as const,
     winner: () => ["posts", "winner"] as const,
+    originals: () => ["posts", "originals"] as const,
   },
   duels: {
     all: ["duels"] as const,

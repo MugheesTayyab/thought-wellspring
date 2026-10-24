@@ -49,6 +49,7 @@ async function setup(viewport) {
     voted: false,
     echoed: false,
     published: false,
+    submitCalls: 0,
     errors: [],
   };
   page.on("pageerror", (error) => state.errors.push(error.message));
@@ -85,6 +86,16 @@ async function setup(viewport) {
       votesB: 0,
       active: true,
     };
+    const originals = Array.from({ length: 30 }, (_, index) => ({
+      ...post,
+      id: `77777777-7777-4777-8${String(index + 1).padStart(3, "0")}0000000`,
+      text: `Verified Manus fixture story ${String(index + 1).padStart(2, "0")}.`,
+      category: "Silent Thoughts",
+      sourceType: "editorial",
+      editorialSeedId: `BH-${String(index + 1).padStart(3, "0")}`,
+      editorialLabel: "BajiHears Original · Fictional Story",
+      displayOrder: index + 1,
+    }));
     let data;
     let failure;
     if (name.includes("apiFetchActiveDuel"))
@@ -104,6 +115,7 @@ async function setup(viewport) {
           text: "A shared thought from an earlier day.",
         },
       };
+    else if (name.includes("apiFetchEditorialOriginals")) data = { posts: originals };
     else if (name.includes("apiFetchFeed")) {
       if (state.feedFails) failure = "Wall is temporarily unavailable.";
       else
@@ -134,6 +146,7 @@ async function setup(viewport) {
       state.echoed = true;
       data = { id: "echo-1", text: "I feel the same.", handle: null, createdAt: Date.now() };
     } else if (name.includes("apiSubmitPost")) {
+      state.submitCalls++;
       state.published = true;
       data = {
         id: "44444444-4444-4444-8444-444444444444",
@@ -206,12 +219,12 @@ try {
   checks++;
   console.log("PASS Failed vote rolls back and remains retryable");
   await navigate(page, `${base}/`);
-  const react = page.getByRole("button", { name: "Relate to this thought", exact: true });
+  const react = page.getByRole("button", { name: /^Relate(?: \d+)? to this thought$/ });
   await react.click();
   await page.waitForFunction(
     () =>
       document
-        .querySelector('[aria-label="Relate to this thought"]')
+        .querySelector('[aria-label^="Relate"]')
         ?.getAttribute("aria-pressed") === "true",
   );
   checks++;
@@ -238,19 +251,44 @@ try {
   checks++;
   console.log("PASS Shared links load thoughts outside the first feed page");
   await navigate(page, `${base}/`);
+  await page.getByRole("button", { name: /BajiHears Originals/ }).click();
+  await page.getByText("Verified Manus fixture story 01.", { exact: true }).waitFor();
+  assert.equal(await page.getByText("BajiHears Original · Fictional Story", { exact: true }).count(), 30);
+  assert.equal(await page.getByText("Verified Manus fixture story 30.", { exact: true }).count(), 1);
+  checks++;
+  console.log("PASS Exactly 30 ordered Originals render with explicit fictional labels");
+  await navigate(page, `${base}/`);
   await page.getByText("Some days I just need a quiet place to think.", { exact: true }).waitFor();
   await page.getByRole("button", { name: "Write a thought", exact: true }).click();
-  await page
-    .getByPlaceholder("What's something you've been keeping to yourself?")
-    .fill("Today I made time for a little walk.");
+  const composer = page.getByRole("dialog");
+  const thoughtInput = page.getByPlaceholder("What's something you've been keeping to yourself?");
+  const postButton = page.getByRole("button", { name: "Post anonymously", exact: true });
+  assert.equal(await postButton.isDisabled(), true);
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Silent Thoughts", exact: true })
     .click();
-  await page.getByRole("button", { name: "Post anonymously", exact: true }).click();
-  await page.getByRole("heading", { name: "Your thought is on the Wall." }).waitFor();
+  await thoughtInput.fill("اِن کہی بات — دل کی آواز 🌙");
+  assert.equal(await postButton.isEnabled(), true);
+  await thoughtInput.fill("a".repeat(280));
+  assert.equal(await postButton.isEnabled(), true);
+  await thoughtInput.fill("a".repeat(281));
+  await composer.getByRole("alert").filter({ hasText: "over the limit" }).waitFor();
+  assert.equal(await postButton.isDisabled(), true);
   checks++;
-  console.log("PASS Composer publishes and displays server acknowledgment");
+  console.log("PASS Composer validates empty, Unicode, 280, and 281-character input");
+  await thoughtInput.fill("Today I made time for a little walk.");
+  await postButton.evaluate((button) => {
+    button.click();
+    button.click();
+  });
+  await page.getByRole("heading", { name: "Your thought is on the Wall." }).waitFor();
+  assert.equal(state.submitCalls, 1);
+  await page.getByRole("button", { name: "Back to the Wall", exact: true }).click();
+  await page.getByRole("button", { name: "Write a thought", exact: true }).click();
+  await page.getByRole("heading", { name: "Your last thought was received." }).waitFor();
+  checks++;
+  console.log("PASS Composer prevents repeated-tap duplicates and displays the 12-hour cooldown");
   await navigate(page, `${base}/auth/callback?error=access_denied`);
   await page
     .getByText("Sign-in was cancelled or declined. You can try again from Your Corner.")

@@ -57,6 +57,11 @@ export type Unsaid = {
     votesA: number;
     votesB: number;
   } | undefined;
+  sourceType?: "community" | "editorial" | undefined;
+  editorialSeedId?: string | null | undefined;
+  editorialLabel?: string | null | undefined;
+  displayOrder?: number | null | undefined;
+  editorialMetadata?: Record<string, string | number | boolean | null> | null | undefined;
 };
 
 export type MyReactions = Record<string, ReactionKey[]>;

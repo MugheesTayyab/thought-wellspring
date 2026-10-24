@@ -67,7 +67,17 @@ export default {
     const nonce = createCspNonce();
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("x-csp-nonce", nonce);
-    request = new Request(request, { headers: requestHeaders });
+    try {
+      request = new Request(request.url, {
+        method: request.method,
+        headers: requestHeaders,
+        body: ["GET", "HEAD"].includes(request.method) ? undefined : request.body,
+        // @ts-expect-error duplex is required in Node fetch when body is a stream
+        duplex: request.body ? "half" : undefined,
+      });
+    } catch {
+      request = new Request(request, { headers: requestHeaders });
+    }
 
     const origin = request.headers.get("origin") || "";
     const allowed = origin === new URL(request.url).origin;

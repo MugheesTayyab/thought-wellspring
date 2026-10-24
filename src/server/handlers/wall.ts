@@ -19,6 +19,7 @@ import {
   unreactToPost,
   addEcho,
   fetchPostById,
+  getEditorialOriginals,
   type SubmitPostInput,
   type SubmitPostResult,
 } from "@/server/functions/posts";
@@ -94,6 +95,13 @@ export async function handleFetchPostById(data: {
     const env = getServerEnv();
     const post = await fetchPostById(env, data.id);
     return { post };
+  });
+}
+
+export async function handleFetchEditorialOriginals(): Promise<ServerFnResult<{ posts: Unsaid[] }>> {
+  return wrapServerFn(async () => {
+    const env = getServerEnv();
+    return getEditorialOriginals(env);
   });
 }
 

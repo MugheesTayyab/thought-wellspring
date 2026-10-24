@@ -12,8 +12,8 @@ self.addEventListener("push", (event) => {
   const title = data.title || "The new winner is in ✨";
   const options = {
     body: data.body || "Someone won the daily crown. Check it out on BajiHears.",
-    icon: "/brand.svg",
-    badge: "/brand.svg",
+    icon: "/icon-192.png",
+    badge: "/badge-72.png",
     tag: data.tag || "bajihears-winner",
     renotify: true,
     silent: false,

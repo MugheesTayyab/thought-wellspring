@@ -266,35 +266,9 @@ describe("Production Trust & Safety Engine", () => {
     it("safely handles missing notification credentials without crashing", async () => {
       const { drainModerationNotifications } = await import("../lib/moderation/notifications");
 
-      const completeCalls: any[] = [];
+      const rpc = vi.fn();
       vi.mocked(getSupabaseAdminClient).mockReturnValue({
-        rpc: vi.fn().mockImplementation((name: string, args: any) => {
-          if (name === "claim_moderation_notifications") {
-            return Promise.resolve({
-              data: [
-                {
-                  id: "notif-uuid-1",
-                  claim_token: "claim-token-uuid-1",
-                  event_type: "post_report",
-                  target_type: "post",
-                  target_id: "post-uuid-1",
-                  preview_text: "Test confession",
-                  category: "Silent Thoughts",
-                  reason: "Harassment",
-                  priority: "normal",
-                  report_count: 1,
-                  attempts: 0,
-                },
-              ],
-              error: null,
-            });
-          }
-          if (name === "complete_moderation_notification") {
-            completeCalls.push(args);
-            return Promise.resolve({ data: { success: true, code: "DELIVERED" }, error: null });
-          }
-          return Promise.resolve({ data: null, error: null });
-        }),
+        rpc,
       } as any);
 
       // Environment without external provider credentials
@@ -305,11 +279,9 @@ describe("Production Trust & Safety Engine", () => {
       };
 
       const result = await drainModerationNotifications(env, 5);
-      expect(result.processed).toBe(1);
+      expect(result.processed).toBe(0);
       expect(result.failed).toBe(0);
-      expect(completeCalls.length).toBe(1);
-      expect(completeCalls[0].p_claim_token).toBe("claim-token-uuid-1");
-      expect(completeCalls[0].p_success).toBe(true);
+      expect(rpc).not.toHaveBeenCalled();
     });
 
     it("retries failed notification deliveries safely with valid claim token", async () => {
@@ -369,6 +341,8 @@ describe("Production Trust & Safety Engine", () => {
       const { drainModerationNotifications } = await import("../lib/moderation/notifications");
 
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
 
       vi.mocked(getSupabaseAdminClient).mockReturnValue({
         rpc: vi.fn().mockImplementation((name: string) => {
@@ -403,14 +377,14 @@ describe("Production Trust & Safety Engine", () => {
       } as any);
 
       const env = {
-        TELEGRAM_BOT_TOKEN: undefined,
-        TELEGRAM_CHAT_ID: undefined,
+        MODERATION_WEBHOOK_URL: "https://alerts.example.test/moderation",
       };
 
       const result = await drainModerationNotifications(env, 5);
       expect(warnSpy).toHaveBeenCalledWith(
         expect.stringContaining("STALE_CLAIM_TOKEN"),
       );
+      globalThis.fetch = originalFetch;
       warnSpy.mockRestore();
     });
   });

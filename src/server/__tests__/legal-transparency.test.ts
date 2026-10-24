@@ -42,6 +42,32 @@ describe("Legal pages, transparency & AdSense readiness", () => {
     expect(robots).toContain("Sitemap: https://bajihears.app/sitemap.xml");
   });
 
+  it("sets one route-specific canonical source instead of a root-wide duplicate", () => {
+    const root = readFileSync(resolve(process.cwd(), "src/routes/__root.tsx"), "utf8");
+    expect(root).not.toContain('{ rel: "canonical"');
+    expect(root).not.toContain('{ property: "og:url"');
+
+    for (const [file, url] of [
+      ["index.tsx", "https://bajihears.app/"],
+      ["duel.tsx", "https://bajihears.app/duel"],
+      ["corner.tsx", "https://bajihears.app/corner"],
+      ["about.tsx", "https://bajihears.app/about"],
+      ["privacy.tsx", "https://bajihears.app/privacy"],
+      ["terms.tsx", "https://bajihears.app/terms"],
+    ]) {
+      const route = readFileSync(resolve(process.cwd(), `src/routes/${file}`), "utf8");
+      expect(route).toContain(`{ rel: "canonical", href: "${url}" }`);
+      expect(route).toContain(`{ property: "og:url", content: "${url}" }`);
+    }
+  });
+
+  it("keeps authentication and moderation routes out of search results", () => {
+    for (const file of ["auth.callback.tsx", "admin.moderation.tsx"]) {
+      const route = readFileSync(resolve(process.cwd(), `src/routes/${file}`), "utf8");
+      expect(route).toContain('{ name: "robots", content: "noindex, nofollow" }');
+    }
+  });
+
   it("preserves strict Content Security Policy with nonces", () => {
     const cspWithNonce = contentSecurityPolicy("test-nonce-12345");
     expect(cspWithNonce).toContain("script-src 'self' 'nonce-test-nonce-12345' 'strict-dynamic'");
@@ -55,5 +81,12 @@ describe("Legal pages, transparency & AdSense readiness", () => {
     expect(headers).toContain("/ads.txt");
     expect(headers).toContain("/sitemap.xml");
     expect(headers).toContain("Strict-Transport-Security");
+  });
+
+  it("ships the declared 1200x630 Open Graph image dimensions", () => {
+    const png = readFileSync(resolve(process.cwd(), "public/og-image.png"));
+    expect(png.subarray(1, 4).toString("ascii")).toBe("PNG");
+    expect(png.readUInt32BE(16)).toBe(1200);
+    expect(png.readUInt32BE(20)).toBe(630);
   });
 });

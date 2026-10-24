@@ -68,7 +68,11 @@ export function QuoteCardDialog({
 
     ctx.globalAlpha = 0.85;
     ctx.font = '600 38px "Plus Jakarta Sans", system-ui, sans-serif';
-    ctx.fillText(`@${stripHandle(unsaid.handle ?? "anonymous")}`, W / 2, H - 190);
+    if (unsaid.sourceType === "editorial") {
+      ctx.fillText("BajiHears Original · Fictional Story", W / 2, H - 190);
+    } else {
+      ctx.fillText(`@${stripHandle(unsaid.handle ?? "anonymous")}`, W / 2, H - 190);
+    }
     ctx.globalAlpha = 0.7;
     ctx.font = '800 34px "Outfit", system-ui, sans-serif';
     ctx.fillText("BajiHears", W / 2, H - 110);

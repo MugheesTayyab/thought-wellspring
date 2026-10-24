@@ -3,7 +3,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetchPostById } from "@/routes/api/wall";
 import { queryKeys } from "@/client/lib/query-keys";
-import { ArrowUp, Info, PencilLine } from "lucide-react";
+import { ArrowUp, Info, PencilLine, Sparkles } from "lucide-react";
 import { UnsaidCard } from "@/client/components/bajihears/UnsaidCard";
 import { FeedSkeleton } from "@/client/components/bajihears/FeedSkeleton";
 import { WritingBox } from "@/client/components/bajihears/WritingBox";
@@ -11,6 +11,7 @@ import { CornerMenu } from "@/client/components/bajihears/CornerMenu";
 import { Logo } from "@/client/components/bajihears/Logo";
 import { BottomNav } from "@/client/components/bajihears/BottomNav";
 import { HeroIntro } from "@/client/components/bajihears/HeroIntro";
+import { EditorialOriginalsSection } from "@/client/components/bajihears/EditorialOriginalsSection";
 import { FeedWritingPrompt } from "@/client/components/bajihears/FeedWritingPrompt";
 import { PushPermissionSheet } from "@/client/components/bajihears/PushPermissionSheet";
 import { shouldShowPushPrompt } from "@/client/lib/notifications";
@@ -52,7 +53,9 @@ export const Route = createFileRoute("/")({
         content:
           "Anonymous Unsaids, one per cycle. Read, react, echo, and share the ones that hit.",
       },
+      { property: "og:url", content: "https://bajihears.app/" },
     ],
+    links: [{ rel: "canonical", href: "https://bajihears.app/" }],
   }),
   component: Home,
 });
@@ -88,6 +91,7 @@ function Home() {
     onReact: onWinnerReact,
     userReaction: winnerUserReaction,
     isFallback: winnerIsFallback,
+    isLoading: winnerIsLoading,
   } = useWinner();
 
   const [myReports, setMyReports] = useState<string[]>([]);
@@ -126,6 +130,35 @@ function Home() {
     if (typeof window === "undefined") return "most-reacted";
     return sessionStorage.getItem("bh:wall-sort") === "recent" ? "recent" : "most-reacted";
   });
+  const [activeSection, setActiveSection] = useState<"wall" | "originals">(() => {
+    if (typeof window === "undefined") return "wall";
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("section") === "originals" || window.location.hash === "#originals") {
+      return "originals";
+    }
+    return "wall";
+  });
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("section") === "originals" || window.location.hash === "#originals") {
+        setActiveSection("originals");
+      }
+    };
+    window.addEventListener("hashchange", handleLocationChange);
+    window.addEventListener("popstate", handleLocationChange);
+    return () => {
+      window.removeEventListener("hashchange", handleLocationChange);
+      window.removeEventListener("popstate", handleLocationChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (sharedPost?.sourceType === "editorial") {
+      setActiveSection("originals");
+    }
+  }, [sharedPost]);
   const backdrop = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -272,7 +305,7 @@ function Home() {
   };
 
   return (
-    <div className="relative min-h-screen">
+    <main className="relative min-h-screen">
       <div ref={backdrop} className="wall-backdrop" aria-hidden />
 
       <div className="mx-auto w-full max-w-2xl px-4 pb-[calc(9.5rem+env(safe-area-inset-bottom,0px))] sm:px-5">
@@ -293,35 +326,118 @@ function Home() {
         <div className="mt-3 space-y-4 sm:space-y-5">
           {/* 5-Second Comprehension Hero Banner */}
           <HeroIntro />
-          {sharedPostId && (sharedPostError || sharedPost === null) && (
-            <p
-              role="status"
-              className="rounded-xl border border-border p-3 text-sm text-muted-foreground"
-            >
-              That shared thought is unavailable. It may have been removed or sent for review.
-            </p>
-          )}
 
-          {/* Winner Card */}
-          {winner && !winnerIsFallback && (
-            <UnsaidCard
-              unsaid={winner}
-              hero
-              isWinner
-              hook={winnerHook}
-              mine={winnerUserReaction ? [winnerUserReaction] : (myReactions[winner.id] ?? [])}
-              echoed={myEchoedIds.includes(winner.id)}
-              reported={myReports.includes(winner.id)}
-              saved={savedThoughts.some((thought) => thought.id === winner.id)}
+          {/* Section Switcher: The Wall (Community) vs. BajiHears Originals (Curated Fiction) */}
+          <div className="flex items-center gap-1 rounded-2xl border border-border bg-secondary/80 p-1">
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic("selection");
+                setActiveSection("wall");
+              }}
+              className={cn(
+                "flex-1 flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-xs font-semibold transition-all cursor-pointer",
+                activeSection === "wall"
+                  ? "bg-card text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <span>The Wall</span>
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground font-medium">
+                Community
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic("selection");
+                setActiveSection("originals");
+              }}
+              className={cn(
+                "flex-1 flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-xs font-semibold transition-all cursor-pointer",
+                activeSection === "originals"
+                  ? "bg-card text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <Sparkles className="size-3 text-amber-600" aria-hidden />
+              <span>BajiHears Originals</span>
+              <span className="rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-[10px] font-semibold">
+                30 Stories
+              </span>
+            </button>
+          </div>
+
+          {activeSection === "originals" ? (
+            <EditorialOriginalsSection
+              myReactions={myReactions}
+              myEchoedIds={myEchoedIds}
+              myReports={myReports}
+              savedThoughts={savedThoughts}
               myHandle={handle}
-              onReact={(_id, key) => onWinnerReact(key)}
+              onReact={handleReact}
               onEcho={handleEcho}
               onReport={handleReport}
               onReportEcho={handleReportEcho}
               onSave={handleSave}
               onShare={handleShareTarget}
             />
-          )}
+          ) : (
+            <>
+              {sharedPostId && (sharedPostError || sharedPost === null) && (
+                <p
+                  role="status"
+                  className="rounded-xl border border-border p-3 text-sm text-muted-foreground"
+                >
+                  That shared thought is unavailable. It may have been removed or sent for review.
+                </p>
+              )}
+
+              {/* Winner Card */}
+              {winnerIsLoading && <FeedSkeleton count={1} />}
+              {winner && !winnerIsFallback && (
+                <UnsaidCard
+                  unsaid={winner}
+                  hero
+                  isWinner
+                  hook={winnerHook}
+                  mine={winnerUserReaction ? [winnerUserReaction] : (myReactions[winner.id] ?? [])}
+                  echoed={myEchoedIds.includes(winner.id)}
+                  reported={myReports.includes(winner.id)}
+                  saved={savedThoughts.some((thought) => thought.id === winner.id)}
+                  myHandle={handle}
+                  onReact={(_id, key) => onWinnerReact(key)}
+                  onEcho={handleEcho}
+                  onReport={handleReport}
+                  onReportEcho={handleReportEcho}
+                  onSave={handleSave}
+                  onShare={handleShareTarget}
+                />
+              )}
+
+              {/* Discovery Banner on The Wall */}
+              <div className="rounded-2xl border border-[#E3B8B1]/70 bg-[#FFF9F6] p-4 flex items-center justify-between gap-3 shadow-xs">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-[#7D3028]">
+                    <Sparkles className="size-3.5" />
+                    <span>Curated Launch Collection</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                    30 curated fictional scenarios by Manus · Exact sequence
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic("selection");
+                    setActiveSection("originals");
+                  }}
+                  className="shrink-0 rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary/90 transition-colors cursor-pointer"
+                >
+                  Browse Originals →
+                </button>
+              </div>
 
           {/* Streamlined sort and category controls */}
           <div className="space-y-2 pt-1">
@@ -463,6 +579,7 @@ function Home() {
             </p>
           )}
 
+          <div className="min-h-[948px] space-y-4">
           {/* Initial Loading State */}
           {isFeedLoading && visiblePosts.length === 0 && <FeedSkeleton count={3} />}
 
@@ -557,27 +674,32 @@ function Home() {
           {/* Loading next page indicator */}
           {isFetchingNextPage && <FeedSkeleton count={1} />}
 
-          {/* End of Wall */}
-          {!hasNextPage && visiblePosts.length > 0 && (
-            <div className="py-6 text-center">
-              <p className="text-muted-foreground/80 text-xs font-semibold font-vibe tracking-wide">
-                You&apos;re caught up for now. Come back whenever you feel like it.
-              </p>
-              <footer className="mt-4 flex items-center justify-center gap-3 text-[11px] text-muted-foreground/70 font-medium">
-                <Link to="/about" className="hover:text-foreground transition">
-                  About
-                </Link>
-                <span>&middot;</span>
-                <Link to="/privacy" className="hover:text-foreground transition">
-                  Privacy Policy
-                </Link>
-                <span>&middot;</span>
-                <Link to="/terms" className="hover:text-foreground transition">
-                  Terms of Service
-                </Link>
-              </footer>
-            </div>
+              {/* End of Wall */}
+              {!hasNextPage && visiblePosts.length > 0 && (
+                <div className="py-6 text-center">
+                  <p className="text-muted-foreground/80 text-xs font-semibold font-vibe tracking-wide">
+                    You&apos;re caught up for now. Come back whenever you feel like it.
+                  </p>
+                </div>
+              )}
+          </div>
+            </>
           )}
+
+          {/* Shared Site Footer */}
+          <footer className="mt-8 pt-4 pb-2 flex items-center justify-center gap-3 text-[11px] text-muted-foreground font-medium border-t border-border/40">
+            <Link to="/about" className="hover:text-foreground transition">
+              About
+            </Link>
+            <span>&middot;</span>
+            <Link to="/privacy" className="hover:text-foreground transition">
+              Privacy Policy
+            </Link>
+            <span>&middot;</span>
+            <Link to="/terms" className="hover:text-foreground transition">
+              Terms of Service
+            </Link>
+          </footer>
         </div>
       </div>
 
@@ -595,7 +717,6 @@ function Home() {
       <button
         type="button"
         onClick={openComposer}
-        aria-controls="wall-composer"
         className="spring-press fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] right-4 z-30 flex min-h-12 items-center gap-2 rounded-2xl bg-primary px-4 text-sm font-semibold text-white shadow-[0_10px_28px_-12px_rgba(80,43,38,.55)]"
       >
         <PencilLine className="size-4" aria-hidden />
@@ -620,6 +741,6 @@ function Home() {
         isFlashingOrb={isFlashingOrb}
         onOpenWarmthSheet={openWarmthSheet}
       />
-    </div>
+    </main>
   );
 }

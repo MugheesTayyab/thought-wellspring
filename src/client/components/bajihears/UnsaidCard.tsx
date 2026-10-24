@@ -145,8 +145,14 @@ export function UnsaidCard({
 
   const copy = async () => {
     try {
+      const attribution =
+        unsaid.sourceType === "editorial"
+          ? "BajiHears Original · Fictional Story"
+          : unsaid.handle
+            ? `@${stripHandle(unsaid.handle)}`
+            : "anonymous";
       await navigator.clipboard.writeText(
-        `"${unsaid.text}"\nBy ${unsaid.handle ? `@${stripHandle(unsaid.handle)}` : "anonymous"} • BajiHears`,
+        `"${unsaid.text}"\n— ${attribution} • BajiHears`,
       );
       triggerHaptic("selection");
       setCopied(true);
@@ -157,7 +163,10 @@ export function UnsaidCard({
   };
 
   const isOwnPost = Boolean(
-    unsaid.handle && myHandle && stripHandle(unsaid.handle) === stripHandle(myHandle),
+    unsaid.sourceType !== "editorial" &&
+      unsaid.handle &&
+      myHandle &&
+      stripHandle(unsaid.handle) === stripHandle(myHandle),
   );
   const tier = getTier(totalWarmth);
   let auraStyle: React.CSSProperties | undefined = undefined;
@@ -184,7 +193,11 @@ export function UnsaidCard({
         onPointerMove={onPointerMove}
         className={cn(
           "paper-card relative overflow-hidden p-5 transition-all duration-200 sm:p-6",
-          isWinner ? "border-2 border-[#E3B8B1] bg-[#FFF9F6] shadow-[0_12px_36px_-16px_rgba(214,90,73,0.18)]" : "bg-card hover:border-[#CBB9B6]",
+          isWinner
+            ? "border-2 border-[#E3B8B1] bg-[#FFF9F6] shadow-[0_12px_36px_-16px_rgba(214,90,73,0.18)]"
+            : unsaid.sourceType === "editorial"
+              ? "border-[#E8DFD8] bg-[#FFFDFB] hover:border-[#D6A69F]"
+              : "bg-card hover:border-[#CBB9B6]",
           isVetoed && "opacity-40 pointer-events-none",
         )}
       >
@@ -223,56 +236,76 @@ export function UnsaidCard({
           </div>
         )}
 
-        {/* Standard Card Header Row: Handle, Instagram icon to the right, date, and category tag */}
-        <div className="flex items-center justify-between gap-3 text-xs font-sans mb-3 pb-2.5 border-b border-border-subtle">
-          <div className="flex items-center gap-2 text-muted-foreground min-w-0">
-            {unsaid.handle ? (
-              <div className="inline-flex items-center gap-1.5 truncate">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setProfileModalId(unsaid.profileId || unsaid.handle);
-                  }}
-                  style={auraStyle}
-                  className="inline-flex items-center gap-1 text-[13px] font-medium text-foreground hover:text-primary transition-colors cursor-pointer group"
-                  title={`Open @${stripHandle(unsaid.handle)}'s Public Corner`}
-                >
-                  {crownIcon && <span className="text-[10px]">👑</span>}
-                  <span className="group-hover:underline">@{stripHandle(unsaid.handle)}</span>
-                </button>
-
-                {getInstagramUrl(unsaid.handle) && (
-                  <a
-                    href={getInstagramUrl(unsaid.handle)!}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="text-muted-foreground hover:text-pink-500 transition-colors p-0.5 inline-flex items-center"
-                    title="Open Instagram"
-                  >
-                    <Instagram
-                      className="size-3 text-primary opacity-80 hover:opacity-100"
-                      aria-hidden
-                    />
-                  </a>
-                )}
-              </div>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground">
-                <span className="listening-mark scale-75" aria-hidden /> Anonymous
+        {/* Card Header Row: Editorial collection label OR Standard Community Row */}
+        {unsaid.sourceType === "editorial" ? (
+          <div className="flex items-center justify-between gap-2.5 text-xs font-sans mb-3 pb-2.5 border-b border-[#E3B8B1]/40">
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FBE6E4] px-2.5 py-0.5 text-[11px] font-semibold text-[#7D3028] border border-[#E3B8B1]">
+                <span className="listening-mark scale-75" aria-hidden />
+                BajiHears Original · Fictional Story
               </span>
-            )}
-            <span className="text-muted-foreground/40 text-xs select-none">·</span>
-            <span className="text-[12px] text-muted-foreground whitespace-nowrap">
-              {relativeTime(unsaid.createdAt)}
+              {unsaid.displayOrder != null && (
+                <span className="text-[11px] font-medium text-muted-foreground/80">
+                  #{String(unsaid.displayOrder).padStart(2, "0")}
+                </span>
+              )}
+            </div>
+
+            <span className="shrink-0 border border-border-card text-muted-foreground rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-secondary/50">
+              #{unsaid.category.toLowerCase().replace(/\s+/g, "")}
             </span>
           </div>
+        ) : (
+          <div className="flex items-center justify-between gap-3 text-xs font-sans mb-3 pb-2.5 border-b border-border-subtle">
+            <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+              {unsaid.handle ? (
+                <div className="inline-flex items-center gap-1.5 truncate">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setProfileModalId(unsaid.profileId || unsaid.handle);
+                    }}
+                    style={auraStyle}
+                    className="inline-flex items-center gap-1 text-[13px] font-medium text-foreground hover:text-primary transition-colors cursor-pointer group"
+                    title={`Open @${stripHandle(unsaid.handle)}'s Public Corner`}
+                  >
+                    {crownIcon && <span className="text-[10px]">👑</span>}
+                    <span className="group-hover:underline">@{stripHandle(unsaid.handle)}</span>
+                  </button>
 
-          <span className="shrink-0 border border-border-card text-muted-foreground rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-secondary/50">
-            #{unsaid.category.toLowerCase().replace(/\s+/g, "")}
-          </span>
-        </div>
+                  {getInstagramUrl(unsaid.handle) && (
+                    <a
+                      href={getInstagramUrl(unsaid.handle)!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-muted-foreground hover:text-pink-500 transition-colors p-0.5 inline-flex items-center"
+                      title="Open Instagram"
+                    >
+                      <Instagram
+                        className="size-3 text-primary opacity-80 hover:opacity-100"
+                        aria-hidden
+                      />
+                    </a>
+                  )}
+                </div>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground">
+                  <span className="listening-mark scale-75" aria-hidden /> Anonymous
+                </span>
+              )}
+              <span className="text-muted-foreground/40 text-xs select-none">·</span>
+              <span className="text-[12px] text-muted-foreground whitespace-nowrap">
+                {relativeTime(unsaid.createdAt)}
+              </span>
+            </div>
+
+            <span className="shrink-0 border border-border-card text-muted-foreground rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-secondary/50">
+              #{unsaid.category.toLowerCase().replace(/\s+/g, "")}
+            </span>
+          </div>
+        )}
 
         {/* Quote: The Hero Body Text (never overlaps metadata or date) */}
         <p
@@ -320,7 +353,11 @@ export function UnsaidCard({
           <div className="flex items-center gap-1">
             <button
               type="button"
-              aria-label="Relate to this thought"
+              aria-label={
+                unsaid.reactions.heart > 0
+                  ? `Relate ${compactCount(unsaid.reactions.heart)} to this thought`
+                  : "Relate to this thought"
+              }
               aria-pressed={mine.includes("heart")}
               onClick={() => react("heart")}
               className={cn(

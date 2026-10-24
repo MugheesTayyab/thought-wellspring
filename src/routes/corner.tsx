@@ -42,7 +42,9 @@ export const Route = createFileRoute("/corner")({
         content:
           "A spot for the things you choose to keep close. Your thoughts, saved notes, identity, and settings.",
       },
+      { property: "og:url", content: "https://bajihears.app/corner" },
     ],
+    links: [{ rel: "canonical", href: "https://bajihears.app/corner" }],
   }),
   component: CornerPage,
 });
@@ -328,9 +330,16 @@ function CornerPage() {
             <div className="mt-4 space-y-3">
               {savedThoughts.map((item) => (
                 <article key={item.id} className="paper-card p-4 sm:p-5">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-coral">
-                    <Bookmark className="size-3.5" />
-                    <span>{item.category}</span>
+                  <div className="flex items-center justify-between gap-1.5 text-xs font-semibold text-coral">
+                    <div className="flex items-center gap-1.5">
+                      <Bookmark className="size-3.5" />
+                      <span>{item.category}</span>
+                    </div>
+                    {item.sourceType === "editorial" && (
+                      <span className="text-[11px] font-medium text-[#7D3028] bg-[#FBE6E4] px-2 py-0.5 rounded-full border border-[#E3B8B1]">
+                        BajiHears Original · Fictional Story
+                      </span>
+                    )}
                   </div>
                   <p className="mt-3 font-quote text-lg leading-relaxed text-ink">“{item.text}”</p>
                 </article>

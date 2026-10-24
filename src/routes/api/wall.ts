@@ -87,6 +87,11 @@ export const apiFetchPostById = createServerFn({ method: "GET" })
     return handleFetchPostById(data);
   });
 
+export const apiFetchEditorialOriginals = createServerFn({ method: "GET" }).handler(async () => {
+  const { handleFetchEditorialOriginals } = await import("@/server/handlers/wall");
+  return handleFetchEditorialOriginals();
+});
+
 export const apiFetchUserActivity = createServerFn({ method: "POST" })
   .validator((data: { profileId?: string | null; deviceToken: string }) => data)
   .handler(async ({ data }) => {

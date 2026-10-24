@@ -13,7 +13,9 @@ export const Route = createFileRoute("/duel")({
         name: "description",
         content: "Choose between two relatable thoughts. One feels more you.",
       },
+      { property: "og:url", content: "https://bajihears.app/duel" },
     ],
+    links: [{ rel: "canonical", href: "https://bajihears.app/duel" }],
   }),
   component: DuelPage,
 });
