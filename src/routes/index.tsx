@@ -330,7 +330,40 @@ function Home() {
                 />
               )}
 
+          {/* Text/Input bar with overlapping Baji mascot cutout */}
+          <div
+            onClick={openComposer}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                openComposer();
+              }
+            }}
+            className="group relative mt-5 cursor-pointer select-none transition-transform active:scale-[0.99]"
+            aria-label="What's something you've been keeping to yourself?"
+          >
+            {/* Mascot overlapping upper border with clean cutout effect */}
+            <div className="absolute -top-6 left-4 z-10 pointer-events-none sm:-top-7 sm:left-5 transition-transform duration-200 group-hover:scale-105">
+              <img
+                src="/assets/brand/baji-mascot.png"
+                alt="Baji"
+                className="h-11 sm:h-13 w-auto object-contain drop-shadow-[0_4px_12px_rgba(80,43,38,0.14)]"
+                loading="eager"
+                decoding="sync"
+              />
+            </div>
 
+            <div className="flex min-h-13 sm:min-h-14 items-center justify-between gap-3 rounded-2xl border border-border-card bg-card px-4 py-3 pl-19 sm:pl-22 shadow-xs transition-colors group-hover:border-primary/50 group-hover:bg-accent/15">
+              <span className="text-xs sm:text-sm text-muted-foreground font-medium group-hover:text-foreground transition-colors truncate">
+                What's something you've been keeping to yourself?
+              </span>
+              <span className="shrink-0 rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-white shadow-2xs group-hover:bg-primary/90 transition-all">
+                Write
+              </span>
+            </div>
+          </div>
 
           {/* Streamlined sort and category controls */}
           <div className="space-y-2 pt-1">

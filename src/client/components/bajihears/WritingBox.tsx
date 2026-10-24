@@ -249,35 +249,48 @@ export function WritingBox({
           </div>
         ) : (
           <>
-            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-5 sm:px-6">
-              <div
-                className="rounded-[22px] border border-border-card bg-white p-4 transition-colors focus-within:border-primary/60 focus-within:shadow-[inset_0_0_0_1px_rgba(203,91,71,.12)]"
-                style={{
-                  backgroundImage: `linear-gradient(145deg, ${selectedMood.from}, ${selectedMood.to})`,
-                  color: selectedMood.ink,
-                }}
-              >
-                <textarea
-                  ref={textareaRef}
-                  value={text}
-                  onChange={(event) => setText(event.target.value)}
-                  rows={8}
-                  maxLength={MAX_LEN + 80}
-                  placeholder="What's something you've been keeping to yourself?"
-                  className="min-h-[210px] w-full resize-none bg-transparent font-sans text-[18px] leading-[1.65] text-inherit outline-none placeholder:text-[#746B66]"
-                />
-                <div className="mt-2 flex items-end justify-between gap-4 border-t border-black/5 pt-3">
-                  <p className="max-w-xs text-xs leading-5 text-[#655D58]">
-                    Keep names and private details out of public posts.
-                  </p>
-                  <span
-                    className={cn(
-                      "shrink-0 text-xs tabular-nums",
-                      overLimit ? "font-semibold text-destructive" : "text-[#746B66]",
-                    )}
-                  >
-                    {text.length}/{MAX_LEN}
-                  </span>
+            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 pt-7 pb-5 sm:px-6 sm:pt-8">
+              <div className="relative">
+                {/* Baji mascot peeking over the upper border creating a clean cutout effect */}
+                <div className="absolute -top-6 left-5 z-10 pointer-events-none select-none sm:-top-7 sm:left-6">
+                  <img
+                    src="/assets/brand/baji-mascot.png"
+                    alt="Baji"
+                    className="h-11 sm:h-12 w-auto object-contain drop-shadow-[0_4px_10px_rgba(80,43,38,0.12)]"
+                    loading="eager"
+                    decoding="sync"
+                  />
+                </div>
+
+                <div
+                  className="rounded-[22px] border border-border-card bg-white p-4 pt-6 transition-colors focus-within:border-primary/60 focus-within:shadow-[inset_0_0_0_1px_rgba(203,91,71,.12)]"
+                  style={{
+                    backgroundImage: `linear-gradient(145deg, ${selectedMood.from}, ${selectedMood.to})`,
+                    color: selectedMood.ink,
+                  }}
+                >
+                  <textarea
+                    ref={textareaRef}
+                    value={text}
+                    onChange={(event) => setText(event.target.value)}
+                    rows={8}
+                    maxLength={MAX_LEN + 80}
+                    placeholder="What's something you've been keeping to yourself?"
+                    className="min-h-[210px] w-full resize-none bg-transparent font-sans text-[18px] leading-[1.65] text-inherit outline-none placeholder:text-[#746B66]"
+                  />
+                  <div className="mt-2 flex items-end justify-between gap-4 border-t border-black/5 pt-3">
+                    <p className="max-w-xs text-xs leading-5 text-[#655D58]">
+                      Keep names and private details out of public posts.
+                    </p>
+                    <span
+                      className={cn(
+                        "shrink-0 text-xs tabular-nums",
+                        overLimit ? "font-semibold text-destructive" : "text-[#746B66]",
+                      )}
+                    >
+                      {text.length}/{MAX_LEN}
+                    </span>
+                  </div>
                 </div>
               </div>
 
