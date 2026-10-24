@@ -1,5 +1,5 @@
 import type { DatabaseEnv } from "../db/client";
-import { appendVeto } from "../db/unsaids";
+import { reportPost as dbReportPost } from "../db/unsaids";
 import { reportEcho as persistEchoReport } from "../db/echoes";
 import { validateDeviceToken } from "../middleware/device-token";
 import { checkRateLimit } from "../middleware/rate-limit";
@@ -8,6 +8,7 @@ import { z } from "zod";
 export interface ReportPostInput {
   postId: string;
   deviceToken: string;
+  reason?: string;
 }
 
 /**
@@ -19,12 +20,19 @@ export async function reportPost(
 ): Promise<{ reported: boolean; message: string }> {
   const token = validateDeviceToken(input.deviceToken);
   const postId = z.string().uuid().parse(input.postId);
+  const reason = z
+    .string()
+    .trim()
+    .min(1)
+    .max(120)
+    .optional()
+    .parse(input.reason || "Community safety concern") || "Community safety concern";
 
   // 1. Rate limiting: 5 reports per 24 hours
   await checkRateLimit(env, "report", token);
 
-  // 2. Append veto record
-  const res = await appendVeto(env, postId, token);
+  // 2. Persist post report via atomic RPC
+  const res = await dbReportPost(env, postId, token, reason);
 
   if (res.error) {
     throw new Error(res.error.message);

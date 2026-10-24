@@ -199,6 +199,39 @@ export function mapErrorToResponse(error: unknown): ServerFnFailure {
     };
   }
 
+  if (/forbidden|administrator privileges required|access denied/i.test(message)) {
+    return {
+      ok: false,
+      error: {
+        code: "FORBIDDEN",
+        message,
+        statusCode: 403,
+      },
+    };
+  }
+
+  if (/already.*(?:removed|rejected)/i.test(message)) {
+    return {
+      ok: false,
+      error: {
+        code: "ALREADY_REJECTED",
+        message,
+        statusCode: 409,
+      },
+    };
+  }
+
+  if (/invalid[ _]transition|invalid[ _]action/i.test(message)) {
+    return {
+      ok: false,
+      error: {
+        code: "INVALID_TRANSITION",
+        message,
+        statusCode: 400,
+      },
+    };
+  }
+
   if (
     /validation|invalid category|invalid choice|must be at least|must not exceed/i.test(message)
   ) {

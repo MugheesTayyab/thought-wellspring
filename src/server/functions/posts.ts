@@ -104,7 +104,39 @@ export async function submitPost(
     throw new Error(res.error?.message || "Failed to create confession");
   }
 
-  // 4. Update profile actions if signed in
+  // 4. If auto-flagged into review, enqueue alert and record audit log
+  if (status === "review" && res.data?.id) {
+    const admin = getSupabaseAdminClient(env);
+    try {
+      await admin.rpc("enqueue_moderation_notification", {
+        p_event_type: "auto_flag",
+        p_target_type: "post",
+        p_target_id: res.data.id,
+        p_preview_text: safeText,
+        p_category: input.category,
+        p_reason: `Automated filter flag (${softResult.category || "Soft Filter"})`,
+        p_priority: softResult.severityScore >= 8 ? "urgent" : "high",
+      });
+    } catch (err) {
+      console.error("[submitPost] notification enqueue error:", err);
+    }
+
+    try {
+      await admin.from("moderation_audit_log").insert({
+        unsaid_id: res.data.id,
+        action_type: "auto_flag",
+        performed_by: "SYSTEM",
+        previous_status: "new",
+        new_status: "review",
+        reason: `Automated filter flag: ${softResult.category || "Soft Filter"} (score: ${softResult.severityScore})`,
+        target_type: "post",
+      });
+    } catch (err) {
+      console.error("[submitPost] audit log error:", err);
+    }
+  }
+
+  // 5. Update profile actions if signed in
   if (input.profileId) {
     await incrementTotalActions(env, input.profileId).catch((err) =>
       console.error("[submitPost] incrementTotalActions error:", err),

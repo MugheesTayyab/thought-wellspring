@@ -182,6 +182,490 @@ try {
     await rpc("complete_push_batch", [[{ id: retry[0].id, success: true, expired: false }]]);
     assert.equal((await query("SELECT state FROM public.push_outbox"))[0].state, "delivered");
   });
+  await test("Single report immediately appears in moderation_queue view while post remains published", async () => {
+    const pId = "44444444-4444-4444-8444-444444444444";
+    await db.query(
+      "INSERT INTO public.unsaids(id,text,category,device_token,status) VALUES($1, 'Public reported confession', 'Silent Thoughts', 'author1111111111', 'published')",
+      [pId],
+    );
+    const r1 = await rpc("report_post_atomic", [pId, "reporter11111111", "Suspicious claim"]);
+    assert.equal(r1.success, true);
+    assert.equal(r1.quarantined, false);
+
+    // Verify post is STILL published
+    const [postRow] = await query("SELECT status FROM public.unsaids WHERE id=$1", [pId]);
+    assert.equal(postRow.status, "published");
+
+    // Verify post is IMMEDIATELY visible in moderation_queue
+    const qRows = await query("SELECT * FROM public.moderation_queue WHERE id=$1", [pId]);
+    assert.equal(qRows.length, 1);
+    assert.equal(qRows[0].open_report_count, 1);
+    assert.equal(qRows[0].triage_bucket, "REPORTED_VISIBLE");
+    assert.equal(qRows[0].latest_reason, "Suspicious claim");
+  });
+  await test("Three reports auto-quarantines post and logs audit entry", async () => {
+    const pId = "44444444-4444-4444-8444-444444444444";
+    await rpc("report_post_atomic", [pId, "reporter22222222", "Spam"]);
+    const r3 = await rpc("report_post_atomic", [pId, "reporter33333333", "Threatening"]);
+    assert.equal(r3.quarantined, true);
+
+    const [postRow] = await query("SELECT status FROM public.unsaids WHERE id=$1", [pId]);
+    assert.equal(postRow.status, "review");
+
+    // Verify audit log has auto_quarantine record
+    const auditRows = await query(
+      "SELECT * FROM public.moderation_audit_log WHERE unsaid_id=$1 AND action_type='auto_quarantine'",
+      [pId],
+    );
+    assert.equal(auditRows.length, 1);
+    assert.equal(auditRows[0].new_status, "review");
+  });
+  await test("Reported echo appears in echo_moderation_queue and hides from public read after reject", async () => {
+    const pId = "55555555-5555-4555-8555-555555555555";
+    await db.query(
+      "INSERT INTO public.unsaids(id,text,category,device_token,status) VALUES($1, 'Public parent for echo test', 'Silent Thoughts', 'author5555555555', 'published')",
+      [pId],
+    );
+    const eId = (await rpc("insert_echo_atomic", [pId, "Offensive reply text", null, "echo_author11111", null])).id;
+
+    // Report echo
+    const repRes = await rpc("report_echo_atomic", [eId, "reporter11111111", "Defamation"]);
+    assert.equal(repRes.success, true);
+
+    // Verify echo appears in echo_moderation_queue with parent post text
+    const eqRows = await query("SELECT * FROM public.echo_moderation_queue WHERE id=$1", [eId]);
+    assert.equal(eqRows.length, 1);
+    assert.equal(eqRows[0].open_report_count, 1);
+    assert.equal(eqRows[0].parent_post_text, "Public parent for echo test");
+
+    // Moderate echo: reject
+    const modRes = await rpc("moderate_echo_atomic", [eId, "reject", "mod-user-1", "Violates terms"]);
+    assert.equal(modRes.success, true);
+    assert.equal(modRes.new_status, "rejected");
+
+    // Verify public query (status = published) excludes the rejected echo
+    const pubEchoes = await query("SELECT * FROM public.echoes WHERE id=$1 AND status='published'", [eId]);
+    assert.equal(pubEchoes.length, 0);
+  });
+  await test("Moderator actions atomically transition post state and record audit", async () => {
+    const pId = "44444444-4444-4444-8444-444444444444";
+    // Currently in 'review'. Moderate to 'approve'
+    const appRes = await rpc("moderate_post_atomic", [pId, "approve", "mod-user-1", "Verified safe"]);
+    assert.equal(appRes.success, true);
+    assert.equal(appRes.new_status, "published");
+
+    // Open reports should now be 'actioned'
+    const openReports = await query("SELECT * FROM public.post_reports WHERE post_id=$1 AND status='open'", [pId]);
+    assert.equal(openReports.length, 0);
+
+    // Audit log should have manual_approve
+    const auditRows = await query(
+      "SELECT * FROM public.moderation_audit_log WHERE unsaid_id=$1 AND action_type='manual_approve'",
+      [pId],
+    );
+    assert.equal(auditRows.length, 1);
+  });
+  await test("Fix 1: Single fabricated urgent report does NOT quarantine published content", async () => {
+    const pId = "66666666-6666-4666-8666-666666666666";
+    await db.query(
+      "INSERT INTO public.unsaids(id,text,category,device_token,status) VALUES($1, 'Legitimate confession to test fabricated report', 'Silent Thoughts', 'author6666666666', 'published')",
+      [pId],
+    );
+
+    // Malicious user attempts to immediately quarantine by fabricating urgent text
+    const maliciousReport = await rpc("report_post_atomic", [
+      pId,
+      "attacker11111111",
+      "blackmail leak suicide doxx personal number address",
+    ]);
+    assert.equal(maliciousReport.success, true);
+    assert.equal(maliciousReport.quarantined, false, "Post must NOT be quarantined on uncorroborated report");
+
+    // Post must still be published
+    const [postRow] = await query("SELECT status FROM public.unsaids WHERE id=$1", [pId]);
+    assert.equal(postRow.status, "published");
+
+    // But owner notification must be prioritized as urgent
+    const [notif] = await query(
+      "SELECT priority, event_type FROM public.moderation_notifications WHERE target_id=$1 ORDER BY created_at DESC LIMIT 1",
+      [pId],
+    );
+    assert.equal(notif.priority, "urgent");
+    assert.equal(notif.event_type, "post_report");
+
+    // Repeat check for Echo
+    const eId = (await rpc("insert_echo_atomic", [pId, "Legitimate Echo reply", null, "author_echo66666", null])).id;
+    const maliciousEchoReport = await rpc("report_echo_atomic", [
+      eId,
+      "attacker22222222",
+      "blackmail threat leak",
+    ]);
+    assert.equal(maliciousEchoReport.success, true);
+    assert.equal(maliciousEchoReport.quarantined, false, "Echo must NOT be quarantined on uncorroborated report");
+
+    const [echoRow] = await query("SELECT status FROM public.echoes WHERE id=$1", [eId]);
+    assert.equal(echoRow.status, "published");
+  });
+  await test("Fix 2: Reporting rejected content is rejected and state machine prevents invalid transitions", async () => {
+    const pId = "66666666-6666-4666-8666-666666666666";
+    // 1. Moderator rejects the post
+    const rejRes = await rpc("moderate_post_atomic", [pId, "reject", "mod-user-1", "Spam post"]);
+    assert.equal(rejRes.success, true);
+    assert.equal(rejRes.new_status, "rejected");
+
+    // 2. Reporting an already-rejected post must be rejected with POST_ALREADY_REJECTED
+    const repRejected = await rpc("report_post_atomic", [pId, "newreporter33333", "Another report"]);
+    assert.equal(repRejected.success, false);
+    assert.equal(repRejected.code, "POST_ALREADY_REJECTED");
+
+    // 3. Invalid transition: cannot approve directly from rejected (must use restore)
+    const invApprove = await rpc("moderate_post_atomic", [pId, "approve", "mod-user-1", "Try direct approve"]);
+    assert.equal(invApprove.success, false);
+    assert.equal(invApprove.code, "INVALID_TRANSITION");
+
+    // 4. Invalid transition: cannot hide an already rejected post
+    const invHide = await rpc("moderate_post_atomic", [pId, "hide", "mod-user-1", "Try hide"]);
+    assert.equal(invHide.success, false);
+    assert.equal(invHide.code, "INVALID_TRANSITION");
+
+    // 5. Invalid transition: cannot reject an already rejected post
+    const invRej = await rpc("moderate_post_atomic", [pId, "reject", "mod-user-1", "Try reject again"]);
+    assert.equal(invRej.success, false);
+    assert.equal(invRej.code, "INVALID_TRANSITION");
+
+    // 6. Valid transition: restore brings post back to published
+    const restoreRes = await rpc("moderate_post_atomic", [pId, "restore", "mod-user-1", "Restore post"]);
+    assert.equal(restoreRes.success, true);
+    assert.equal(restoreRes.new_status, "published");
+
+    // 7. Invalid transition: cannot restore a post that is already published
+    const invRestore = await rpc("moderate_post_atomic", [pId, "restore", "mod-user-1", "Restore again"]);
+    assert.equal(invRestore.success, false);
+    assert.equal(invRestore.code, "INVALID_TRANSITION");
+
+    // 8. Invalid transition: cannot dismiss reports when open report count is 0
+    const invDismiss = await rpc("moderate_post_atomic", [pId, "dismiss_reports", "mod-user-1", "Dismiss empty"]);
+    assert.equal(invDismiss.success, false);
+    assert.equal(invDismiss.code, "INVALID_TRANSITION");
+
+    // Check same transitions for Echo
+    const [echoRow] = await query("SELECT id FROM public.echoes WHERE unsaid_id=$1 LIMIT 1", [pId]);
+    const eId = echoRow.id;
+    await rpc("moderate_echo_atomic", [eId, "reject", "mod-user-1", "Reject echo"]);
+
+    const repEchoRej = await rpc("report_echo_atomic", [eId, "newreporter44444", "Echo report"]);
+    assert.equal(repEchoRej.success, false);
+    assert.equal(repEchoRej.code, "ECHO_ALREADY_REJECTED");
+
+    const invEchoApp = await rpc("moderate_echo_atomic", [eId, "approve", "mod-user-1", "Direct approve echo"]);
+    assert.equal(invEchoApp.success, false);
+    assert.equal(invEchoApp.code, "INVALID_TRANSITION");
+  });
+  await test("Fix 3: Legacy report migration is backward-compatible, accurate, and idempotent", async () => {
+    const legacyPost1 = "77777777-7777-4777-8777-777777777777";
+    const legacyPost2 = "88888888-8888-4888-8888-888888888888";
+    await db.query(
+      `INSERT INTO public.unsaids(id, text, category, device_token, status, vetoed_by, veto_count)
+       VALUES 
+       ($1, 'Legacy published post', 'Silent Thoughts', 'legacy_author111', 'published', ARRAY['legacytoken11111', 'legacytoken22222'], 2),
+       ($2, 'Legacy rejected post', 'Silent Thoughts', 'legacy_author222', 'rejected', ARRAY['legacytoken33333'], 1)`,
+      [legacyPost1, legacyPost2],
+    );
+
+    // Run reconciliation query
+    await db.exec(`
+      INSERT INTO public.post_reports (post_id, reporter_device_token, reason, status, created_at)
+      SELECT 
+          u.id AS post_id,
+          d.token AS reporter_device_token,
+          'Legacy community report' AS reason,
+          CASE WHEN u.status = 'rejected' THEN 'actioned' ELSE 'open' END AS status,
+          COALESCE(u.updated_at, u.created_at, NOW()) AS created_at
+      FROM public.unsaids u
+      CROSS JOIN LATERAL UNNEST(u.vetoed_by) AS d(token)
+      WHERE u.vetoed_by IS NOT NULL 
+        AND array_length(u.vetoed_by, 1) > 0
+        AND char_length(d.token) = 16
+      ON CONFLICT (post_id, reporter_device_token) DO NOTHING;
+    `);
+
+    // Verify open reports populated for published post
+    const rep1 = await query("SELECT * FROM public.post_reports WHERE post_id=$1 ORDER BY reporter_device_token", [legacyPost1]);
+    assert.equal(rep1.length, 2);
+    assert.equal(rep1[0].status, "open");
+    assert.equal(rep1[0].reason, "Legacy community report");
+    assert.equal(rep1[1].status, "open");
+
+    // Verify actioned report populated for rejected post
+    const rep2 = await query("SELECT * FROM public.post_reports WHERE post_id=$1", [legacyPost2]);
+    assert.equal(rep2.length, 1);
+    assert.equal(rep2[0].status, "actioned");
+
+    // Verify queue reflects open reports from legacy migration
+    const queueRows = await query("SELECT * FROM public.moderation_queue WHERE id=$1", [legacyPost1]);
+    assert.equal(queueRows.length, 1);
+    assert.equal(queueRows[0].open_report_count, 2);
+    assert.equal(queueRows[0].unique_reporters, 2);
+
+    // Verify idempotency: re-running does not throw or insert duplicates
+    const countBefore = (await query("SELECT COUNT(*)::INT AS c FROM public.post_reports"))[0].c;
+    await db.exec(`
+      INSERT INTO public.post_reports (post_id, reporter_device_token, reason, status, created_at)
+      SELECT 
+          u.id AS post_id,
+          d.token AS reporter_device_token,
+          'Legacy community report' AS reason,
+          CASE WHEN u.status = 'rejected' THEN 'actioned' ELSE 'open' END AS status,
+          COALESCE(u.updated_at, u.created_at, NOW()) AS created_at
+      FROM public.unsaids u
+      CROSS JOIN LATERAL UNNEST(u.vetoed_by) AS d(token)
+      WHERE u.vetoed_by IS NOT NULL 
+        AND array_length(u.vetoed_by, 1) > 0
+        AND char_length(d.token) = 16
+      ON CONFLICT (post_id, reporter_device_token) DO NOTHING;
+    `);
+    const countAfter = (await query("SELECT COUNT(*)::INT AS c FROM public.post_reports"))[0].c;
+    assert.equal(countBefore, countAfter, "Reconciliation must be strictly idempotent");
+  });
+  await test("Fix 4: Notification delivery lifecycle, delivered status protection, and escalations", async () => {
+    const targetPost = "99999999-9999-4999-8999-999999999999";
+
+    // 1. Enqueue first report -> pending notification created
+    await db.query(
+      "SELECT public.enqueue_moderation_notification('post_report', 'post', $1, 'Preview 1', 'Cat', 'Reason 1', 'normal')",
+      [targetPost],
+    );
+    const notifs1 = await query("SELECT * FROM public.moderation_notifications WHERE target_id=$1", [targetPost]);
+    assert.equal(notifs1.length, 1);
+    assert.equal(notifs1[0].status, "pending");
+    assert.equal(notifs1[0].report_count, 1);
+
+    // 2. Enqueue second report while still pending -> burst grouping increments report_count
+    await db.query(
+      "SELECT public.enqueue_moderation_notification('post_report', 'post', $1, 'Preview 1', 'Cat', 'Reason 2', 'normal')",
+      [targetPost],
+    );
+    const notifs2 = await query("SELECT * FROM public.moderation_notifications WHERE target_id=$1", [targetPost]);
+    assert.equal(notifs2.length, 1, "Should group into existing pending notification");
+    assert.equal(notifs2[0].report_count, 2);
+
+    // 3. Claim with lease token and complete as delivered
+    const claimed = await query("SELECT * FROM public.claim_moderation_notifications(10)");
+    const targetClaimed = claimed.find((n) => n.target_id === targetPost);
+    assert.ok(targetClaimed);
+    assert.ok(targetClaimed.claim_token, "Claimed item must have a valid claim_token");
+
+    const completeRes = await rpc("complete_moderation_notification", [targetClaimed.id, targetClaimed.claim_token, true, null]);
+    assert.equal(completeRes.success, true);
+    assert.equal(completeRes.code, "DELIVERED");
+
+    const [deliveredNotif] = await query("SELECT * FROM public.moderation_notifications WHERE id=$1", [targetClaimed.id]);
+    assert.equal(deliveredNotif.status, "delivered");
+    assert.equal(deliveredNotif.claim_token, null);
+    assert.equal(deliveredNotif.claim_expires_at, null);
+    assert.ok(deliveredNotif.delivered_at);
+
+    // 4. Enqueue subsequent event after delivery -> MUST create a NEW pending notification
+    await db.query(
+      "SELECT public.enqueue_moderation_notification('quarantine', 'post', $1, 'Preview escalated', 'Cat', 'Quarantined', 'urgent')",
+      [targetPost],
+    );
+    const notifsAfterDelivery = await query(
+      "SELECT * FROM public.moderation_notifications WHERE target_id=$1 ORDER BY created_at ASC",
+      [targetPost],
+    );
+    assert.equal(notifsAfterDelivery.length, 2, "Must create a new notification row, not overwrite delivered one");
+    assert.equal(notifsAfterDelivery[0].status, "delivered", "First notification must remain delivered");
+    assert.equal(notifsAfterDelivery[1].status, "pending", "New notification must be pending");
+    assert.equal(notifsAfterDelivery[1].priority, "urgent");
+    assert.equal(notifsAfterDelivery[1].event_type, "quarantine");
+
+    // 5. Test claim & retry failure threshold
+    const claim2 = await query("SELECT * FROM public.claim_moderation_notifications(10)");
+    const notif2Claimed = claim2.find((n) => n.id === notifsAfterDelivery[1].id);
+    assert.ok(notif2Claimed);
+    assert.ok(notif2Claimed.claim_token);
+
+    // Attempt 1 fails
+    const failRes1 = await rpc("complete_moderation_notification", [notif2Claimed.id, notif2Claimed.claim_token, false, "Network error 1"]);
+    assert.equal(failRes1.success, true);
+    assert.equal(failRes1.code, "RETRY_SCHEDULED");
+
+    let [failedAttempt1] = await query("SELECT status, attempts, claim_token FROM public.moderation_notifications WHERE id=$1", [notif2Claimed.id]);
+    assert.equal(failedAttempt1.status, "pending");
+    assert.equal(failedAttempt1.attempts, 1);
+    assert.equal(failedAttempt1.claim_token, null, "Claim token must be cleared on failed retry");
+
+    // Fast-forward next_attempt to test attempt 2
+    await db.query("UPDATE public.moderation_notifications SET next_attempt = NOW() - INTERVAL '1 second' WHERE id=$1", [notif2Claimed.id]);
+    const claimAttempt2 = await query("SELECT * FROM public.claim_moderation_notifications(10)");
+    const notif2Attempt2 = claimAttempt2.find((n) => n.id === notifsAfterDelivery[1].id);
+    assert.ok(notif2Attempt2);
+    assert.notEqual(notif2Attempt2.claim_token, notif2Claimed.claim_token, "Attempt 2 must generate a fresh claim token");
+
+    await rpc("complete_moderation_notification", [notif2Attempt2.id, notif2Attempt2.claim_token, false, "Network error 2"]);
+
+    // Fast-forward next_attempt to test attempt 3 (max attempts -> final failure)
+    await db.query("UPDATE public.moderation_notifications SET next_attempt = NOW() - INTERVAL '1 second' WHERE id=$1", [notif2Claimed.id]);
+    const claimAttempt3 = await query("SELECT * FROM public.claim_moderation_notifications(10)");
+    const notif2Attempt3 = claimAttempt3.find((n) => n.id === notifsAfterDelivery[1].id);
+    assert.ok(notif2Attempt3);
+
+    const failRes3 = await rpc("complete_moderation_notification", [notif2Attempt3.id, notif2Attempt3.claim_token, false, "Network error 3"]);
+    assert.equal(failRes3.success, true);
+    assert.equal(failRes3.code, "FAILED");
+
+    let [finalFailed] = await query("SELECT status, attempts, claim_token FROM public.moderation_notifications WHERE id=$1", [notif2Claimed.id]);
+    assert.equal(finalFailed.status, "failed");
+    assert.equal(finalFailed.attempts, 3);
+    assert.equal(finalFailed.claim_token, null);
+  });
+  await test("Atomic claim tokens: Concurrent claims partition disjoint notifications", async () => {
+    const postC1 = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    const postC2 = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+    await db.query("SELECT public.enqueue_moderation_notification('post_report', 'post', $1, 'Item 1', 'Cat', 'R1', 'normal')", [postC1]);
+    await db.query("SELECT public.enqueue_moderation_notification('post_report', 'post', $1, 'Item 2', 'Cat', 'R2', 'normal')", [postC2]);
+
+    // Worker A claims 1 item
+    const workerAClaims = await query("SELECT * FROM public.claim_moderation_notifications(1)");
+    assert.equal(workerAClaims.length, 1);
+    const workerAItem = workerAClaims[0];
+
+    // Worker B claims 1 item concurrently
+    const workerBClaims = await query("SELECT * FROM public.claim_moderation_notifications(1)");
+    assert.equal(workerBClaims.length, 1);
+    const workerBItem = workerBClaims[0];
+
+    // Ensure disjoint claims and different claim tokens
+    assert.notEqual(workerAItem.id, workerBItem.id, "Concurrent workers must claim disjoint items");
+    assert.notEqual(workerAItem.claim_token, workerBItem.claim_token, "Claim tokens must be unique per worker");
+
+    // Clean up claims
+    await rpc("complete_moderation_notification", [workerAItem.id, workerAItem.claim_token, true, null]);
+    await rpc("complete_moderation_notification", [workerBItem.id, workerBItem.claim_token, true, null]);
+  });
+  await test("Atomic claim tokens: Expired leases, stale completion rejection, and delivered immunity", async () => {
+    const targetPost = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+    await db.query(
+      "SELECT public.enqueue_moderation_notification('post_report', 'post', $1, 'Lease race item', 'Cat', 'Race test', 'high')",
+      [targetPost],
+    );
+
+    // 1. Worker 1 claims notification with a 2-second lease
+    const worker1Claims = await query("SELECT * FROM public.claim_moderation_notifications(10, 2)");
+    const w1Notif = worker1Claims.find((n) => n.target_id === targetPost);
+    assert.ok(w1Notif);
+    const w1Token = w1Notif.claim_token;
+
+    // 2. Simulate worker 1 hanging and its lease expiring
+    await db.query(
+      "UPDATE public.moderation_notifications SET claim_expires_at = NOW() - INTERVAL '1 second', next_attempt = NOW() - INTERVAL '1 second' WHERE id = $1",
+      [w1Notif.id],
+    );
+
+    // Verify lease expiration check: if worker 1 attempts completion after expiry (before any other claim)
+    const expiredAttempt = await rpc("complete_moderation_notification", [w1Notif.id, w1Token, true, null]);
+    assert.equal(expiredAttempt.success, false);
+    assert.equal(expiredAttempt.code, "LEASE_EXPIRED");
+
+    // 3. Worker 2 claims the newly eligible notification after Worker 1's lease expired
+    const worker2Claims = await query("SELECT * FROM public.claim_moderation_notifications(10, 120)");
+    const w2Notif = worker2Claims.find((n) => n.id === w1Notif.id);
+    assert.ok(w2Notif, "Worker 2 must successfully claim item with expired lease");
+    const w2Token = w2Notif.claim_token;
+    assert.notEqual(w2Token, w1Token, "Worker 2 must receive a new claim token");
+
+    // 4. Stale completion attempt: Worker 1 finally awakens and tries to complete with stale w1Token
+    const staleCompletion = await rpc("complete_moderation_notification", [w1Notif.id, w1Token, true, null]);
+    assert.equal(staleCompletion.success, false);
+    assert.equal(staleCompletion.code, "STALE_CLAIM_TOKEN", "Stale worker completion attempt must be rejected");
+
+    // 5. Worker 2 successfully delivers the notification
+    const w2Delivery = await rpc("complete_moderation_notification", [w2Notif.id, w2Token, true, null]);
+    assert.equal(w2Delivery.success, true);
+    assert.equal(w2Delivery.code, "DELIVERED");
+
+    // 6. Delivered immunity: Late failure callback from Worker 1 arrives after delivery
+    const lateFailureCallback = await rpc("complete_moderation_notification", [
+      w1Notif.id,
+      w1Token,
+      false,
+      "Worker 1 late timeout failure",
+    ]);
+    assert.equal(lateFailureCallback.success, false);
+    assert.equal(lateFailureCallback.code, "ALREADY_DELIVERED", "Delivered notification cannot be modified by late failure");
+
+    // Also verify late callback even if someone passes w2Token after delivery
+    const lateCallbackWithW2Token = await rpc("complete_moderation_notification", [
+      w2Notif.id,
+      w2Token,
+      false,
+      "Another late failure callback",
+    ]);
+    assert.equal(lateCallbackWithW2Token.success, false);
+    assert.equal(lateCallbackWithW2Token.code, "ALREADY_DELIVERED");
+
+    // 7. Verify database record is completely uncorrupted and still delivered
+    const [finalRow] = await query("SELECT * FROM public.moderation_notifications WHERE id = $1", [w1Notif.id]);
+    assert.equal(finalRow.status, "delivered");
+    assert.equal(finalRow.last_error, null, "last_error must remain NULL despite late failure callbacks");
+    assert.equal(finalRow.claim_token, null);
+    assert.equal(finalRow.claim_expires_at, null);
+  });
+  await test("Atomic claim tokens: Never group new alerts into notifications currently claimed by a worker", async () => {
+    const postD = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+    // 1. Initial alert enqueued
+    await db.query(
+      "SELECT public.enqueue_moderation_notification('post_report', 'post', $1, 'Active claim test', 'Cat', 'Initial concern', 'normal')",
+      [postD],
+    );
+
+    // 2. Worker claims notification with 120s lease
+    const claims = await query("SELECT * FROM public.claim_moderation_notifications(10, 120)");
+    const claimedItem = claims.find((n) => n.target_id === postD);
+    assert.ok(claimedItem);
+    assert.equal(claimedItem.report_count, 1);
+
+    // 3. New alert arrives WHILE item is actively claimed by worker
+    await db.query(
+      "SELECT public.enqueue_moderation_notification('post_report', 'post', $1, 'Active claim test', 'Cat', 'Second concern', 'high')",
+      [postD],
+    );
+
+    // 4. Assert: Claimed notification was NOT grouped into; a distinct pending notification was created
+    const notifs = await query(
+      "SELECT * FROM public.moderation_notifications WHERE target_id = $1 ORDER BY created_at ASC",
+      [postD],
+    );
+    assert.equal(notifs.length, 2, "Must create a new notification row rather than grouping into claimed item");
+    assert.equal(notifs[0].id, claimedItem.id);
+    assert.equal(notifs[0].report_count, 1, "Claimed item report_count must not be modified");
+    assert.equal(notifs[1].status, "pending");
+    assert.equal(notifs[1].report_count, 1);
+    assert.equal(notifs[1].claim_token, null, "New item must be unclaimed and available");
+
+    // 5. Worker delivers initial item
+    const delivered = await rpc("complete_moderation_notification", [claimedItem.id, claimedItem.claim_token, true, null]);
+    assert.equal(delivered.success, true);
+    assert.equal(delivered.code, "DELIVERED");
+
+    // 6. Subsequent worker run picks up the second notification
+    const secondClaims = await query("SELECT * FROM public.claim_moderation_notifications(10, 120)");
+    const secondClaimedItem = secondClaims.find((n) => n.id === notifs[1].id);
+    assert.ok(secondClaimedItem, "Second notification must be claimed in next worker batch");
+    assert.notEqual(secondClaimedItem.claim_token, claimedItem.claim_token);
+
+    // Complete second notification
+    await rpc("complete_moderation_notification", [secondClaimedItem.id, secondClaimedItem.claim_token, true, null]);
+  });
+  await test("Accurate database-derived moderation counts RPC", async () => {
+    const counts = await rpc("get_moderation_counts", []);
+    assert.equal(typeof counts.unresolved_reports, "number");
+    assert.equal(typeof counts.auto_flagged_posts, "number");
+    assert.equal(typeof counts.quarantined_content, "number");
+    assert.equal(typeof counts.recently_resolved_24h, "number");
+    assert.equal(counts.recently_resolved_24h >= 2, true);
+  });
   await test("Both public roles are denied private tables and all mutation RPCs", async () => {
     for (const role of ["anon", "authenticated"]) {
       for (const table of [
@@ -196,6 +680,10 @@ try {
         "push_delivery_logs",
         "push_outbox",
         "moderation_queue",
+        "echo_moderation_queue",
+        "post_reports",
+        "moderation_notifications",
+        "moderation_audit_log",
       ]) {
         assert.equal(
           (

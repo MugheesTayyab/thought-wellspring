@@ -370,6 +370,48 @@ export async function appendVeto(
 }
 
 /**
+ * Report confession post with specified reason and auto-quarantine evaluation
+ */
+export async function reportPost(
+  env: DatabaseEnv | undefined,
+  postId: string,
+  reporterDeviceToken: string,
+  reason: string = "Community safety concern",
+): Promise<{
+  data: { vetoCount: number; status: string; quarantined: boolean } | null;
+  error: { code: string; message: string } | null;
+}> {
+  try {
+    const client = getSupabaseAdminClient(env);
+
+    const { data, error } = await client.rpc("report_post_atomic", {
+      p_post_id: postId,
+      p_reporter_device_token: reporterDeviceToken,
+      p_reason: reason || "Community safety concern",
+    });
+
+    if (error) {
+      return { data: null, error: { code: error.code, message: error.message } };
+    }
+
+    if (!data.success) {
+      return { data: null, error: { code: data.code, message: data.message } };
+    }
+
+    return {
+      data: {
+        vetoCount: data.veto_count,
+        status: data.quarantined ? "review" : "published",
+        quarantined: !!data.quarantined,
+      },
+      error: null,
+    };
+  } catch (err: any) {
+    return { data: null, error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
+  }
+}
+
+/**
  * Count posts by device in the given rolling window (for rate limiting)
  */
 export async function countDevicePostsInWindow(

@@ -19,6 +19,11 @@ export interface DatabaseEnv {
   VAPID_PRIVATE_KEY?: string | undefined;
   VAPID_SUBJECT?: string | undefined;
   CRON_SECRET?: string | undefined;
+  MODERATOR_USER_IDS?: string | undefined;
+  MODERATOR_EMAILS?: string | undefined;
+  TELEGRAM_BOT_TOKEN?: string | undefined;
+  TELEGRAM_CHAT_ID?: string | undefined;
+  MODERATION_WEBHOOK_URL?: string | undefined;
 }
 
 function resolveEnv(env?: DatabaseEnv) {

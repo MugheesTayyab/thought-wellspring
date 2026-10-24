@@ -24,6 +24,7 @@ export async function fetchEchoesForPost(
       .from("echoes")
       .select("id, text, handle, created_at, profile_id")
       .eq("unsaid_id", postId)
+      .eq("status", "published")
       .order("created_at", { ascending: true })
       .limit(50);
 
@@ -91,6 +92,7 @@ export async function fetchEchoesForPosts(
       .from("echoes")
       .select("id, unsaid_id, text, handle, created_at, profile_id")
       .in("unsaid_id", postIds)
+      .eq("status", "published")
       .order("created_at", { ascending: true });
 
     if (error) return { data: {}, error: { code: error.code, message: error.message } };
@@ -116,40 +118,18 @@ export async function reportEcho(
 ): Promise<{ data: { reported: true } | null; error: { code: string; message: string } | null }> {
   try {
     const client = getSupabaseAdminClient(env);
-    const { data: echo, error: echoError } = await client
-      .from("echoes")
-      .select("id, device_token")
-      .eq("id", input.echoId)
-      .maybeSingle();
-
-    if (echoError) {
-      return { data: null, error: { code: echoError.code, message: echoError.message } };
-    }
-    if (!echo) {
-      return { data: null, error: { code: "NOT_FOUND", message: "Echo does not exist" } };
-    }
-    if (echo.device_token === input.reporterDeviceToken) {
-      return {
-        data: null,
-        error: { code: "SELF_REPORT_FORBIDDEN", message: "You cannot report your own Echo" },
-      };
-    }
-
-    const { error } = await client.from("echo_reports").insert({
-      echo_id: input.echoId,
-      reporter_device_token: input.reporterDeviceToken,
-      reason: input.reason,
+    const { data, error } = await client.rpc("report_echo_atomic", {
+      p_echo_id: input.echoId,
+      p_reporter_device_token: input.reporterDeviceToken,
+      p_reason: input.reason || "Community safety concern",
     });
 
     if (error) {
-      const duplicate = error.code === "23505";
-      return {
-        data: null,
-        error: {
-          code: duplicate ? "ALREADY_REPORTED" : error.code,
-          message: duplicate ? "You have already reported this Echo" : error.message,
-        },
-      };
+      return { data: null, error: { code: error.code, message: error.message } };
+    }
+
+    if (!data.success) {
+      return { data: null, error: { code: data.code, message: data.message } };
     }
 
     return { data: { reported: true }, error: null };
