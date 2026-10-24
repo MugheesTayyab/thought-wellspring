@@ -38,9 +38,8 @@ try {
   }
 
   await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: /BajiHears Originals/ }).click();
-  await page.getByText("BajiHears Original · Fictional Story", { exact: true }).first().waitFor();
-  assert.equal(await page.getByText("BajiHears Original · Fictional Story", { exact: true }).count(), 30);
+  await page.getByText("BajiHears Original · Fictional", { exact: true }).first().waitFor();
+  assert.equal(await page.getByText("BajiHears Original · Fictional", { exact: true }).count(), 30);
   const originalCards = page.locator('article[data-editorial-seed-id]');
   if ((await originalCards.count()) > 0) {
     assert.equal(await originalCards.count(), 30);

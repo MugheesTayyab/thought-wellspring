@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Heart, Shield, Sparkles, Swords, Feather, MessageSquare } from "lucide-react";
+import { ArrowLeft, Heart, Shield, Sparkles, Scale, Feather, MessageSquare } from "lucide-react";
 import { Logo } from "@/client/components/bajihears/Logo";
 
 export const Route = createFileRoute("/about")({
@@ -109,7 +109,7 @@ function AboutPage() {
             {/* Pillar 3 */}
             <div className="rounded-3xl border border-border-card bg-card p-5 shadow-2xs">
               <div className="flex size-9 items-center justify-center rounded-2xl bg-secondary text-primary">
-                <Swords className="size-4.5" />
+                <Scale className="size-4.5" />
               </div>
               <h3 className="mt-3 font-display text-sm font-bold text-ink">The Daily Duel</h3>
               <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">

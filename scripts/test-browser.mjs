@@ -56,7 +56,15 @@ async function setup(viewport) {
   await page.route("**/_serverFn/**", async (route) => {
     const encoded = new URL(route.request().url()).pathname.split("/").pop();
     const id = encoded;
-    const name = serverFunctionNames.get(id);
+    let name = serverFunctionNames.get(id);
+    if (!name) {
+      try {
+        const decoded = JSON.parse(Buffer.from(id, "base64").toString("utf8"));
+        name = (decoded.export || decoded.functionName || "").replace(/_createServerFn_handler$/, "");
+      } catch {
+        // Not base64 encoded
+      }
+    }
     assert.ok(name, `Unhandled server-function fixture ID: ${id}`);
     const post = {
       id: postId,
@@ -93,7 +101,7 @@ async function setup(viewport) {
       category: "Silent Thoughts",
       sourceType: "editorial",
       editorialSeedId: `BH-${String(index + 1).padStart(3, "0")}`,
-      editorialLabel: "BajiHears Original · Fictional Story",
+      editorialLabel: "BajiHears Original · Fictional",
       displayOrder: index + 1,
     }));
     let data;
@@ -122,6 +130,7 @@ async function setup(viewport) {
         data = {
           posts: [
             post,
+            ...originals,
             ...(state.published
               ? [
                   {
@@ -133,7 +142,7 @@ async function setup(viewport) {
               : []),
           ],
           page: 0,
-          limit: 20,
+          limit: 50,
           hasMore: false,
         };
     } else if (name.includes("apiUnreactToPost")) {
@@ -219,7 +228,8 @@ try {
   checks++;
   console.log("PASS Failed vote rolls back and remains retryable");
   await navigate(page, `${base}/`);
-  const react = page.getByRole("button", { name: /^Relate(?: \d+)? to this thought$/ });
+  const targetPost = page.locator(`#thought-${postId}`);
+  const react = targetPost.getByRole("button", { name: /^Relate(?: \d+)? to this thought$/ });
   await react.click();
   await page.waitForFunction(
     () =>
@@ -229,14 +239,14 @@ try {
   );
   checks++;
   console.log("PASS Reaction persists after server acknowledgment");
-  await page.getByRole("button", { name: "Echo", exact: true }).click();
+  await targetPost.getByRole("button", { name: "Echo", exact: true }).click();
   await page.getByRole("textbox", { name: "Want to leave an Echo?" }).fill("I feel the same.");
   await page.getByRole("button", { name: "Send Echo", exact: true }).click();
   await page.getByText("I feel the same.", { exact: true }).waitFor();
   await page.getByRole("button", { name: "Close Echoes", exact: true }).click();
   checks++;
   console.log("PASS Echo is acknowledged and appears in the thread");
-  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await targetPost.getByRole("button", { name: "Save", exact: true }).click();
   await page.getByRole("navigation").getByRole("link", { name: "Corner" }).click();
   await page.getByRole("button", { name: "Saved notes", exact: true }).click();
   await page.getByText("Some days I just need a quiet place to think.").waitFor();
@@ -251,12 +261,11 @@ try {
   checks++;
   console.log("PASS Shared links load thoughts outside the first feed page");
   await navigate(page, `${base}/`);
-  await page.getByRole("button", { name: /BajiHears Originals/ }).click();
   await page.getByText("Verified Manus fixture story 01.", { exact: true }).waitFor();
-  assert.equal(await page.getByText("BajiHears Original · Fictional Story", { exact: true }).count(), 30);
+  assert.equal(await page.getByText("BajiHears Original · Fictional", { exact: true }).count(), 30);
   assert.equal(await page.getByText("Verified Manus fixture story 30.", { exact: true }).count(), 1);
   checks++;
-  console.log("PASS Exactly 30 ordered Originals render with explicit fictional labels");
+  console.log("PASS Exactly 30 ordered Originals render with explicit fictional labels in default feed");
   await navigate(page, `${base}/`);
   await page.getByText("Some days I just need a quiet place to think.", { exact: true }).waitFor();
   await page.getByRole("button", { name: "Write a thought", exact: true }).click();

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, RotateCw, Swords } from "lucide-react";
+import { ArrowLeft, RotateCw, Scale } from "lucide-react";
 import { DuelCard } from "@/client/components/bajihears/DuelCard";
 import { BottomNav } from "@/client/components/bajihears/BottomNav";
 import { useWarmth } from "@/client/stores/warmth-context";
@@ -52,7 +52,7 @@ function DuelPage() {
           The Wall
         </Link>
         <div className="flex items-center gap-1.5">
-          <Swords className="size-4 text-primary" />
+          <Scale className="size-4 text-primary" />
           <h1 className="font-display text-lg font-bold text-ink">Duel</h1>
         </div>
         <span className="w-16" aria-hidden />

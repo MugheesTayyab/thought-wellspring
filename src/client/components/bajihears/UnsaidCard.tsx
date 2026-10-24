@@ -14,6 +14,7 @@ import {
   ShieldAlert,
   Share2,
   SmilePlus,
+  Feather,
 } from "lucide-react";
 import { RevealCountdown } from "./RevealCountdown";
 import { PublicProfileModal } from "./PublicProfileModal";
@@ -188,6 +189,7 @@ export function UnsaidCard({
     <>
       <article
         id={`thought-${unsaid.id}`}
+        data-editorial-seed-id={unsaid.editorialSeedId ?? undefined}
         ref={cardRef}
         onPointerUp={onCardPointerUp}
         onPointerMove={onPointerMove}
@@ -218,9 +220,11 @@ export function UnsaidCard({
           <div className="flex items-center justify-between flex-wrap gap-2.5 pb-3 mb-3 border-b border-border relative z-10">
             <div className="flex items-center gap-2">
               <span
-                className="listening-mark size-7 justify-center rounded-full bg-[#FBE6E4]"
+                className="flex size-7 items-center justify-center rounded-full bg-[#FBE6E4] text-[#7D3028]"
                 aria-hidden
-              />
+              >
+                <Crown className="size-3.5" />
+              </span>
               <div className="flex flex-col">
                 <span className="font-sans text-xs font-semibold tracking-wide text-[#7D3028] leading-tight">
                   Featured thought
@@ -241,8 +245,8 @@ export function UnsaidCard({
           <div className="flex items-center justify-between gap-2.5 text-xs font-sans mb-3 pb-2.5 border-b border-[#E3B8B1]/40">
             <div className="flex items-center gap-2 flex-wrap min-w-0">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FBE6E4] px-2.5 py-0.5 text-[11px] font-semibold text-[#7D3028] border border-[#E3B8B1]">
-                <span className="listening-mark scale-75" aria-hidden />
-                BajiHears Original · Fictional Story
+                <Feather className="size-3 text-[#7D3028]" aria-hidden />
+                BajiHears Original · Fictional
               </span>
               {unsaid.displayOrder != null && (
                 <span className="text-[11px] font-medium text-muted-foreground/80">
@@ -467,7 +471,7 @@ export function UnsaidCard({
               title="Share Story Card"
             >
               <Share2 className="size-3.5" />
-              <span>Share</span>
+              <span className="hidden sm:inline">Share</span>
             </button>
 
             {/* Three-Dot Overflow Menu */}

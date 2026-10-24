@@ -11,7 +11,7 @@ import { CornerMenu } from "@/client/components/bajihears/CornerMenu";
 import { Logo } from "@/client/components/bajihears/Logo";
 import { BottomNav } from "@/client/components/bajihears/BottomNav";
 import { HeroIntro } from "@/client/components/bajihears/HeroIntro";
-import { EditorialOriginalsSection } from "@/client/components/bajihears/EditorialOriginalsSection";
+
 import { FeedWritingPrompt } from "@/client/components/bajihears/FeedWritingPrompt";
 import { PushPermissionSheet } from "@/client/components/bajihears/PushPermissionSheet";
 import { shouldShowPushPrompt } from "@/client/lib/notifications";
@@ -130,35 +130,7 @@ function Home() {
     if (typeof window === "undefined") return "most-reacted";
     return sessionStorage.getItem("bh:wall-sort") === "recent" ? "recent" : "most-reacted";
   });
-  const [activeSection, setActiveSection] = useState<"wall" | "originals">(() => {
-    if (typeof window === "undefined") return "wall";
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("section") === "originals" || window.location.hash === "#originals") {
-      return "originals";
-    }
-    return "wall";
-  });
 
-  useEffect(() => {
-    const handleLocationChange = () => {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("section") === "originals" || window.location.hash === "#originals") {
-        setActiveSection("originals");
-      }
-    };
-    window.addEventListener("hashchange", handleLocationChange);
-    window.addEventListener("popstate", handleLocationChange);
-    return () => {
-      window.removeEventListener("hashchange", handleLocationChange);
-      window.removeEventListener("popstate", handleLocationChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (sharedPost?.sourceType === "editorial") {
-      setActiveSection("originals");
-    }
-  }, [sharedPost]);
   const backdrop = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -315,7 +287,6 @@ function Home() {
             <span className="font-display text-primary text-lg tracking-tight font-bold">
               BajiHears
             </span>
-            <span className="listening-mark" aria-hidden />
           </div>
 
           <CornerMenu seed={seed} />
@@ -327,64 +298,7 @@ function Home() {
           {/* 5-Second Comprehension Hero Banner */}
           <HeroIntro />
 
-          {/* Section Switcher: The Wall (Community) vs. BajiHears Originals (Curated Fiction) */}
-          <div className="flex items-center gap-1 rounded-2xl border border-border bg-secondary/80 p-1">
-            <button
-              type="button"
-              onClick={() => {
-                triggerHaptic("selection");
-                setActiveSection("wall");
-              }}
-              className={cn(
-                "flex-1 flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-xs font-semibold transition-all cursor-pointer",
-                activeSection === "wall"
-                  ? "bg-card text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <span>The Wall</span>
-              <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground font-medium">
-                Community
-              </span>
-            </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                triggerHaptic("selection");
-                setActiveSection("originals");
-              }}
-              className={cn(
-                "flex-1 flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-xs font-semibold transition-all cursor-pointer",
-                activeSection === "originals"
-                  ? "bg-card text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Sparkles className="size-3 text-amber-600" aria-hidden />
-              <span>BajiHears Originals</span>
-              <span className="rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-[10px] font-semibold">
-                30 Stories
-              </span>
-            </button>
-          </div>
-
-          {activeSection === "originals" ? (
-            <EditorialOriginalsSection
-              myReactions={myReactions}
-              myEchoedIds={myEchoedIds}
-              myReports={myReports}
-              savedThoughts={savedThoughts}
-              myHandle={handle}
-              onReact={handleReact}
-              onEcho={handleEcho}
-              onReport={handleReport}
-              onReportEcho={handleReportEcho}
-              onSave={handleSave}
-              onShare={handleShareTarget}
-            />
-          ) : (
-            <>
               {sharedPostId && (sharedPostError || sharedPost === null) && (
                 <p
                   role="status"
@@ -416,33 +330,12 @@ function Home() {
                 />
               )}
 
-              {/* Discovery Banner on The Wall */}
-              <div className="rounded-2xl border border-[#E3B8B1]/70 bg-[#FFF9F6] p-4 flex items-center justify-between gap-3 shadow-xs">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-[#7D3028]">
-                    <Sparkles className="size-3.5" />
-                    <span>Curated Launch Collection</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                    30 curated fictional scenarios by Manus · Exact sequence
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHaptic("selection");
-                    setActiveSection("originals");
-                  }}
-                  className="shrink-0 rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary/90 transition-colors cursor-pointer"
-                >
-                  Browse Originals →
-                </button>
-              </div>
+
 
           {/* Streamlined sort and category controls */}
           <div className="space-y-2 pt-1">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center justify-center gap-1 rounded-2xl border border-border-card bg-secondary p-1">
+              <div className="flex items-center justify-center gap-1 rounded-2xl border border-border/80 bg-secondary/80 p-1">
                 <button
                   type="button"
                   onClick={() => {
@@ -450,9 +343,9 @@ function Home() {
                     setFeedSort("most-reacted");
                   }}
                   className={cn(
-                    "flex min-h-9 items-center rounded-xl px-3 text-xs font-semibold transition-all cursor-pointer",
+                    "flex min-h-8 items-center rounded-xl px-3 text-xs font-semibold transition-all cursor-pointer",
                     feedSort === "most-reacted"
-                      ? "bg-card text-foreground shadow-xs"
+                      ? "bg-card text-foreground shadow-2xs font-bold"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -465,9 +358,9 @@ function Home() {
                     setFeedSort("recent");
                   }}
                   className={cn(
-                    "flex min-h-9 items-center rounded-xl px-3 text-xs font-semibold transition-all cursor-pointer",
+                    "flex min-h-8 items-center rounded-xl px-3 text-xs font-semibold transition-all cursor-pointer",
                     feedSort === "recent"
-                      ? "bg-card text-foreground shadow-xs"
+                      ? "bg-card text-foreground shadow-2xs font-bold"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -487,7 +380,7 @@ function Home() {
             </div>
 
             <div
-              className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-5 sm:px-5"
+              className="no-scrollbar -mx-4 flex items-center gap-2 overflow-x-auto px-4 py-1.5 sm:-mx-5 sm:px-5 touch-pan-x"
               aria-label="Filter the Wall by category"
             >
               <button
@@ -495,13 +388,13 @@ function Home() {
                 aria-pressed={filters.length === 0}
                 onClick={clearFilters}
                 className={cn(
-                  "min-h-10 shrink-0 rounded-full border px-4 text-xs font-semibold transition-colors cursor-pointer",
+                  "min-h-9 shrink-0 rounded-full border px-3.5 text-xs font-medium transition-all duration-150 active:scale-95 cursor-pointer",
                   filters.length === 0
-                    ? "border-primary bg-accent text-primary"
-                    : "border-border-card bg-card text-muted-foreground hover:text-foreground hover:border-muted-foreground/30",
+                    ? "border-primary/80 bg-accent text-primary font-bold shadow-2xs"
+                    : "border-border-card bg-card text-muted-foreground hover:text-foreground hover:border-primary/30",
                 )}
               >
-                All
+                All thoughts
               </button>
               {CATEGORIES.map((c) => {
                 const on = filters.includes(c);
@@ -515,10 +408,10 @@ function Home() {
                       toggleFilter(c);
                     }}
                     className={cn(
-                      "min-h-10 shrink-0 rounded-full border px-4 text-xs font-medium transition-all active:scale-[.97] cursor-pointer",
+                      "min-h-9 shrink-0 rounded-full border px-3.5 text-xs font-medium transition-all duration-150 active:scale-95 cursor-pointer",
                       on
-                        ? "border-primary bg-accent text-primary font-semibold"
-                        : "border-border-card bg-card text-muted-foreground hover:text-foreground hover:border-muted-foreground/30",
+                        ? "border-primary/80 bg-accent text-primary font-bold shadow-2xs"
+                        : "border-border-card bg-card text-muted-foreground hover:text-foreground hover:border-primary/30",
                     )}
                   >
                     {c}
@@ -683,8 +576,6 @@ function Home() {
                 </div>
               )}
           </div>
-            </>
-          )}
 
           {/* Shared Site Footer */}
           <footer className="mt-8 pt-4 pb-2 flex items-center justify-center gap-3 text-[11px] text-muted-foreground font-medium border-t border-border/40">
@@ -717,10 +608,10 @@ function Home() {
       <button
         type="button"
         onClick={openComposer}
-        className="spring-press fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] right-4 z-30 flex min-h-12 items-center gap-2 rounded-2xl bg-primary px-4 text-sm font-semibold text-white shadow-[0_10px_28px_-12px_rgba(80,43,38,.55)]"
+        className="spring-press fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0 sm:bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] z-30 flex min-h-11 items-center gap-2 rounded-full bg-primary/95 px-5 text-xs sm:text-sm font-semibold text-white shadow-[0_8px_24px_-6px_rgba(80,43,38,.5)] backdrop-blur-md transition-all duration-200 active:scale-95 hover:bg-primary cursor-pointer"
       >
-        <PencilLine className="size-4" aria-hidden />
-        Write a thought
+        <PencilLine className="size-4 shrink-0" aria-hidden />
+        <span>Write a thought</span>
       </button>
 
       {/* Floating Back to Top Button */}
@@ -729,7 +620,7 @@ function Home() {
           type="button"
           onClick={scrollToTop}
           aria-label="Scroll back to top"
-          className="spring-press fixed bottom-[calc(9rem+env(safe-area-inset-bottom,0px))] right-5 z-30 flex size-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm transition-all hover:text-primary cursor-pointer"
+          className="spring-press fixed bottom-[calc(8.25rem+env(safe-area-inset-bottom,0px))] right-4 sm:right-6 z-30 flex size-10 items-center justify-center rounded-full border border-border bg-card/90 backdrop-blur-md text-muted-foreground shadow-sm transition-all hover:text-primary active:scale-95 cursor-pointer"
         >
           <ArrowUp className="size-4" />
         </button>

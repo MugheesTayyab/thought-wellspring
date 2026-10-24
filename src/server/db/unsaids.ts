@@ -70,7 +70,7 @@ export async function fetchPublishedFeed(
       query = query.eq("category", options.category);
     }
 
-    const sourceType = options?.sourceType ?? "community";
+    const sourceType = options?.sourceType ?? "all";
     if (sourceType !== "all") {
       query = query.eq("source_type", sourceType);
     }

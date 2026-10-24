@@ -59,8 +59,7 @@ export function HeroIntro() {
         <p className="mt-1 text-xs sm:text-sm leading-5 text-muted-foreground">
           Read what others are thinking. Share when you feel like it.
         </p>
-        <p className="mt-2.5 flex items-center gap-2 text-xs font-medium text-[#7D3028]">
-          <span className="block h-px w-5 bg-primary/40" aria-hidden />
+        <p className="mt-2.5 text-xs font-medium text-[#7D3028]">
           Just here to read? That&apos;s welcome too.
         </p>
       </div>
