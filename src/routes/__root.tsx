@@ -18,6 +18,8 @@ import { getOrCreateIdentity, updateVisitStreak } from "@/client/lib/identity";
 import { registerServiceWorker } from "@/client/lib/notifications";
 import { Toaster } from "@/client/components/ui/sonner";
 import { InstallAppPrompt } from "@/client/components/bajihears/InstallAppPrompt";
+import { AnalyticsTracker } from "@/client/components/bajihears/AnalyticsTracker";
+import { GA_MEASUREMENT_ID } from "@/client/lib/analytics";
 
 export { useWarmth, WarmthProvider, type WarmthContextType };
 
@@ -140,6 +142,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
       { rel: "manifest", href: "/manifest.webmanifest" },
     ],
+    scripts: [
+      {
+        src: `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`,
+        async: true,
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -174,6 +182,7 @@ function RootComponent() {
         <WarmthProvider>
           <Outlet />
           <InstallAppPrompt />
+          <AnalyticsTracker />
           <Toaster position="top-center" />
         </WarmthProvider>
       </AuthProvider>

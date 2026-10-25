@@ -31,11 +31,11 @@ function getSupabaseOrigin(): string {
 
 export function contentSecurityPolicy(nonce?: string): string {
   const scripts = nonce
-    ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`
-    : "script-src 'self'";
+    ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://www.googletagmanager.com`
+    : "script-src 'self' https://www.googletagmanager.com";
   const supabaseOrigin = getSupabaseOrigin();
   const wssOrigin = supabaseOrigin.replace(/^http/, "ws");
-  return `default-src 'self'; ${scripts}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' ${supabaseOrigin} ${wssOrigin}; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'`;
+  return `default-src 'self'; ${scripts}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' ${supabaseOrigin} ${wssOrigin} https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'`;
 }
 
 export function isCrossOriginMutation(request: Request): boolean {

@@ -288,20 +288,21 @@ function PrivacyPolicyPage() {
               5. Local Storage &amp; Cookies
             </h2>
             <div className="rounded-2xl border border-border/80 bg-card p-4 sm:p-5">
-              <h3 className="font-display text-sm font-bold text-ink">Zero Tracking Cookies</h3>
+              <h3 className="font-display text-sm font-bold text-ink">Storage Mechanisms &amp; Analytics Cookies</h3>
               <p className="mt-1">
-                BajiHears does <strong>not</strong> use third-party tracking cookies, marketing
-                beacons, or advertising trackers. The only browser storage mechanisms currently
-                employed are:
+                BajiHears prioritizes minimal, privacy-first data storage. The browser storage mechanisms employed on this site are:
               </p>
-              <ul className="mt-2 list-disc pl-5 space-y-1">
+              <ul className="mt-2 list-disc pl-5 space-y-1.5">
                 <li>
                   <code>localStorage</code>: Stores your pseudonymous device token (a 16-character
                   hex string used strictly for rate-limiting), your saved thought bookmarks, avatar
-                  seed, local draft text, visit streaks, and cosmetic warmth points.
+                  seed, local draft text, visit streaks, cosmetic warmth points, and your explicit analytics consent preference (<code>bh:analytics-consent</code>).
                 </li>
                 <li>
-                  <code>sessionStorage</code>: Temporary routing and transient UI state.
+                  <code>sessionStorage</code>: Stores temporary routing preferences and transient UI state.
+                </li>
+                <li>
+                  <strong>Google Analytics Cookies (Optional):</strong> When you consent to site analytics, Google Analytics 4 sets first-party measurement cookies (such as <code>_ga</code> and <code>_ga_YK9LL21171</code>) to distinguish unique sessions and calculate aggregate traffic trends. If you decline or have not granted consent, Google Consent Mode v2 enforces <code>analytics_storage: 'denied'</code>, and no persistent analytics cookies are set.
                 </li>
               </ul>
             </div>
@@ -373,9 +374,21 @@ function PrivacyPolicyPage() {
                 </p>
               </div>
               <div className="rounded-xl border border-border bg-card p-3">
-                <p className="font-semibold text-ink">Google LLC</p>
-                <p className="text-xs text-muted-foreground">
-                  Optional OAuth 2.0 single sign-on provider.
+                <p className="font-semibold text-ink">Google LLC (Google Sign-In &amp; Google Analytics 4)</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Optional OAuth 2.0 single sign-on provider. When analytics tracking is consented to by the user, BajiHears utilizes Google Analytics 4 (Measurement ID: <code>G-YK9LL21171</code>) to measure aggregated readership trends, page visits across client-side transitions, and device archetypes.
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                  <strong>Zero Personal Data / Zero Content Exposure:</strong> In accordance with our core privacy architecture, BajiHears enforces IP anonymization and strictly bars transmission of confession text, unsaid secrets, handles, email addresses, or device tokens to Google Analytics. You may withdraw or grant analytics consent at any time in Settings or utilize the{" "}
+                  <a
+                    href="https://tools.google.com/dlpage/gaoptout"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-primary underline"
+                  >
+                    Google Analytics Opt-Out Browser Add-on <ExternalLink className="size-3" />
+                  </a>
+                  .
                 </p>
               </div>
             </div>

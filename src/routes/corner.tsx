@@ -33,6 +33,11 @@ import {
   writeAvatarSeed,
   writeHandle,
 } from "@/client/lib/local-storage";
+import {
+  getAnalyticsConsent,
+  setAnalyticsConsent,
+  type AnalyticsConsentStatus,
+} from "@/client/lib/analytics";
 
 export const Route = createFileRoute("/corner")({
   head: () => ({
@@ -85,6 +90,16 @@ function CornerPage() {
   const [savedNotice, setSavedNotice] = useState(false);
   const [notificationNotice, setNotificationNotice] = useState<string | null>(null);
   const [enablingNotifications, setEnablingNotifications] = useState(false);
+  const [analyticsConsent, setLocalAnalyticsConsent] = useState<AnalyticsConsentStatus>("pending");
+
+  useEffect(() => {
+    setLocalAnalyticsConsent(getAnalyticsConsent());
+    const handleConsentChange = (e: Event) => {
+      setLocalAnalyticsConsent((e as CustomEvent<AnalyticsConsentStatus>).detail);
+    };
+    window.addEventListener("bh:analytics-consent-changed", handleConsentChange);
+    return () => window.removeEventListener("bh:analytics-consent-changed", handleConsentChange);
+  }, []);
 
   const loadActivity = useCallback(async () => {
     if (!deviceToken) return;
@@ -520,6 +535,44 @@ function CornerPage() {
                 {notificationNotice}
               </p>
             )}
+          </div>
+
+          {/* Analytics & Privacy Preference */}
+          <div className="paper-card p-5">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="size-4.5 text-coral shrink-0" />
+              <h3 className="font-display text-base font-bold text-ink">
+                Analytics &amp; Transparency
+              </h3>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+              Help improve BajiHears by anonymously sharing page view and feature performance metrics via Google Analytics 4 (<code>G-YK9LL21171</code>).
+            </p>
+            <div className="mt-3.5 flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-cream/40 p-3.5">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-ink">Anonymous Site Analytics</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {analyticsConsent === "granted"
+                    ? "Enabled — IP anonymized, zero personal content tracking."
+                    : "Disabled — Google Consent Mode v2 enforces denied storage."}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const next = analyticsConsent === "granted" ? "denied" : "granted";
+                  setAnalyticsConsent(next);
+                  setLocalAnalyticsConsent(next);
+                }}
+                className={`tap-44 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                  analyticsConsent === "granted"
+                    ? "bg-primary text-white shadow-xs"
+                    : "border border-border bg-card text-muted-foreground hover:bg-secondary"
+                }`}
+              >
+                {analyticsConsent === "granted" ? "Enabled" : "Disabled"}
+              </button>
+            </div>
           </div>
 
           {/* Install App & Offline Access */}
