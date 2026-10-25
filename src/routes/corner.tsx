@@ -13,6 +13,7 @@ import {
   UserCheck,
   Compass,
   PenLine,
+  Smartphone,
 } from "lucide-react";
 import { CornerAvatar } from "@/client/components/bajihears/CornerAvatar";
 import { BottomNav } from "@/client/components/bajihears/BottomNav";
@@ -140,47 +141,40 @@ function CornerPage() {
       <header className="flex items-center justify-between border-b border-border/80 pb-4">
         <Link
           to="/"
-          className="tap-44 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+          className="tap-44 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
         >
           <ArrowLeft className="size-4" />
           The Wall
         </Link>
-        <div className="text-center">
+        <div className="text-center px-2">
           <h1 className="font-display text-lg font-bold text-ink">Your Corner</h1>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground line-clamp-1">
             A spot for the things you choose to keep close.
           </p>
         </div>
-        <span className="w-16" aria-hidden />
+        <span className="w-16 shrink-0" aria-hidden />
       </header>
 
       {/* Identity Summary Card */}
       <section className="paper-card motion-note-in mt-5 p-5 sm:p-6" aria-label="Identity summary">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3.5 min-w-0">
-            <CornerAvatar seed={seed} photoUrl={readAvatarPhoto()} size={56} />
-            <div className="min-w-0">
-              <h2 className="truncate font-display text-2xl font-bold text-ink">{displayName}</h2>
-              <p className="mt-0.5 text-xs text-muted-foreground flex items-center gap-1">
-                {user ? (
-                  <>
-                    <UserCheck className="size-3 text-emerald-600" />
-                    <span>Google account connected</span>
-                  </>
-                ) : (
-                  <span>Guest activity on this device</span>
-                )}
-              </p>
-            </div>
+        <div className="flex items-center gap-3.5 min-w-0">
+          <CornerAvatar seed={seed} photoUrl={readAvatarPhoto()} size={56} />
+          <div className="min-w-0 flex-1">
+            <h2 className="truncate font-display text-2xl font-bold text-ink">{displayName}</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground flex items-center gap-1.5">
+              {user ? (
+                <>
+                  <UserCheck className="size-3.5 text-emerald-600 shrink-0" />
+                  <span className="truncate">Google account connected</span>
+                </>
+              ) : (
+                <>
+                  <span className="size-1.5 rounded-full bg-amber-500 shrink-0" />
+                  <span className="truncate">Guest activity on this device</span>
+                </>
+              )}
+            </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setTab("settings")}
-            className="tap-44 shrink-0 inline-flex items-center gap-1 rounded-xl border border-border bg-white px-3 py-1.5 text-xs font-semibold text-ink shadow-2xs hover:bg-cream transition"
-          >
-            <Settings2 className="size-3.5 text-muted-foreground" />
-            <span>Settings</span>
-          </button>
         </div>
 
         {/* Activity Metric Counter */}
@@ -229,22 +223,21 @@ function CornerPage() {
       {/* Tab: Thoughts */}
       {tab === "thoughts" && (
         <section className="mt-6" aria-labelledby="thoughts-heading">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 id="thoughts-heading" className="font-display text-xl font-bold text-ink">
-                My thoughts
-              </h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Thoughts you've shared from this device and connected account.
-              </p>
-            </div>
+          <h2 id="thoughts-heading" className="sr-only">
+            My thoughts
+          </h2>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs text-muted-foreground">
+              Thoughts you&apos;ve shared from this device and connected account.
+            </p>
             <button
               type="button"
               onClick={() => void loadActivity()}
-              className="tap-44 grid place-items-center rounded-full text-muted-foreground hover:text-ink transition"
+              className="tap-44 shrink-0 flex items-center gap-1.5 rounded-xl border border-border bg-white px-2.5 py-1 text-xs font-semibold text-muted-foreground hover:text-ink hover:bg-cream transition cursor-pointer"
               aria-label="Refresh activity"
             >
-              <RefreshCw className={`size-4 ${activityLoading ? "animate-spin text-coral" : ""}`} />
+              <RefreshCw className={`size-3.5 ${activityLoading ? "animate-spin text-coral" : ""}`} />
+              <span className="hidden sm:inline">Refresh</span>
             </button>
           </div>
 
@@ -527,6 +520,65 @@ function CornerPage() {
                 {notificationNotice}
               </p>
             )}
+          </div>
+
+          {/* Install App & Offline Access */}
+          <div className="paper-card p-5">
+            <div className="flex items-center gap-2">
+              <Smartphone className="size-4.5 text-coral shrink-0" />
+              <h3 className="font-display text-base font-bold text-ink">
+                Install App &amp; Offline Access
+              </h3>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+              Experience BajiHears like a native phone app with instant loading and quiet alerts.
+            </p>
+
+            <div className="mt-4 space-y-3">
+              {/* Option 1: Live Web App (PWA) */}
+              <div className="rounded-2xl border border-border/80 bg-cream/50 p-3.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-ink">Live Web App (Recommended)</span>
+                  <span className="rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[10px] font-bold">
+                    Auto-Updates
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground leading-relaxed">
+                  Always runs the latest release of BajiHears automatically. No manual app store downloads or binary reinstallations required.
+                </p>
+                <div className="mt-2 text-xs text-ink/80 flex items-center gap-2">
+                  <span className="text-coral font-bold">&bull;</span>
+                  <span><strong>iPhone:</strong> Tap Safari Share <span className="font-mono text-[11px]">&uarr;</span> &rarr; <em>Add to Home Screen</em></span>
+                </div>
+                <div className="mt-1 text-xs text-ink/80 flex items-center gap-2">
+                  <span className="text-coral font-bold">&bull;</span>
+                  <span><strong>Android:</strong> Tap browser menu ⋮ &rarr; <em>Install App</em></span>
+                </div>
+              </div>
+
+              {/* Option 2: Standalone APK Binary */}
+              <div className="rounded-2xl border border-border/80 bg-paper/60 p-3.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-ink">Standalone Android APK</span>
+                  <span className="rounded-full bg-secondary text-muted-foreground px-2 py-0.5 text-[10px] font-semibold">
+                    Manual Binary
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground leading-relaxed">
+                  Direct package installer for sideloading on Android devices. Unlike the live web app, binary APK updates must be downloaded manually when new features ship.
+                </p>
+                <div className="mt-2.5 flex items-center gap-2">
+                  <a
+                    href="https://github.com/MugheesTayyab/thought-wellspring/releases"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-white px-3 py-1.5 text-xs font-semibold text-ink shadow-2xs hover:bg-cream transition cursor-pointer"
+                  >
+                    <span>View GitHub Releases &amp; APKs</span>
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
           <div className="rounded-2xl border border-border/80 bg-paper/60 p-4 text-xs leading-relaxed text-muted-foreground flex items-start gap-2.5">
             <ShieldCheck className="size-4 text-coral shrink-0 mt-0.5" />

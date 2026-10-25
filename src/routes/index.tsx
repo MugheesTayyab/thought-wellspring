@@ -3,7 +3,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetchPostById } from "@/routes/api/wall";
 import { queryKeys } from "@/client/lib/query-keys";
-import { ArrowUp, Info, PencilLine, Sparkles } from "lucide-react";
+import { ArrowUp, Info, PencilLine, Sparkles, X } from "lucide-react";
 import { UnsaidCard } from "@/client/components/bajihears/UnsaidCard";
 import { FeedSkeleton } from "@/client/components/bajihears/FeedSkeleton";
 import { WritingBox } from "@/client/components/bajihears/WritingBox";
@@ -126,9 +126,19 @@ function Home() {
     },
     retry: 1,
   });
-  const [feedSort, setFeedSort] = useState<"most-reacted" | "recent">(() => {
-    if (typeof window === "undefined") return "most-reacted";
-    return sessionStorage.getItem("bh:wall-sort") === "recent" ? "recent" : "most-reacted";
+
+  type FeedSortOption = "for-you" | "latest" | "most-loved";
+  const [feedSort, setFeedSort] = useState<FeedSortOption>(() => {
+    if (typeof window === "undefined") return "for-you";
+    const saved = sessionStorage.getItem("bh:wall-sort");
+    if (saved === "recent" || saved === "latest") return "latest";
+    if (saved === "most-reacted" || saved === "most-loved") return "most-loved";
+    if (saved === "for-you") return "for-you";
+    return "for-you";
+  });
+  const [showTipsCard, setShowTipsCard] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("bh:tips-dismissed") !== "1";
   });
 
   const backdrop = useRef<HTMLDivElement | null>(null);
@@ -255,14 +265,54 @@ function Home() {
         ? [sharedPost, ...posts]
         : posts;
     const unhidden = combined.filter((u) => !hiddenIds.includes(u.id));
-    if (feedSort === "most-reacted") {
+    const now = Date.now();
+
+    if (feedSort === "latest") {
       return [...unhidden].sort((a, b) => {
-        const aTotal = Object.values(a.reactions).reduce((sum, count) => sum + count, 0);
-        const bTotal = Object.values(b.reactions).reduce((sum, count) => sum + count, 0);
-        return bTotal - aTotal;
+        const aPinned = a.pinnedUntil && a.pinnedUntil > now ? 1 : 0;
+        const bPinned = b.pinnedUntil && b.pinnedUntil > now ? 1 : 0;
+        if (aPinned !== bPinned) return bPinned - aPinned;
+        return b.createdAt - a.createdAt;
       });
     }
-    return [...unhidden].sort((a, b) => b.createdAt - a.createdAt);
+
+    if (feedSort === "most-loved") {
+      return [...unhidden].sort((a, b) => {
+        const aPinned = a.pinnedUntil && a.pinnedUntil > now ? 1 : 0;
+        const bPinned = b.pinnedUntil && b.pinnedUntil > now ? 1 : 0;
+        if (aPinned !== bPinned) return bPinned - aPinned;
+        const aTotal =
+          Object.values(a.reactions).reduce((sum, count) => sum + count, 0) + (a.echoes?.length ?? 0);
+        const bTotal =
+          Object.values(b.reactions).reduce((sum, count) => sum + count, 0) + (b.echoes?.length ?? 0);
+        if (bTotal !== aTotal) return bTotal - aTotal;
+        return b.createdAt - a.createdAt;
+      });
+    }
+
+    // "for-you" algorithm: Freshness decay + genuine engagement + fair exposure for new posts
+    return [...unhidden].sort((a, b) => {
+      const aPinned = a.pinnedUntil && a.pinnedUntil > now ? 1 : 0;
+      const bPinned = b.pinnedUntil && b.pinnedUntil > now ? 1 : 0;
+      if (aPinned !== bPinned) return bPinned - aPinned;
+
+      const score = (post: Unsaid) => {
+        const reactionsCount = Object.values(post.reactions).reduce((sum, count) => sum + count, 0);
+        const echoesCount = post.echoes?.length ?? 0;
+        const ageHours = Math.max(0, (now - post.createdAt) / (1000 * 60 * 60));
+        // Echoes represent high emotional resonance; reactions are warm signals
+        const engagement = reactionsCount * 1.0 + echoesCount * 2.0;
+        // Freshness decay factor (half-life of gentle relevance)
+        const freshness = 1 / Math.pow(ageHours + 2, 1.15);
+        // Exploration boost for brand new posts (< 24h) to guarantee fair exposure
+        const newPostBoost = ageHours < 12 ? 0.35 : ageHours < 24 ? 0.15 : 0;
+        return (engagement + 1.2) * freshness + newPostBoost;
+      };
+
+      const scoreA = score(a);
+      const scoreB = score(b);
+      return scoreB - scoreA;
+    });
   }, [posts, sharedPost, hiddenIds, feedSort]);
 
   useEffect(() => {
@@ -367,37 +417,52 @@ function Home() {
 
           {/* Streamlined sort and category controls */}
           <div className="space-y-2 pt-1">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center justify-center gap-1 rounded-2xl border border-border/80 bg-secondary/80 p-1">
+            <div className="flex items-center justify-between gap-2 sm:gap-3">
+              <div className="flex items-center justify-center gap-0.5 sm:gap-1 rounded-2xl border border-border/80 bg-secondary/80 p-1">
                 <button
                   type="button"
                   onClick={() => {
                     triggerHaptic("selection");
-                    setFeedSort("most-reacted");
+                    setFeedSort("for-you");
                   }}
                   className={cn(
-                    "flex min-h-8 items-center rounded-xl px-3 text-xs font-semibold transition-all cursor-pointer",
-                    feedSort === "most-reacted"
+                    "flex min-h-8 items-center rounded-xl px-2.5 sm:px-3 text-xs font-semibold transition-all cursor-pointer whitespace-nowrap",
+                    feedSort === "for-you"
                       ? "bg-card text-foreground shadow-2xs font-bold"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  <span>Most reacted</span>
+                  <span>For You</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     triggerHaptic("selection");
-                    setFeedSort("recent");
+                    setFeedSort("latest");
                   }}
                   className={cn(
-                    "flex min-h-8 items-center rounded-xl px-3 text-xs font-semibold transition-all cursor-pointer",
-                    feedSort === "recent"
+                    "flex min-h-8 items-center rounded-xl px-2.5 sm:px-3 text-xs font-semibold transition-all cursor-pointer whitespace-nowrap",
+                    feedSort === "latest"
                       ? "bg-card text-foreground shadow-2xs font-bold"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  <span>Recent</span>
+                  <span>Latest</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic("selection");
+                    setFeedSort("most-loved");
+                  }}
+                  className={cn(
+                    "flex min-h-8 items-center rounded-xl px-2.5 sm:px-3 text-xs font-semibold transition-all cursor-pointer whitespace-nowrap",
+                    feedSort === "most-loved"
+                      ? "bg-card text-foreground shadow-2xs font-bold"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <span>Most Loved</span>
                 </button>
               </div>
 
@@ -505,7 +570,7 @@ function Home() {
             </p>
           )}
 
-          <div className="min-h-[948px] space-y-4">
+          <div className="min-h-[320px] space-y-4">
           {/* Initial Loading State */}
           {isFeedLoading && visiblePosts.length === 0 && <FeedSkeleton count={3} />}
 
@@ -577,16 +642,44 @@ function Home() {
                 onSave={handleSave}
                 onShare={handleShareTarget}
               />
-              {index === 1 && (
-                <aside className="rounded-3xl border border-[#D8CCEA] bg-[#EEE8FA] p-5 text-sm text-[#51436A]">
-                  <div className="flex items-center gap-2 font-semibold text-foreground">
-                    <Info className="size-4 text-primary" aria-hidden />
-                    <h3>A few things worth knowing</h3>
+              {showTipsCard && index === 2 && (
+                <aside className="relative rounded-3xl border border-[#E3B8B1]/70 bg-[#FFF8F5] p-4.5 sm:p-5 text-sm text-[#7D3028] shadow-2xs">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 font-semibold text-foreground">
+                      <Info className="size-4 text-primary shrink-0" aria-hidden />
+                      <h3 className="font-serif text-sm font-bold text-foreground">
+                        A few things worth knowing
+                      </h3>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowTipsCard(false);
+                        try {
+                          localStorage.setItem("bh:tips-dismissed", "1");
+                        } catch {
+                          /* Still works without localStorage */
+                        }
+                      }}
+                      aria-label="Dismiss helpful tips"
+                      className="flex size-7 items-center justify-center rounded-full text-muted-foreground hover:bg-[#E3B8B1]/30 hover:text-foreground transition-colors cursor-pointer"
+                    >
+                      <X className="size-3.5" />
+                    </button>
                   </div>
-                  <ul className="mt-3 space-y-2 leading-5 text-xs sm:text-sm text-[#51436A]">
-                    <li>Wall posts can be read by other visitors.</li>
-                    <li>You choose whether your handle appears when you post.</li>
-                    <li>You can report a post from its options menu.</li>
+                  <ul className="mt-2.5 space-y-1.5 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">&bull;</span>
+                      <span>Wall posts can be read by other visitors anonymously.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">&bull;</span>
+                      <span>You choose whether your handle appears when you post.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">&bull;</span>
+                      <span>You can report a post anytime from its options menu.</span>
+                    </li>
                   </ul>
                 </aside>
               )}
@@ -638,22 +731,25 @@ function Home() {
         </div>
       )}
 
+      {/* Floating Write Button - anchored to bottom-right for natural thumb reach, never blocking reading center */}
       <button
         type="button"
         onClick={openComposer}
-        className="spring-press fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0 sm:bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] z-30 flex min-h-11 items-center gap-2 rounded-full bg-primary/95 px-5 text-xs sm:text-sm font-semibold text-white shadow-[0_8px_24px_-6px_rgba(80,43,38,.5)] backdrop-blur-md transition-all duration-200 active:scale-95 hover:bg-primary cursor-pointer"
+        aria-label="Write a thought"
+        className="spring-press fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] right-4 sm:right-6 z-30 flex min-h-11 items-center gap-2 rounded-full bg-primary/95 px-4 sm:px-5 text-xs sm:text-sm font-semibold text-white shadow-[0_8px_24px_-6px_rgba(80,43,38,.5)] backdrop-blur-md transition-all duration-200 active:scale-95 hover:bg-primary cursor-pointer"
       >
         <PencilLine className="size-4 shrink-0" aria-hidden />
-        <span>Write a thought</span>
+        <span className="hidden sm:inline">Write a thought</span>
+        <span className="inline sm:hidden">Write</span>
       </button>
 
-      {/* Floating Back to Top Button */}
+      {/* Floating Back to Top Button - stacked neatly above the Write button without conflict */}
       {showScrollTop && (
         <button
           type="button"
           onClick={scrollToTop}
           aria-label="Scroll back to top"
-          className="spring-press fixed bottom-[calc(8.25rem+env(safe-area-inset-bottom,0px))] right-4 sm:right-6 z-30 flex size-10 items-center justify-center rounded-full border border-border bg-card/90 backdrop-blur-md text-muted-foreground shadow-sm transition-all hover:text-primary active:scale-95 cursor-pointer"
+          className="spring-press fixed bottom-[calc(8.0rem+env(safe-area-inset-bottom,0px))] right-4 sm:right-6 z-30 flex size-10 items-center justify-center rounded-full border border-border bg-card/95 backdrop-blur-md text-muted-foreground shadow-sm transition-all hover:text-primary active:scale-95 cursor-pointer"
         >
           <ArrowUp className="size-4" />
         </button>

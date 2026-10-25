@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 
 export function HeroIntro() {
   const [collapsed, setCollapsed] = useState(false);
@@ -41,7 +41,7 @@ export function HeroIntro() {
       <div className="relative">
         <div className="flex items-center justify-between gap-3">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E3B8B1]/70 bg-white/80 px-2.5 py-0.5 text-[11px] font-semibold text-[#7D3028]">
-            <span className="listening-mark scale-75" aria-hidden /> The Wall
+            <Sparkles className="size-3 text-[#7D3028]" aria-hidden /> The Wall
           </span>
           <button
             type="button"

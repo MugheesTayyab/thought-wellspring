@@ -51,18 +51,20 @@ export function DuelCard({
 
         <div className="relative flex h-full flex-col justify-between gap-2">
           <div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <span
-                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold max-w-[70%] truncate ${
                   isSelected ? "bg-amber-200 text-amber-900" : "bg-cream text-muted-foreground"
                 }`}
               >
-                {index === 0 ? "Option A" : "Option B"}
-                {item.category ? ` · ${item.category}` : ""}
+                <span className="shrink-0">{index === 0 ? "Option A" : "Option B"}</span>
+                {item.category ? <span className="truncate">&nbsp;· {item.category}</span> : ""}
               </span>
 
               {item.handle && (
-                <span className="text-[11px] font-medium text-muted-foreground">{item.handle}</span>
+                <span className="text-[11px] font-medium text-muted-foreground truncate max-w-[30%] text-right">
+                  {item.handle}
+                </span>
               )}
             </div>
 

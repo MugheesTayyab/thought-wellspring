@@ -43,22 +43,22 @@ function DuelPage() {
 
   return (
     <div className="duel-page bg-background px-4 text-foreground sm:px-6">
-      <header className="mx-auto flex max-w-lg items-center justify-between border-b border-border py-4">
+      <header className="mx-auto flex w-full max-w-lg items-center justify-between border-b border-border/80 py-4">
         <Link
           to="/"
-          className="tap-44 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+          className="tap-44 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0 w-20"
         >
           <ArrowLeft className="size-4" />
           The Wall
         </Link>
-        <div className="flex items-center gap-1.5">
-          <Scale className="size-4 text-primary" />
+        <div className="flex items-center justify-center gap-1.5 flex-1 min-w-0">
+          <Scale className="size-4.5 text-primary shrink-0" />
           <h1 className="font-display text-lg font-bold text-ink">Duel</h1>
         </div>
-        <span className="w-16" aria-hidden />
+        <span className="w-20 shrink-0" aria-hidden />
       </header>
 
-      <main className="duel-main mx-auto flex w-full max-w-lg items-center justify-center py-3">
+      <main className="duel-main mx-auto flex w-full max-w-lg flex-col items-center justify-start pt-3 pb-4 sm:pt-5 sm:pb-6">
         {isLoading && !duel ? (
           <div className="w-full space-y-4">
             <div className="h-6 w-32 mx-auto rounded-full bg-border/40 animate-pulse" />
@@ -116,14 +116,14 @@ function DuelPage() {
         </p>
       )}
 
-      <footer className="mx-auto flex w-full max-w-lg items-center justify-between border-t border-border py-1 text-xs text-muted-foreground">
-        <span>
+      <footer className="mx-auto flex w-full max-w-lg items-center justify-between border-t border-border/80 py-3 text-xs text-muted-foreground">
+        <span className="font-medium">
           {answeredCount} {answeredCount === 1 ? "Duel" : "Duels"} answered
         </span>
         <button
           type="button"
           onClick={openWarmthSheet}
-          className="tap-44 font-semibold text-coral hover:underline inline-flex items-center gap-1"
+          className="tap-44 font-semibold text-coral hover:underline inline-flex items-center gap-1 cursor-pointer"
         >
           <span>View Ember · {totalWarmth}</span>
         </button>

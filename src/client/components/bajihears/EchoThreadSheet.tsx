@@ -42,13 +42,19 @@ export function EchoThreadSheet({ open, post, myHandle, onClose, onEcho, onRepor
     setSending(true);
     setError(null);
     setSent(false);
+    const chosenHandle = anonymous || !myHandle?.trim() ? null : myHandle.trim();
     try {
-      await onEcho(post.id, clean, anonymous ? null : myHandle);
+      await onEcho(post.id, clean, chosenHandle);
       setText("");
       setSent(true);
       window.setTimeout(() => setSent(false), 2500);
-    } catch {
-      setError("Couldn't send your Echo. Your reply hasn't been lost.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (message && !message.includes("Unexpected") && !message.includes("fetch")) {
+        setError(message);
+      } else {
+        setError("Couldn't send your Echo right now. Your draft is preserved below.");
+      }
     } finally {
       setSending(false);
     }

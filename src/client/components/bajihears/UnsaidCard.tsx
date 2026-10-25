@@ -15,6 +15,7 @@ import {
   Share2,
   SmilePlus,
   Feather,
+  UserRound,
 } from "lucide-react";
 import { RevealCountdown } from "./RevealCountdown";
 import { PublicProfileModal } from "./PublicProfileModal";
@@ -242,28 +243,28 @@ export function UnsaidCard({
 
         {/* Card Header Row: Editorial collection label OR Standard Community Row */}
         {unsaid.sourceType === "editorial" ? (
-          <div className="flex items-center justify-between gap-2.5 text-xs font-sans mb-3 pb-2.5 border-b border-[#E3B8B1]/40">
-            <div className="flex items-center gap-2 flex-wrap min-w-0">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FBE6E4] px-2.5 py-0.5 text-[11px] font-semibold text-[#7D3028] border border-[#E3B8B1]">
-                <Feather className="size-3 text-[#7D3028]" aria-hidden />
-                BajiHears Original · Fictional
+          <div className="flex items-center justify-between gap-2 text-xs font-sans mb-3 pb-2.5 border-b border-[#E3B8B1]/40 flex-nowrap min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0 flex-1 truncate">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FBE6E4] px-2.5 py-0.5 text-[11px] font-semibold text-[#7D3028] border border-[#E3B8B1] shrink-0">
+                <Feather className="size-3 text-[#7D3028] shrink-0" aria-hidden />
+                BajiHears Original
               </span>
               {unsaid.displayOrder != null && (
-                <span className="text-[11px] font-medium text-muted-foreground/80">
+                <span className="text-[11px] font-medium text-muted-foreground/80 shrink-0">
                   #{String(unsaid.displayOrder).padStart(2, "0")}
                 </span>
               )}
             </div>
 
-            <span className="shrink-0 border border-border-card text-muted-foreground rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-secondary/50">
+            <span className="shrink-0 border border-border-card text-muted-foreground rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-secondary/50 max-w-[120px] truncate">
               #{unsaid.category.toLowerCase().replace(/\s+/g, "")}
             </span>
           </div>
         ) : (
-          <div className="flex items-center justify-between gap-3 text-xs font-sans mb-3 pb-2.5 border-b border-border-subtle">
-            <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+          <div className="flex items-center justify-between gap-2.5 text-xs font-sans mb-3 pb-2.5 border-b border-border-subtle flex-nowrap min-w-0">
+            <div className="flex items-center gap-1.5 text-muted-foreground min-w-0 flex-1">
               {unsaid.handle ? (
-                <div className="inline-flex items-center gap-1.5 truncate">
+                <div className="inline-flex items-center gap-1 min-w-0 max-w-[140px] sm:max-w-[220px] truncate">
                   <button
                     type="button"
                     onClick={(e) => {
@@ -271,11 +272,11 @@ export function UnsaidCard({
                       setProfileModalId(unsaid.profileId || unsaid.handle);
                     }}
                     style={auraStyle}
-                    className="inline-flex items-center gap-1 text-[13px] font-medium text-foreground hover:text-primary transition-colors cursor-pointer group"
+                    className="inline-flex items-center gap-1 text-[13px] font-medium text-foreground hover:text-primary transition-colors cursor-pointer group truncate"
                     title={`Open @${stripHandle(unsaid.handle)}'s Public Corner`}
                   >
-                    {crownIcon && <span className="text-[10px]">👑</span>}
-                    <span className="group-hover:underline">@{stripHandle(unsaid.handle)}</span>
+                    {crownIcon && <span className="text-[10px] shrink-0">👑</span>}
+                    <span className="group-hover:underline truncate">@{stripHandle(unsaid.handle)}</span>
                   </button>
 
                   {getInstagramUrl(unsaid.handle) && (
@@ -284,7 +285,7 @@ export function UnsaidCard({
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="text-muted-foreground hover:text-pink-500 transition-colors p-0.5 inline-flex items-center"
+                      className="text-muted-foreground hover:text-pink-500 transition-colors p-0.5 inline-flex items-center shrink-0"
                       title="Open Instagram"
                     >
                       <Instagram
@@ -295,17 +296,17 @@ export function UnsaidCard({
                   )}
                 </div>
               ) : (
-                <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground">
-                  <span className="listening-mark scale-75" aria-hidden /> Anonymous
+                <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground whitespace-nowrap shrink-0">
+                  <UserRound className="size-3.5 text-muted-foreground/75" aria-hidden /> Anonymous
                 </span>
               )}
-              <span className="text-muted-foreground/40 text-xs select-none">·</span>
-              <span className="text-[12px] text-muted-foreground whitespace-nowrap">
+              <span className="text-muted-foreground/40 text-xs select-none shrink-0">·</span>
+              <span className="text-[11px] sm:text-[12px] text-muted-foreground whitespace-nowrap shrink-0">
                 {relativeTime(unsaid.createdAt)}
               </span>
             </div>
 
-            <span className="shrink-0 border border-border-card text-muted-foreground rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-secondary/50">
+            <span className="shrink-0 border border-border-card text-muted-foreground rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-secondary/50 max-w-[120px] truncate">
               #{unsaid.category.toLowerCase().replace(/\s+/g, "")}
             </span>
           </div>
@@ -351,10 +352,10 @@ export function UnsaidCard({
           </p>
         )}
 
-        {/* Bottom Action Row: Reactions, Echo, Share, and Overflow Menu */}
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-y-1 border-t border-border pt-3 text-xs font-sans">
+        {/* Bottom Action Row: Reactions, Echo, Bookmark, Share, and Overflow Menu */}
+        <div className="mt-4 flex items-center justify-between gap-1 w-full border-t border-border pt-3 text-xs font-sans flex-nowrap select-none">
           {/* Left: Reaction Cluster with Primary Heart */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 min-w-0 shrink-0">
             <button
               type="button"
               aria-label={
@@ -365,18 +366,18 @@ export function UnsaidCard({
               aria-pressed={mine.includes("heart")}
               onClick={() => react("heart")}
               className={cn(
-                "flex min-h-11 items-center gap-1.5 rounded-xl border px-3 text-xs transition-all active:scale-[.97] cursor-pointer",
+                "flex min-h-10 sm:min-h-11 items-center gap-1.5 rounded-xl border px-2.5 sm:px-3 text-xs transition-all active:scale-[.97] cursor-pointer shrink-0",
                 mine.includes("heart")
                   ? "border-primary/40 bg-accent text-primary font-semibold"
                   : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary",
               )}
             >
               <Heart
-                className={cn("size-3.5", mine.includes("heart") && "fill-current text-primary")}
+                className={cn("size-3.5 sm:size-4 shrink-0", mine.includes("heart") && "fill-current text-primary")}
               />
-              <span className="font-sans font-semibold">Relate</span>
+              <span className="font-sans font-semibold hidden min-[360px]:inline">Relate</span>
               {unsaid.reactions.heart > 0 && (
-                <span className="tabular-nums text-[11px]">
+                <span className="tabular-nums text-[11px] font-semibold">
                   {compactCount(unsaid.reactions.heart)}
                 </span>
               )}
@@ -384,20 +385,20 @@ export function UnsaidCard({
 
             {/* User's custom non-heart reaction indicator if active */}
             {mine.some((k) => k !== "heart") && (
-              <span className="text-xs px-1 select-none animate-fade-in" title="Your reaction">
+              <span className="text-xs px-0.5 select-none animate-fade-in shrink-0" title="Your reaction">
                 {mine.includes("fire") ? "🔥" : mine.includes("hug") ? "🤝" : "🌧️"}
               </span>
             )}
 
             {/* Quiet Reaction Picker Trigger */}
-            <div className="relative">
+            <div className="relative shrink-0">
               <button
                 type="button"
                 onClick={() => setShowRxPicker((v) => !v)}
                 aria-label="More reactions"
-                className="flex size-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground cursor-pointer"
+                className="flex size-9 sm:size-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground cursor-pointer"
               >
-                <SmilePlus className="size-3.5" />
+                <SmilePlus className="size-3.5 sm:size-4" />
               </button>
 
               {showRxPicker && (
@@ -430,57 +431,62 @@ export function UnsaidCard({
             </div>
           </div>
 
-          {/* Right: Actions Row (Echo, Share, Overflow Menu) */}
-          <div className="ml-auto flex items-center gap-1 sm:gap-3">
+          {/* Right: Actions Row (Echo, Bookmark, Share, Overflow Menu) */}
+          <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0">
             {/* Echo */}
             <button
               type="button"
               onClick={() => setThreadOpen(true)}
               className={cn(
-                "flex min-h-11 items-center gap-1.5 rounded-xl px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground cursor-pointer font-sans",
+                "flex min-h-10 sm:min-h-11 items-center gap-1 sm:gap-1.5 rounded-xl px-2 sm:px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground cursor-pointer font-sans shrink-0",
                 echoed && "text-primary font-semibold",
               )}
+              title="Open Echoes"
             >
-              <MessageCircle className="size-3.5 shrink-0" />
-              <span>
+              <MessageCircle className="size-3.5 sm:size-4 shrink-0" />
+              <span className="hidden min-[400px]:inline">
                 {unsaid.echoes.length > 0
                   ? `${unsaid.echoes.length} ${unsaid.echoes.length === 1 ? "Echo" : "Echoes"}`
                   : "Echo"}
               </span>
+              <span className="inline min-[400px]:hidden">
+                {unsaid.echoes.length > 0 ? unsaid.echoes.length : "Echo"}
+              </span>
             </button>
 
+            {/* Bookmark */}
             <button
               type="button"
               onClick={() => onSave(unsaid)}
               aria-pressed={saved}
               className={cn(
-                "flex min-h-11 items-center gap-1.5 rounded-xl px-2.5 text-xs font-medium transition-colors hover:bg-secondary",
+                "flex size-9 sm:min-h-11 sm:w-auto sm:px-2.5 items-center justify-center gap-1.5 rounded-xl text-xs font-medium transition-colors hover:bg-secondary shrink-0",
                 saved ? "text-primary" : "text-muted-foreground hover:text-foreground",
               )}
               title={saved ? "Remove from saved thoughts" : "Save on this device"}
             >
-              <Bookmark className={cn("size-3.5", saved && "fill-current")} aria-hidden />
-              <span className="sr-only sm:not-sr-only">{saved ? "Saved" : "Save"}</span>
+              <Bookmark className={cn("size-3.5 sm:size-4", saved && "fill-current")} aria-hidden />
+              <span className="hidden md:inline">{saved ? "Saved" : "Save"}</span>
             </button>
 
             {/* Share */}
             <button
               type="button"
               onClick={() => onShare(unsaid)}
-              className="flex min-h-11 items-center gap-1.5 rounded-xl px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground cursor-pointer font-sans"
+              className="flex size-9 sm:min-h-11 sm:w-auto sm:px-2.5 items-center justify-center gap-1.5 rounded-xl text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground cursor-pointer font-sans shrink-0"
               title="Share Story Card"
             >
-              <Share2 className="size-3.5" />
-              <span className="hidden sm:inline">Share</span>
+              <Share2 className="size-3.5 sm:size-4" />
+              <span className="hidden md:inline">Share</span>
             </button>
 
             {/* Three-Dot Overflow Menu */}
-            <div className="relative">
+            <div className="relative shrink-0">
               <button
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
                 aria-label="More options"
-                className="flex size-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground cursor-pointer"
+                className="flex size-9 sm:size-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground cursor-pointer"
               >
                 <MoreHorizontal className="size-4" />
               </button>

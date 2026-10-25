@@ -21,6 +21,7 @@ import {
   readMyEchoes,
   writeMyEchoes,
 } from "@/client/lib/local-storage";
+import { getOrCreateIdentity } from "@/client/lib/identity";
 import type { Category, ReactionKey, Unsaid, MyReactions, Echo } from "@/shared/types/unsaid";
 import type { SubmitPostResult } from "@/shared/types/api";
 
@@ -289,7 +290,11 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       text: string;
       handle?: string | null;
     }) => {
-      if (!deviceToken) throw new Error("No device identity available");
+      const activeToken =
+        deviceToken || (typeof window !== "undefined" ? getOrCreateIdentity().deviceToken : "");
+      if (!activeToken) throw new Error("No device identity available");
+      const cleanHandle =
+        typeof handle === "string" && handle.trim().length > 0 ? handle.trim() : null;
       const echoInput: {
         unsaidId: string;
         text: string;
@@ -298,11 +303,9 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       } = {
         unsaidId: postId,
         text,
-        deviceToken,
+        deviceToken: activeToken,
+        handle: cleanHandle,
       };
-      if (handle !== undefined) {
-        echoInput.handle = handle;
-      }
       const res = await apiAddEcho({ data: echoInput, headers: await authHeaders() });
       if (!res.ok) throw new Error(res.error.message);
       return res.data;
