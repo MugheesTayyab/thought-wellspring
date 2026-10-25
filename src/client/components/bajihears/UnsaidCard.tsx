@@ -247,7 +247,7 @@ export function UnsaidCard({
             <div className="flex items-center gap-1.5 min-w-0 flex-1 truncate">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FBE6E4] px-2.5 py-0.5 text-[11px] font-semibold text-[#7D3028] border border-[#E3B8B1] shrink-0">
                 <Feather className="size-3 text-[#7D3028] shrink-0" aria-hidden />
-                BajiHears Original
+                BajiHears Original · Fictional
               </span>
               {unsaid.displayOrder != null && (
                 <span className="text-[11px] font-medium text-muted-foreground/80 shrink-0">
