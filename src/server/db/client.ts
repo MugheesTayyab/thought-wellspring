@@ -24,6 +24,8 @@ export interface DatabaseEnv {
   TELEGRAM_BOT_TOKEN?: string | undefined;
   TELEGRAM_CHAT_ID?: string | undefined;
   MODERATION_WEBHOOK_URL?: string | undefined;
+  MODERATION_EMAIL_TO?: string | undefined;
+  MODERATION_EMAIL?: { send(message: { from: string; to: string; subject: string; text: string }): Promise<unknown> } | undefined;
 }
 
 function resolveEnv(env?: DatabaseEnv) {

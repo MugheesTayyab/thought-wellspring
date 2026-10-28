@@ -3,6 +3,7 @@
   "main": ".output/server/index.mjs",
   "compatibility_date": "2026-09-25",
   "compatibility_flags": ["nodejs_compat"],
+  "send_email": [{ "name": "MODERATION_EMAIL" }],
   "assets": {
     "binding": "ASSETS",
     "directory": ".output/public"

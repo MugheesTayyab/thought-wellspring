@@ -134,5 +134,8 @@ export function getServerEnv(): DatabaseEnv {
     TELEGRAM_BOT_TOKEN: getVal("TELEGRAM_BOT_TOKEN"),
     TELEGRAM_CHAT_ID: getVal("TELEGRAM_CHAT_ID"),
     MODERATION_WEBHOOK_URL: getVal("MODERATION_WEBHOOK_URL"),
+    MODERATION_EMAIL_TO: getVal("MODERATION_EMAIL_TO"),
+    MODERATION_EMAIL: sources.map((source) => source?.["MODERATION_EMAIL"])
+      .find((binding) => binding && typeof binding.send === "function"),
   };
 }

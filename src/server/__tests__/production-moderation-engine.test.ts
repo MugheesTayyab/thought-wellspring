@@ -263,6 +263,29 @@ describe("Production Trust & Safety Engine", () => {
   });
 
   describe("Group C: Notification Integrity", () => {
+    it("delivers native email only to approved moderators without thought contents or identity", async () => {
+      const { drainModerationNotifications } = await import("../lib/moderation/notifications");
+      const send = vi.fn().mockResolvedValue({ messageId: "test-message" });
+      const rpc = vi.fn().mockImplementation(async (name: string) => ({
+        data: name === "claim_moderation_notifications" ? [{
+          id: "alert-1", claim_token: "lease", priority: "urgent", preview_text: "PRIVATE THOUGHT", author: "PRIVATE IDENTITY",
+        }] : { success: true }, error: null,
+      }));
+      vi.mocked(getSupabaseAdminClient).mockReturnValue({ rpc } as never);
+      const result = await drainModerationNotifications({ MODERATION_EMAIL: { send }, MODERATION_EMAIL_TO: "moderator@example.test", MODERATOR_EMAILS: "moderator@example.test" });
+      expect(result).toEqual({ processed: 1, failed: 0 });
+      expect(send).toHaveBeenCalledOnce();
+      expect(JSON.stringify(send.mock.calls)).not.toContain("PRIVATE");
+      expect(send.mock.calls[0]?.[0]).toMatchObject({ to: "moderator@example.test", from: "alerts@bajihears.app" });
+    });
+    it("rejects a native recipient outside the moderator allowlist", async () => {
+      const { drainModerationNotifications } = await import("../lib/moderation/notifications");
+      const send = vi.fn();
+      const rpc = vi.fn().mockImplementation(async (name: string) => ({ data: name === "claim_moderation_notifications" ? [{ id: "alert-2", claim_token: "lease" }] : { success: true }, error: null }));
+      vi.mocked(getSupabaseAdminClient).mockReturnValue({ rpc } as never);
+      await expect(drainModerationNotifications({ MODERATION_EMAIL: { send }, MODERATION_EMAIL_TO: "outsider@example.test", MODERATOR_EMAILS: "moderator@example.test" })).resolves.toEqual({ processed: 0, failed: 1 });
+      expect(send).not.toHaveBeenCalled();
+    });
     it("safely handles missing notification credentials without crashing", async () => {
       const { drainModerationNotifications } = await import("../lib/moderation/notifications");
 

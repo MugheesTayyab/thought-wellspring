@@ -64,6 +64,24 @@ async function dispatchNotification(
   const telegramChatId = env.TELEGRAM_CHAT_ID;
   const webhookUrl = env.MODERATION_WEBHOOK_URL;
 
+  // Native email uses an existing verified destination, restricted again to the
+  // moderator allowlist. Never put confession text or author identity in email.
+  if (env.MODERATION_EMAIL && env.MODERATION_EMAIL_TO) {
+    const recipient = env.MODERATION_EMAIL_TO.trim().toLowerCase();
+    const approved = (env.MODERATOR_EMAILS || "").split(",").map((v) => v.trim().toLowerCase());
+    if (!approved.includes(recipient)) return { success: false, error: "Moderation email recipient is not approved" };
+    try {
+      await env.MODERATION_EMAIL.send({
+        from: "alerts@bajihears.app", to: recipient,
+        subject: "BajiHears moderation alert",
+        text: `A ${item.priority} priority moderation case needs review.\nAlert: ${item.id}\nOpen the authenticated dashboard: https://bajihears.app/admin/moderation\nNo author identity or thought content is included in this email.`,
+      });
+      return { success: true };
+    } catch {
+      return { success: false, error: "Native moderation email delivery failed" };
+    }
+  }
+
   // 1. Deliver via Telegram Bot if configured
   if (telegramToken && telegramChatId) {
     try {
@@ -136,7 +154,8 @@ export async function drainModerationNotifications(
   const env = envInput || getServerEnv();
   const telegramConfigured = Boolean(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID);
   const webhookConfigured = Boolean(env.MODERATION_WEBHOOK_URL);
-  if (!telegramConfigured && !webhookConfigured) {
+  const emailConfigured = Boolean(env.MODERATION_EMAIL && env.MODERATION_EMAIL_TO);
+  if (!telegramConfigured && !webhookConfigured && !emailConfigured) {
     console.error(
       "[Moderation Notification] External provider not configured; pending alerts remain queued.",
     );
