@@ -19,7 +19,6 @@ import { registerServiceWorker } from "@/client/lib/notifications";
 import { Toaster } from "@/client/components/ui/sonner";
 import { InstallAppPrompt } from "@/client/components/bajihears/InstallAppPrompt";
 import { AnalyticsTracker } from "@/client/components/bajihears/AnalyticsTracker";
-import { GA_MEASUREMENT_ID } from "@/client/lib/analytics";
 
 export { useWarmth, WarmthProvider, type WarmthContextType };
 
@@ -141,12 +140,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/brand.svg", type: "image/svg+xml" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
       { rel: "manifest", href: "/manifest.webmanifest" },
-    ],
-    scripts: [
-      {
-        src: `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`,
-        async: true,
-      },
     ],
   }),
   shellComponent: RootShell,

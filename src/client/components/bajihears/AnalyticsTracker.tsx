@@ -18,6 +18,7 @@ export function AnalyticsTracker() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      initGoogleAnalytics();
       trackPageView(location.pathname);
     }
   }, [location.pathname]);

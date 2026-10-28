@@ -48,6 +48,21 @@ export const RATE_LIMIT_CONFIGS: Record<RateLimitAction, RateLimitConfig> = {
   },
 };
 
+// Carrier NATs can represent hundreds of readers. Network ceilings limit token
+// rotation abuse without treating everyone on a network as a single visitor.
+export const NETWORK_RATE_LIMITS: Record<RateLimitAction, number> = {
+  submit_post: 300, react: 3000, echo: 1000, report: 500,
+  duel_vote: 1000, auth: 600, push_subscription: 300,
+};
+
+function networkConfig(action: RateLimitAction): RateLimitConfig {
+  return {
+    ...RATE_LIMIT_CONFIGS[action],
+    limit: NETWORK_RATE_LIMITS[action],
+    errorMessage: "This network is unusually busy. Please try again later.",
+  };
+}
+
 export class RateLimitError extends Error {
   statusCode: number;
   code: string;
@@ -88,18 +103,18 @@ export async function checkRateLimit(
 
   try {
     const adminClient = getSupabaseAdminClient(env);
-    await recordRateLimitAttempt(adminClient, action, deviceToken, config);
+    const individual = await recordRateLimitAttempt(adminClient, action, deviceToken, config);
 
     const requestFingerprint = await getRequestFingerprint();
     if (requestFingerprint && requestFingerprint !== deviceToken) {
-      await recordRateLimitAttempt(adminClient, action, requestFingerprint, config);
+      await recordRateLimitAttempt(adminClient, action, requestFingerprint, networkConfig(action));
     }
 
     return {
       allowed: true,
       limit: config.limit,
-      remaining: Math.max(0, config.limit - 1),
-      resetTime: Date.now() + config.windowMinutes * 60000,
+      remaining: individual.remaining,
+      resetTime: individual.resetTime,
     };
   } catch (err) {
     if (err instanceof RateLimitError) throw err;
@@ -115,7 +130,7 @@ async function recordRateLimitAttempt(
   action: RateLimitAction,
   key: string,
   config: RateLimitConfig,
-): Promise<void> {
+): Promise<RateLimitResult> {
   const { data, error } = await adminClient.rpc("record_and_check_rate_limit", {
     p_device_token: key,
     p_action_type: action,
@@ -136,6 +151,12 @@ async function recordRateLimitAttempt(
       Date.now() + data.retry_after_seconds * 1000,
     );
   }
+  return {
+    allowed: true,
+    limit: config.limit,
+    remaining: Math.max(0, Number(data.remaining ?? 0)),
+    resetTime: Date.now() + Number(data.retry_after_seconds ?? config.windowMinutes * 60) * 1000,
+  };
 }
 
 async function getRequestFingerprint(): Promise<string | null> {
@@ -158,7 +179,7 @@ export async function checkRequestRateLimit(
 ): Promise<void> {
   const fingerprint = await getRequestFingerprint();
   if (!fingerprint) return;
-  const config = RATE_LIMIT_CONFIGS[action];
+  const config = networkConfig(action);
   try {
     await recordRateLimitAttempt(getSupabaseAdminClient(env), action, fingerprint, config);
   } catch (err) {

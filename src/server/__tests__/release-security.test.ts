@@ -18,6 +18,7 @@ import { handleFetchUserActivity, handleSubmitPost } from "../handlers/wall";
 import { redactSensitiveText } from "../lib/error-capture";
 import { secretsMatch } from "../handlers/cron";
 import { getServerEnv } from "../lib/get-env";
+import { resolveAuthorHandle } from "../functions/posts";
 
 vi.mock("../db/client", () => ({
   getSupabaseAdminClient: vi.fn(),
@@ -29,6 +30,19 @@ beforeEach(() => {
 });
 
 describe("Public release security", () => {
+  it("prevents guest handle impersonation while preserving anonymous posting", async () => {
+    await expect(resolveAuthorHandle(undefined, null, "@someone_else")).rejects.toThrow("Sign in");
+    await expect(resolveAuthorHandle(undefined, null, null)).resolves.toBeNull();
+    expect(getSupabaseAdminClient).not.toHaveBeenCalled();
+  });
+  it("uses the authenticated profile handle instead of client attribution", async () => {
+    const single = vi.fn().mockResolvedValue({ data: { handle: "@real_author" }, error: null });
+    const eq = vi.fn().mockReturnValue({ single });
+    const select = vi.fn().mockReturnValue({ eq });
+    vi.mocked(getSupabaseAdminClient).mockReturnValue({ from: vi.fn().mockReturnValue({ select }) } as never);
+    await expect(resolveAuthorHandle(undefined, "verified-profile", "@someone_else")).resolves.toBe("@real_author");
+    expect(eq).toHaveBeenCalledWith("id", "verified-profile");
+  });
   it("rejects mutations from another Workers tenant and cross-site form submissions", () => {
     expect(
       isCrossOriginMutation(

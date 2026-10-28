@@ -70,6 +70,7 @@ async function dispatchNotification(
       const url = `https://api.telegram.org/bot${telegramToken}/sendMessage`;
       const response = await fetch(url, {
         method: "POST",
+        signal: AbortSignal.timeout(8000),
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chat_id: telegramChatId,
@@ -96,6 +97,7 @@ async function dispatchNotification(
     try {
       const response = await fetch(webhookUrl, {
         method: "POST",
+        signal: AbortSignal.timeout(8000),
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           event: "moderation_alert",
@@ -116,11 +118,11 @@ async function dispatchNotification(
     }
   }
 
-  // If no external provider is configured, do not fail. Mark as pending in queue and log
+  // Never claim successful delivery when no provider accepted the alert.
   console.info(
     `[Moderation Notification] External provider not configured. Event '${item.event_type}' for ${item.target_type}:${item.target_id} retained in database queue.`,
   );
-  return { success: true };
+  return { success: false, error: "No moderation delivery provider configured" };
 }
 
 /**
@@ -135,7 +137,7 @@ export async function drainModerationNotifications(
   const telegramConfigured = Boolean(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID);
   const webhookConfigured = Boolean(env.MODERATION_WEBHOOK_URL);
   if (!telegramConfigured && !webhookConfigured) {
-    console.info(
+    console.error(
       "[Moderation Notification] External provider not configured; pending alerts remain queued.",
     );
     return { processed: 0, failed: 0 };
@@ -148,7 +150,8 @@ export async function drainModerationNotifications(
       p_lease_seconds: leaseSeconds,
     });
 
-    if (error || !data || data.length === 0) {
+    if (error) throw new Error("Moderation queue claim failed");
+    if (!data || data.length === 0) {
       return { processed: 0, failed: 0 };
     }
 
@@ -185,13 +188,17 @@ export async function drainModerationNotifications(
         );
       }
 
-      if (result.success) {
+      const acknowledged = !completionError && Boolean(
+        completionResult && typeof completionResult === "object" &&
+        (completionResult as { success?: boolean }).success,
+      );
+      if (result.success && acknowledged) {
         processed++;
       } else {
         failed++;
         console.error(
           `[Moderation Notification] Delivery failed for item ${item.id}:`,
-          result.error,
+          result.error ?? "Delivery was not acknowledged by the queue",
         );
       }
     }
@@ -199,6 +206,6 @@ export async function drainModerationNotifications(
     return { processed, failed };
   } catch (err) {
     console.error("[Moderation Notification] Drain exception:", err);
-    return { processed: 0, failed: 0 };
+    return { processed: 0, failed: 1 };
   }
 }

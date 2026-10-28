@@ -5,7 +5,6 @@ import {
   Flame,
   Heart,
   HeartHandshake,
-  Instagram,
   MessageCircle,
   CloudRain,
   Crown,
@@ -27,7 +26,6 @@ import {
   compactCount,
   relativeTime,
   stripHandle,
-  getInstagramUrl,
   getTier,
 } from "@/shared/utils";
 import { REACTIONS } from "@/shared/constants/reactions";
@@ -279,21 +277,6 @@ export function UnsaidCard({
                     <span className="group-hover:underline truncate">@{stripHandle(unsaid.handle)}</span>
                   </button>
 
-                  {getInstagramUrl(unsaid.handle) && (
-                    <a
-                      href={getInstagramUrl(unsaid.handle)!}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-muted-foreground hover:text-pink-500 transition-colors p-0.5 inline-flex items-center shrink-0"
-                      title="Open Instagram"
-                    >
-                      <Instagram
-                        className="size-3 text-primary opacity-80 hover:opacity-100"
-                        aria-hidden
-                      />
-                    </a>
-                  )}
                 </div>
               ) : (
                 <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground whitespace-nowrap shrink-0">
@@ -458,6 +441,7 @@ export function UnsaidCard({
             <button
               type="button"
               onClick={() => onSave(unsaid)}
+              aria-label={saved ? "Remove from saved thoughts" : "Save"}
               aria-pressed={saved}
               className={cn(
                 "flex size-9 sm:min-h-11 sm:w-auto sm:px-2.5 items-center justify-center gap-1.5 rounded-xl text-xs font-medium transition-colors hover:bg-secondary shrink-0",

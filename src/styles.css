@@ -805,6 +805,9 @@
   }
 }
 @media (max-height: 650px) {
+  .duel-page > footer {
+    padding-block: 8px;
+  }
   .duel-main {
     padding-block: 6px;
   }

@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import {
   GA_MEASUREMENT_ID,
   getAnalyticsConsent,
@@ -10,6 +10,7 @@ import {
 } from "@/client/lib/analytics";
 
 describe("Google Analytics 4 & Consent Mode v2", () => {
+  afterEach(() => vi.unstubAllGlobals());
   beforeEach(() => {
     _resetAnalyticsForTesting();
     const store: Record<string, string> = {};
@@ -86,6 +87,7 @@ describe("Google Analytics 4 & Consent Mode v2", () => {
 
   it("tracks page views and deduplicates consecutive duplicate paths", () => {
     initGoogleAnalytics();
+    localStorage.setItem("bh:analytics-consent", "granted");
     const gtagSpy = vi.spyOn(window, "gtag");
 
     trackPageView("/duel", "The Duel | BajiHears");
@@ -109,10 +111,11 @@ describe("Google Analytics 4 & Consent Mode v2", () => {
 
   it("strictly filters PII from custom engagement events", () => {
     initGoogleAnalytics();
+    localStorage.setItem("bh:analytics-consent", "granted");
     const gtagSpy = vi.spyOn(window, "gtag");
 
     trackEngagementEvent("thought_reaction", {
-      category: "Heartbreak",
+      category: "Silent Thoughts",
       reaction: "heart",
       handle: "secret_user",
       username: "john_doe",
@@ -123,9 +126,61 @@ describe("Google Analytics 4 & Consent Mode v2", () => {
     });
 
     expect(gtagSpy).toHaveBeenCalledWith("event", "thought_reaction", {
-      category: "Heartbreak",
+      category: "Silent Thoughts",
       reaction: "heart",
       safe_metric: 42,
     });
+  });
+  it("rejects unknown event names, arbitrary text parameters, and nonfinite metrics", () => {
+    initGoogleAnalytics();
+    localStorage.setItem("bh:analytics-consent", "granted");
+    const spy = vi.spyOn(window, "gtag");
+    trackEngagementEvent("private@example.test", { value: 1 });
+    expect(spy).not.toHaveBeenCalled();
+    trackEngagementEvent("thought_reaction", { category: "private@example.test", extra: "private text", value: Infinity, reaction: "heart" });
+    expect(spy).toHaveBeenCalledWith("event", "thought_reaction", { reaction: "heart" });
+  });
+  it("does not emit page views or engagement before consent or after withdrawal", () => {
+    initGoogleAnalytics();
+    const spy = vi.spyOn(window, "gtag");
+    trackPageView("/");
+    trackEngagementEvent("thought_reaction", { reaction: "heart" });
+    expect(spy).not.toHaveBeenCalled();
+    setAnalyticsConsent("denied");
+    spy.mockClear();
+    trackPageView("/corner");
+    expect(spy).not.toHaveBeenCalled();
+  });
+  it("excludes callback credentials and strips query strings and fragments", () => {
+    window.location.href = "https://bajihears.app/?email=private@example.test#access_token=secret";
+    localStorage.setItem("bh:analytics-consent", "granted");
+    initGoogleAnalytics();
+    const spy = vi.spyOn(window, "gtag");
+    trackPageView("/auth/callback");
+    expect(spy).not.toHaveBeenCalled();
+    trackPageView("/duel?email=private@example.test#secret");
+    expect(spy).toHaveBeenCalledWith("event", "page_view", expect.objectContaining({
+      page_path: "/duel", page_location: "https://bajihears.app/duel", page_referrer: "",
+    }));
+    expect(JSON.stringify(window.dataLayer)).not.toContain("private@example");
+    expect(JSON.stringify(window.dataLayer)).not.toContain("access_token");
+  });
+  it("loads exactly once after leaving a cold callback with stored consent", () => {
+    localStorage.setItem("bh:analytics-consent", "granted");
+    window.location.pathname = "/auth/callback";
+    window.location.href = "https://bajihears.app/auth/callback?code=private";
+    let loaded = false;
+    const appendChild = vi.fn(() => { loaded = true; });
+    vi.stubGlobal("document", {
+      getElementById: () => loaded ? {} : null,
+      createElement: () => ({}), head: { appendChild },
+    });
+    initGoogleAnalytics();
+    expect(appendChild).not.toHaveBeenCalled();
+    window.location.pathname = "/";
+    window.location.href = "https://bajihears.app/";
+    initGoogleAnalytics();
+    initGoogleAnalytics();
+    expect(appendChild).toHaveBeenCalledOnce();
   });
 });

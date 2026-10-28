@@ -36,6 +36,24 @@ export interface SubmitPostResult {
   message?: string;
 }
 
+// Public attribution must come from the authenticated account, never client text.
+export async function resolveAuthorHandle(
+  env: DatabaseEnv | undefined,
+  profileId: string | null | undefined,
+  requestedHandle: string | null | undefined,
+): Promise<string | null> {
+  if (!requestedHandle) return null;
+  if (!profileId) throw new z.ZodError([{
+    code: "custom",
+    path: ["handle"],
+    message: "Sign in to post with your handle, or post anonymously.",
+  }]);
+  const { data, error } = await getSupabaseAdminClient(env)
+    .from("profiles").select("handle").eq("id", profileId).single();
+  if (error || !data?.handle) throw new Error("Your profile could not be verified. Please try again.");
+  return data.handle;
+}
+
 /**
  * Submit confession to The Wall
  */
@@ -59,6 +77,7 @@ export async function submitPost(
       .optional(),
   }).parse(input);
   const token = validateDeviceToken(input.deviceToken);
+  const authorHandle = await resolveAuthorHandle(env, input.profileId, input.handle);
 
   const text = input.text?.trim() || "";
   if (text.length < 3) {
@@ -95,7 +114,7 @@ export async function submitPost(
     text: safeText,
     category: input.category,
     preset: input.preset || "midnight-static",
-    handle: input.handle ?? null,
+    handle: authorHandle,
     deviceToken: token,
     profileId: input.profileId ?? null,
     status,
@@ -307,6 +326,7 @@ export async function addEcho(
   },
 ): Promise<Echo> {
   const token = validateDeviceToken(input.deviceToken);
+  const authorHandle = await resolveAuthorHandle(env, input.profileId, input.handle);
 
   z.object({
     unsaidId: z.string().uuid(),
@@ -350,7 +370,7 @@ export async function addEcho(
   const res = await insertEcho(env, {
     unsaidId: input.unsaidId,
     text: safeText,
-    handle: input.handle ?? null,
+    handle: authorHandle,
     deviceToken: token,
     profileId: input.profileId ?? null,
   });
@@ -368,7 +388,7 @@ export async function addEcho(
   return {
     id: res.data.id,
     text,
-    handle: input.handle ?? null,
+    handle: authorHandle,
     createdAt: res.data.createdAt,
     profileId: input.profileId ?? null,
   };

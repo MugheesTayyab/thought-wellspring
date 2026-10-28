@@ -1,5 +1,9 @@
 # Public release audit — 23 October 2026
 
+> Historical record. Superseded by LAUNCH_AUDIT_2026-10-29.md and
+> LAUNCH_IMPLEMENTATION_PLAN.md. Statements below describe the earlier audit;
+> they do not establish current production readiness.
+
 The implementation, production database hardening, Cloudflare secret synchronization,
 and automated launch checks are complete. **The code is ready to deploy.** Final
 acceptance still includes real Google OAuth, notification delivery, and physical-device

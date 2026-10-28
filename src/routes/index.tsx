@@ -61,7 +61,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { deviceToken } = useDeviceToken();
   const { totalWarmth, awardWarmth, openWarmthSheet, isFlashingOrb } = useWarmth();
   const {
@@ -370,7 +370,7 @@ function Home() {
                   echoed={myEchoedIds.includes(winner.id)}
                   reported={myReports.includes(winner.id)}
                   saved={savedThoughts.some((thought) => thought.id === winner.id)}
-                  myHandle={handle}
+                  myHandle={user ? profile?.handle ?? handle : null}
                   onReact={(_id, key) => onWinnerReact(key)}
                   onEcho={handleEcho}
                   onReport={handleReport}
@@ -523,7 +523,7 @@ function Home() {
             <div id="wall-composer">
               <WritingBox
                 lastSubmitAt={lastSubmitAt}
-                myHandle={handle}
+                myHandle={user ? profile?.handle ?? handle : null}
                 isSubmitting={isSubmitting}
                 submitError={submitError}
                 onClose={() => setShowComposer(false)}
@@ -634,7 +634,7 @@ function Home() {
                 echoed={myEchoedIds.includes(u.id)}
                 reported={myReports.includes(u.id)}
                 saved={savedThoughts.some((thought) => thought.id === u.id)}
-                myHandle={handle}
+                myHandle={user ? profile?.handle ?? handle : null}
                 onReact={handleReact}
                 onEcho={handleEcho}
                 onReport={handleReport}

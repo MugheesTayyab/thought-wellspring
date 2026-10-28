@@ -8,6 +8,7 @@ import { LOCKOUT_MS, MAX_LEN, MIN_LEN } from "@/shared/constants/cycle";
 import { PRESETS } from "@/shared/constants/presets";
 import { triggerHaptic } from "@/client/lib/haptics";
 import { detectProfanity } from "@/shared/lib/profanity";
+import { useAuth } from "@/client/stores/auth-context";
 
 const DRAFT_KEY = "bh:wall-composer-draft-v1";
 
@@ -71,6 +72,8 @@ export function WritingBox({
   isSubmitting = false,
   submitError = null,
 }: Props) {
+  const { user, profile } = useAuth();
+  const canAttribute = Boolean(user && profile?.handle);
   const initialDraft = useMemo(() => readDraft(myHandle), [myHandle]);
   const [text, setText] = useState(initialDraft.text);
   const [anonymous, setAnonymous] = useState(initialDraft.anonymous);
@@ -88,14 +91,14 @@ export function WritingBox({
 
   const sending = isSubmitting || localSending;
   const cleanHandle = stripHandle(handle)
-    .replace(/[^a-zA-Z0-9._]/g, "")
-    .slice(0, 30);
+    .replace(/[^a-zA-Z0-9._-]/g, "")
+    .slice(0, 40);
   const profanityCheck = useMemo(() => detectProfanity(text), [text]);
   const unlockAt = lastSubmitAt ? lastSubmitAt + LOCKOUT_MS : null;
   const locked = unlockAt !== null && unlockAt > now;
   const overLimit = text.length > MAX_LEN;
   const missingCategory = category === null;
-  const invalidHandle = !anonymous && cleanHandle.length < 2;
+  const invalidHandle = !anonymous && (!canAttribute || cleanHandle.length < 2);
   const valid =
     text.trim().length >= MIN_LEN &&
     !overLimit &&
@@ -103,6 +106,11 @@ export function WritingBox({
     !missingCategory &&
     !invalidHandle;
   const selectedMood = PRESETS.find((mood) => mood.key === preset) ?? PRESETS[0]!;
+
+  useEffect(() => {
+    if (profile?.handle) setHandle(profile.handle);
+    if (!canAttribute) setAnonymous(true);
+  }, [profile?.handle, canAttribute]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => textareaRef.current?.focus(), 180);
@@ -362,9 +370,10 @@ export function WritingBox({
                   <button
                     type="button"
                     aria-pressed={!anonymous}
+                    disabled={!canAttribute}
                     onClick={() => setAnonymous(false)}
                     className={cn(
-                      "min-h-[72px] rounded-2xl border p-3 text-left transition-colors cursor-pointer",
+                      "min-h-[72px] rounded-2xl border p-3 text-left transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-60",
                       !anonymous
                         ? "border-primary bg-accent"
                         : "border-border-card bg-card hover:border-primary/40",
@@ -374,7 +383,7 @@ export function WritingBox({
                       With a handle
                     </span>
                     <span className="mt-1 block text-xs leading-4 text-muted-foreground">
-                      Readers can see the Instagram handle you enter.
+                      Sign in to use your BajiHears account handle.
                     </span>
                   </button>
                 </div>
@@ -385,14 +394,14 @@ export function WritingBox({
                       htmlFor="public-handle"
                       className="text-xs font-semibold text-foreground"
                     >
-                      Instagram handle
+                      Account handle
                     </label>
                     <div className="mt-2 flex min-h-12 items-center rounded-xl border border-border-card bg-background px-3 focus-within:border-primary">
                       <AtSign className="size-4 text-muted-foreground" aria-hidden />
                       <input
                         id="public-handle"
                         value={handle}
-                        onChange={(event) => setHandle(event.target.value)}
+                        readOnly
                         autoCapitalize="none"
                         autoCorrect="off"
                         placeholder="your.handle"
@@ -400,8 +409,8 @@ export function WritingBox({
                       />
                     </div>
                     <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                      People may use this to find your account outside BajiHears. We never fill it
-                      automatically from a private account.
+                      Your signed-in BajiHears handle will appear. To share without signing in,
+                      choose Anonymous.
                     </p>
                   </div>
                 )}

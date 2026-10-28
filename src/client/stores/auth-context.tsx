@@ -35,6 +35,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const epoch = profileEpoch.current;
     try {
       const res = await apiRefreshProfile({ headers: await authHeaders() });
+      if (epoch === profileEpoch.current && !res.ok) {
+        toast.error("Your profile could not load. Try refreshing Your Corner.");
+      }
       if (epoch === profileEpoch.current && res.ok && res.data?.profile) {
         setProfile(res.data.profile);
       }
@@ -45,23 +48,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    let restoredToken: string | null | undefined;
+    const restoreSession = (next: Session | null) => {
+      if (!mounted || restoredToken === (next?.access_token ?? null)) return;
+      restoredToken = next?.access_token ?? null;
+      invalidateProfileRequests();
+      setSession(next);
+      setUser(next?.user ?? null);
+      if (next?.access_token) {
+        // Supabase auth callbacks hold a lock; start profile work afterwards.
+        window.setTimeout(() => {
+          if (mounted) void fetchProfile().finally(() => {
+            if (mounted) setIsLoading(false);
+          });
+        }, 0);
+      } else {
+        setProfile(null);
+        setIsLoading(false);
+      }
+    };
 
     // Check active session on mount
     supabase.auth
       .getSession()
       .then(({ data: { session: initialSession }, error }) => {
         if (!mounted) return;
-        invalidateProfileRequests();
         if (error) toast.error("Your session could not be restored. Please sign in again.");
-        setSession(initialSession);
-        setUser(initialSession?.user ?? null);
-        if (initialSession?.access_token) {
-          fetchProfile().finally(() => {
-            if (mounted) setIsLoading(false);
-          });
-        } else {
-          setIsLoading(false);
-        }
+        restoreSession(initialSession);
       })
       .catch(() => {
         if (mounted) setIsLoading(false);
@@ -71,20 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      if (!mounted) return;
-      invalidateProfileRequests();
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
-
-      if (newSession?.access_token) {
-        // Leave the auth client's lock before starting asynchronous profile work.
-        window.setTimeout(() => {
-          if (mounted) void fetchProfile();
-        }, 0);
-      } else {
-        setProfile(null);
-      }
-      setIsLoading(false);
+      restoreSession(newSession);
     });
 
     return () => {

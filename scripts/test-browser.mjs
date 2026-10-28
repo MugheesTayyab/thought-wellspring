@@ -50,6 +50,7 @@ async function setup(viewport) {
     echoed: false,
     published: false,
     submitCalls: 0,
+    profileCalls: 0,
     errors: [],
   };
   page.on("pageerror", (error) => state.errors.push(error.message));
@@ -165,6 +166,11 @@ async function setup(viewport) {
     } else if (name.includes("apiFetchUserActivity"))
       data = { posts: [], totalLikesReceived: 0, totalPosts: 0, likedPosts: [] };
     else if (name.includes("apiReport")) data = { reported: true, message: "Report received." };
+    else if (name.includes("apiRefreshProfile")) {
+      state.profileCalls++;
+      data = { profile: { id: postId, handle: "@test_reader", avatarSeed: 1, warmthTotal: 0,
+        warmthLog: [], purchasedItems: [], tabsUnlocked: { duel: true, read: true } } };
+    }
     else if (name.includes("apiSyncWarmth")) data = { serverTotal: 0 };
     else throw new Error(`Unhandled fixture request: ${name}`);
     await route.fulfill({
@@ -242,7 +248,7 @@ try {
   await targetPost.getByRole("button", { name: "Echo", exact: true }).click();
   await page.getByRole("textbox", { name: "Want to leave an Echo?" }).fill("I feel the same.");
   await page.getByRole("button", { name: "Send Echo", exact: true }).click();
-  await page.getByText("I feel the same.", { exact: true }).waitFor();
+  await page.getByRole("paragraph").filter({ hasText: /^I feel the same\.$/ }).waitFor();
   await page.getByRole("button", { name: "Close Echoes", exact: true }).click();
   checks++;
   console.log("PASS Echo is acknowledged and appears in the thread");
@@ -311,6 +317,61 @@ try {
   console.log("PASS Backend outage displays an error instead of an empty community");
   assert.deepEqual(state.errors, []);
   await context.close();
+  const matrix = await setup({ width: 320, height: 844 });
+  for (const width of [320, 390, 768, 1440]) {
+    await matrix.page.setViewportSize({ width, height: 900 });
+    for (const path of ["/", "/duel", "/corner", "/about", "/privacy", "/terms", "/admin/moderation"]) {
+      await navigate(matrix.page, `${base}${path}`);
+      await matrix.page.getByRole("heading").first().waitFor();
+      const overflow = await matrix.page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
+      assert.equal(overflow, false, `${path} overflows at ${width}px`);
+      await matrix.page.screenshot({ path: `artifacts/browser/page-${path.replaceAll("/", "_") || "wall"}-${width}.png`, fullPage: true });
+      checks++;
+    }
+  }
+  assert.deepEqual(matrix.state.errors, []);
+  await matrix.context.close();
+  console.log("PASS seven-page responsive matrix at 320, 390, 768 and 1440px");
+  const consent = await setup({ width: 390, height: 844 });
+  let scriptLoads = 0;
+  await consent.page.route("https://www.googletagmanager.com/**", async (route) => {
+    scriptLoads++;
+    await route.fulfill({ contentType: "application/javascript", body: "/* isolated analytics fixture */" });
+  });
+  await navigate(consent.page, `${base}/`);
+  await consent.page.getByRole("button", { name: "Accept Analytics", exact: true }).waitFor();
+  assert.equal(scriptLoads, 0, "No Google tag request before consent");
+  await consent.page.getByRole("button", { name: "Accept Analytics", exact: true }).click();
+  await consent.page.waitForFunction(() => Boolean(document.getElementById("bh-analytics")));
+  await consent.page.waitForTimeout(250);
+  assert.equal(scriptLoads, 1);
+  await consent.page.getByRole("navigation").getByRole("link", { name: "Duel", exact: true }).click();
+  await consent.page.waitForFunction(() => window.dataLayer?.some((entry) => entry[0] === "event" && entry[2]?.page_path === "/duel"));
+  assert.equal(scriptLoads, 1, "Navigation does not reload Google tag");
+  assert.deepEqual(consent.state.errors, []);
+  await consent.context.close();
+  checks++;
+  console.log("PASS real DOM consent-gated script loading and SPA page tracking (Google requests intercepted)");
+
+  const auth = await setup({ width: 390, height: 844 });
+  await auth.context.route(/^https:\/\/[^/]+\.supabase\.co\//, (route) => route.fulfill({ contentType: "application/json", body: "{}" }));
+  const supabaseUrl = JSON.parse(readFileSync("wrangler.json", "utf8")).vars.SUPABASE_URL;
+  const storageKey = `sb-${new URL(supabaseUrl).hostname.split(".")[0]}-auth-token`;
+  const expiry = Math.floor(Date.now() / 1000) + 3600;
+  const jwt = `${Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url")}.${Buffer.from(JSON.stringify({ sub: postId, aud: "authenticated", exp: expiry })).toString("base64url")}.fixture-signature`;
+  await auth.context.addInitScript(({ key, token, expires, userId }) => {
+    localStorage.setItem(key, JSON.stringify({ access_token: token, refresh_token: "isolated-fixture",
+      token_type: "bearer", expires_in: 3600, expires_at: expires,
+      user: { id: userId, aud: "authenticated", role: "authenticated", app_metadata: {}, user_metadata: {} } }));
+  }, { key: storageKey, token: jwt, expires: expiry, userId: postId });
+  await navigate(auth.page, `${base}/`);
+  await auth.page.getByRole("navigation").waitFor();
+  await auth.page.waitForTimeout(1800);
+  assert.equal(auth.state.profileCalls, 1, "Initial auth event and getSession must share one profile restoration");
+  assert.deepEqual(auth.state.errors, []);
+  await auth.context.close();
+  checks++;
+  console.log("PASS stored session restores profile once (all identity/backend requests intercepted)");
   console.log(
     `${checks} browser checks passed. These are controlled UI checks, not live OAuth/backend verification.`,
   );

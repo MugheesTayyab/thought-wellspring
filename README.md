@@ -3,9 +3,10 @@
 An anonymous thought wall with replies, reactions, saved notes, and a community Duel.
 Built with React, TanStack Start, Supabase, and Cloudflare Workers.
 
-The code and production database pass the automated launch gate. Read
-[RELEASE_READINESS.md](RELEASE_READINESS.md) for the evidence and the short list of
-post-deployment checks that still require a real account, device, or operator.
+Launch readiness requires both automated checks and completed production acceptance.
+Read [LAUNCH_IMPLEMENTATION_PLAN.md](LAUNCH_IMPLEMENTATION_PLAN.md) for the release
+sequence and [LAUNCH_AUDIT_2026-10-29.md](LAUNCH_AUDIT_2026-10-29.md) for the audit
+baseline. Passing a build does not certify production readiness or visitor capacity.
 
 ## Local development
 

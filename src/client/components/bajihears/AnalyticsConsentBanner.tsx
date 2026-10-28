@@ -47,7 +47,7 @@ export function AnalyticsConsentBanner() {
   return (
     <aside
       aria-label="Cookie and Analytics Consent"
-      className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-lg rounded-2xl border border-[#E3B8B1] bg-[#FFFDFB] p-4 shadow-xl backdrop-blur-md transition-all animate-in fade-in slide-in-from-bottom-3 duration-300 sm:bottom-6 sm:p-5"
+      className="fixed bottom-24 left-4 right-4 z-50 max-h-[calc(100dvh-8rem)] overflow-y-auto mx-auto max-w-lg rounded-2xl border border-[#E3B8B1] bg-[#FFFDFB] p-4 shadow-xl backdrop-blur-md transition-all animate-in fade-in slide-in-from-bottom-3 duration-300 sm:p-5"
     >
       <div className="flex items-start gap-3">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#FBE6E4] text-[#7D3028]">

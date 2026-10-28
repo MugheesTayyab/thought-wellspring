@@ -12,13 +12,21 @@ export async function runScheduledTasks(bindings: unknown): Promise<void> {
   } catch (error) {
     console.error("[Cron] Winner selection failed", error);
   }
-  await drainPushOutbox(env);
+  try {
+    await drainPushOutbox(env);
+  } catch (error) {
+    console.error("[Cron] Push notification drain failed", error);
+  }
   try {
     const { drainModerationNotifications } = await import("../lib/moderation/notifications");
     await drainModerationNotifications(env);
   } catch (error) {
     console.error("[Cron] Moderation notification drain failed", error);
   }
-  const { error } = await getSupabaseAdminClient(env).rpc("purge_old_device_actions");
-  if (error) console.error("[Cron] Rate limit cleanup failed", error.code);
+  try {
+    const { error } = await getSupabaseAdminClient(env).rpc("purge_old_device_actions");
+    if (error) console.error("[Cron] Rate limit cleanup failed", error.code);
+  } catch (error) {
+    console.error("[Cron] Rate limit cleanup failed", error);
+  }
 }

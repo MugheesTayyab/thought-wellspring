@@ -9,6 +9,8 @@
  * 4. Google Consent Mode v2: Respects user consent with persistent localStorage storage and runtime updates.
  */
 
+import { CATEGORIES } from "@/shared/constants/categories";
+
 export const GA_MEASUREMENT_ID = "G-YK9LL21171";
 
 export type AnalyticsConsentStatus = "granted" | "denied" | "pending";
@@ -17,6 +19,7 @@ const CONSENT_STORAGE_KEY = "bh:analytics-consent";
 
 declare global {
   interface Window {
+    "ga-disable-G-YK9LL21171"?: boolean;
     dataLayer?: unknown[];
     gtag?: (...args: unknown[]) => void;
   }
@@ -45,6 +48,7 @@ export function getAnalyticsConsent(): AnalyticsConsentStatus {
  */
 export function setAnalyticsConsent(status: "granted" | "denied"): void {
   if (typeof window === "undefined") return;
+  window["ga-disable-G-YK9LL21171"] = status !== "granted";
   try {
     localStorage.setItem(CONSENT_STORAGE_KEY, status);
   } catch {
@@ -55,6 +59,12 @@ export function setAnalyticsConsent(status: "granted" | "denied"): void {
     window.gtag("consent", "update", {
       analytics_storage: status,
     });
+  }
+  if (status === "granted") {
+    initGoogleAnalytics();
+    loadAnalyticsScript();
+    lastTrackedPath = null;
+    trackPageView(window.location.pathname);
   }
 
   // Trigger custom event so reactive components (e.g., banner, settings) update immediately
@@ -80,10 +90,14 @@ export function initGoogleAnalytics(): void {
     };
   }
 
-  if (isInitialized) return;
+  if (isInitialized) {
+    if (getAnalyticsConsent() === "granted") loadAnalyticsScript();
+    return;
+  }
   isInitialized = true;
 
   const initialConsent = getAnalyticsConsent();
+  window["ga-disable-G-YK9LL21171"] = initialConsent !== "granted";
   const consentState = initialConsent === "granted" ? "granted" : "denied";
 
   // Google Consent Mode v2 default declaration
@@ -100,6 +114,10 @@ export function initGoogleAnalytics(): void {
   const configOptions: Record<string, string | number | boolean> = {
     send_page_view: false,
     anonymize_ip: true,
+    allow_google_signals: false,
+    allow_ad_personalization_signals: false,
+    page_location: safePageLocation(window.location.pathname),
+    page_referrer: "",
   };
 
   // Enable debug mode if query parameter or localhost is present
@@ -116,6 +134,21 @@ export function initGoogleAnalytics(): void {
   }
 
   window.gtag("config", GA_MEASUREMENT_ID, configOptions);
+  if (initialConsent === "granted") loadAnalyticsScript();
+}
+
+function safePageLocation(pathname: string): string {
+  return new URL(pathname.split(/[?#]/)[0] || "/", new URL(window.location.href).origin).href;
+}
+
+function loadAnalyticsScript(): void {
+  if (typeof document === "undefined" || window.location.pathname === "/auth/callback") return;
+  if (document.getElementById("bh-analytics")) return;
+  const script = document.createElement("script");
+  script.id = "bh-analytics";
+  script.async = true;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+  document.head.appendChild(script);
 }
 
 /**
@@ -123,9 +156,10 @@ export function initGoogleAnalytics(): void {
  * Guarantees zero duplicates for identical consecutive paths.
  */
 export function trackPageView(pathname: string, title?: string): void {
-  if (typeof window === "undefined" || !window.gtag) return;
+  if (typeof window === "undefined" || !window.gtag || getAnalyticsConsent() !== "granted") return;
 
-  const cleanPath = pathname || window.location.pathname || "/";
+  const cleanPath = (pathname || window.location.pathname || "/").split(/[?#]/)[0] || "/";
+  if (cleanPath === "/auth/callback") return;
   if (lastTrackedPath === cleanPath) {
     return; // Prevent duplicate page views on identical paths
   }
@@ -133,41 +167,30 @@ export function trackPageView(pathname: string, title?: string): void {
 
   window.gtag("event", "page_view", {
     page_path: cleanPath,
-    page_location: window.location.href,
-    page_title: title || document.title || "BajiHears",
+    page_location: safePageLocation(cleanPath),
+    page_referrer: "",
+    page_title: title || window.document?.title || "BajiHears",
   });
 }
 
 /**
  * Track a custom engagement event.
- * Strips all potential PII (handles, confessions, tokens, emails, names) automatically.
+ * Accept only known event names, bounded metrics and enumerated labels.
  */
 export function trackEngagementEvent(
   eventName: string,
   params?: Record<string, string | number | boolean | null | undefined>,
 ): void {
-  if (typeof window === "undefined" || !window.gtag) return;
+  if (typeof window === "undefined" || !window.gtag || getAnalyticsConsent() !== "granted") return;
 
-  const PII_DENYLIST = new Set([
-    "handle",
-    "username",
-    "email",
-    "text",
-    "confession",
-    "content",
-    "token",
-    "devicetoken",
-    "profileid",
-    "name",
-    "password",
-  ]);
+  if (!["thought_reaction", "thought_posted", "echo_sent", "duel_vote", "share", "bookmark", "pwa_install"].includes(eventName)) return;
 
   const safeParams: Record<string, string | number | boolean> = {};
   if (params) {
     for (const [key, val] of Object.entries(params)) {
-      if (val === null || val === undefined) continue;
-      if (PII_DENYLIST.has(key.toLowerCase())) continue;
-      safeParams[key] = val;
+      if (key === "category" && typeof val === "string" && (CATEGORIES as readonly string[]).includes(val)) safeParams[key] = val;
+      if (key === "reaction" && typeof val === "string" && ["heart", "sad", "fire", "hug"].includes(val)) safeParams[key] = val;
+      if (["value", "duration_ms", "safe_metric"].includes(key) && typeof val === "number" && Number.isFinite(val) && val >= 0 && val <= 1e9) safeParams[key] = val;
     }
   }
 

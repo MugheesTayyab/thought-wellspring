@@ -384,6 +384,7 @@ describe("Production Trust & Safety Engine", () => {
       expect(warnSpy).toHaveBeenCalledWith(
         expect.stringContaining("STALE_CLAIM_TOKEN"),
       );
+      expect(result).toEqual({ processed: 0, failed: 1 });
       globalThis.fetch = originalFetch;
       warnSpy.mockRestore();
     });

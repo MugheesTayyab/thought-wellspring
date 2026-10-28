@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import pg from "pg";
 
 const env = { ...process.env };
@@ -54,20 +54,9 @@ try {
     "post_reports",
     "push_outbox",
   ];
-  const requiredMigrations = [
-    "20260924000000",
-    "20260925000000",
-    "20260926000000",
-    "20260927000000",
-    "20260928000000",
-    "20261020000000",
-    "20261022000000",
-    "20261022010000",
-    "20261022020000",
-    "20261023000000",
-    "20261024000000",
-    "20261025000000",
-  ];
+  const requiredMigrations = readdirSync("supabase/migrations")
+    .filter((name) => /^\d+_.+\.sql$/.test(name))
+    .map((name) => name.split("_")[0]);
   const tableNames = tables.rows.map(({ table_name }) => table_name);
   const appliedVersions = migrations.map(({ version }) => version).filter(Boolean);
   const operational = {};
@@ -112,6 +101,10 @@ try {
   const missingMigrations = requiredMigrations.filter(
     (version) => !appliedVersions.includes(version),
   );
+  const unhealthyModeration = (operational.moderationNotifications || []).filter((item) =>
+    item.count > 0 && (item.status === "failed" ||
+      (item.status === "pending" && Date.now() - Date.parse(item.oldest) > 15 * 60 * 1000)),
+  );
   console.log(
     JSON.stringify(
       {
@@ -140,6 +133,10 @@ try {
     );
   }
   console.log("PASS production migration history, RPCs, and direct table privileges.");
+  if (unhealthyModeration.length) {
+    throw new Error("Production moderation delivery is unhealthy: failed or more than 15-minute-old pending alerts require operator attention.");
+  }
+  console.log("PASS moderation delivery has no failed or overdue pending alerts.");
 } finally {
   await client.end();
 }

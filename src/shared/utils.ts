@@ -60,7 +60,7 @@ export function stripHandle(value: string): string {
   return value
     .replace(/^@+/, "")
     .replace(/[^a-zA-Z0-9_.-]/g, "")
-    .slice(0, 24);
+    .slice(0, 40);
 }
 
 export function getInstagramUrl(handle: string | null): string | null {

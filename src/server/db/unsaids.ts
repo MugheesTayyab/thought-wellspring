@@ -601,6 +601,7 @@ export async function fetchUserThoughtsActivity(
         .from("echoes")
         .select("id, unsaid_id, text, handle, created_at")
         .in("unsaid_id", postIds)
+        .eq("status", "published")
         .order("created_at", { ascending: true });
 
       if (rawEchoes) {
