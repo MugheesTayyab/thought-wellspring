@@ -1,4 +1,21 @@
 // Service worker for BajiHears web push notifications (Phase 7 - Production)
+const OFFLINE_CACHE = "bajihears-offline-v1";
+self.addEventListener("install", (event) => {
+  event.waitUntil(caches.open(OFFLINE_CACHE).then((cache) => cache.add("/offline.html")).then(() => self.skipWaiting()));
+});
+self.addEventListener("activate", (event) => {
+  event.waitUntil(caches.keys().then((keys) => Promise.all(
+    keys.filter((key) => key.startsWith("bajihears-offline-") && key !== OFFLINE_CACHE).map((key) => caches.delete(key)),
+  )).then(() => self.clients.claim()));
+});
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET" || event.request.mode !== "navigate") return;
+  // Cache only the generic offline shell, never accounts, feeds or responses.
+  event.respondWith(fetch(event.request).catch(async () => {
+    const fallback = await caches.match("/offline.html");
+    return fallback || new Response("You are offline. Reconnect and try again.", { status: 503 });
+  }));
+});
 self.addEventListener("push", (event) => {
   let data = {};
   if (event.data) {

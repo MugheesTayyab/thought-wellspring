@@ -22,12 +22,17 @@ const zones = await get("zones?name=bajihears.app");
 const zoneId = zones.result?.[0]?.id;
 const routing = zoneId ? await get(`zones/${zoneId}/email/routing`) : null;
 const settings = await get(`accounts/${account}/workers/account-settings`);
+const subscriptions = await get(`accounts/${account}/subscriptions`);
 const result = {
   verifiedApprovedEmailDestinations: Array.isArray(addresses.result) ? addresses.result.filter((v) => v.verified && approved.includes(v.email?.toLowerCase())).length : 0,
   emailAddressRead: { status: addresses.status, success: addresses.success, errors: addresses.errors },
   domainFound: Boolean(zoneId),
   routing: routing ? { status: routing.status, enabled: routing.result?.enabled, errors: routing.errors } : null,
   workersSettings: settings,
+  planRead: { status: subscriptions.status, success: subscriptions.success,
+    plans: Array.isArray(subscriptions.result) ? subscriptions.result.map((v) => ({
+      name: v.rate_plan?.public_name ?? v.rate_plan?.id, status: v.state,
+    })) : [], errors: subscriptions.errors },
 };
 mkdirSync("artifacts", { recursive: true });
 writeFileSync("artifacts/cloudflare-readiness.json", JSON.stringify(result, null, 2));

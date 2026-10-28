@@ -17,7 +17,21 @@ const data = await response.json();
 if (!response.ok || !data.success) throw new Error("Could not verify email destinations");
 const matches = data.result.filter((v) => v.verified && approved.includes(v.email.toLowerCase()));
 if (matches.length !== 1) throw new Error("Exactly one existing verified approved moderator destination is required");
-if (!process.argv.includes("--apply")) {
+if (process.argv.includes("--send-test")) {
+  const sent = await fetch("https://api.cloudflare.com/client/v4/accounts/f421715fb869755eeed3d568cd858417/email/sending/send", {
+    method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ to: matches[0].email, from: "alerts@bajihears.app",
+      subject: "BajiHears moderation delivery verification",
+      text: "This is the authorized BajiHears launch-readiness alert test. Moderation alerts are configured for this existing verified moderator address. Dashboard: https://bajihears.app/admin/moderation. No user content or identity is included." }),
+    signal: AbortSignal.timeout(20000),
+  });
+  const delivery = await sent.json();
+  console.log(JSON.stringify({ status: sent.status, success: delivery.success,
+    delivered: delivery.result?.delivered?.length ?? 0, queued: delivery.result?.queued?.length ?? 0,
+    permanentBounces: delivery.result?.permanent_bounces?.length ?? 0,
+    errors: delivery.errors?.map((error) => error.code) }));
+  if (!sent.ok || !delivery.success || delivery.result?.permanent_bounces?.length) process.exitCode = 1;
+} else if (!process.argv.includes("--apply")) {
   console.log("PASS one existing verified moderator destination available; use --apply to configure");
 } else {
   const result = spawnSync(process.execPath, ["node_modules/wrangler/bin/wrangler.js", "secret", "put", "MODERATION_EMAIL_TO", "--name", "bajihears"], {

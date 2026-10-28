@@ -1,4 +1,4 @@
-import { chromium } from "@playwright/test";
+import { chromium, firefox, webkit } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdirSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -6,10 +6,13 @@ import { join } from "node:path";
 // Controlled server-function fixtures exercise the browser UI without writing
 // public posts or pretending to validate the unavailable production backend.
 const base = process.env.TEST_BASE_URL || "http://127.0.0.1:4175";
-const browser = await chromium.launch({
-  channel: "chrome",
+const engine = process.env.TEST_BROWSER_ENGINE || "chromium";
+const browserType = { chromium, firefox, webkit }[engine];
+assert.ok(browserType, "Unknown test browser engine");
+const browser = await browserType.launch({
+  ...(engine === "chromium" ? { channel: process.env.TEST_BROWSER_CHANNEL || "chrome" } : {}),
   headless: true,
-  args: ["--disable-quic"],
+  ...(engine === "chromium" ? { args: ["--disable-quic"] } : {}),
 });
 mkdirSync("artifacts/browser", { recursive: true });
 const postId = "33333333-3333-4333-8333-333333333333";
