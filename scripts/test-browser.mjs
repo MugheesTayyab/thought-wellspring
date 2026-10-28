@@ -45,7 +45,9 @@ async function navigate(page, url) {
   throw lastError;
 }
 async function setup(viewport) {
-  const context = await browser.newContext({ viewport, reducedMotion: "reduce" });
+  // Service-worker-owned requests bypass Playwright routing in some engines.
+  // UI mutations must stay intercepted; real SW behavior has a separate suite.
+  const context = await browser.newContext({ viewport, reducedMotion: "reduce", serviceWorkers: "block" });
   const page = await context.newPage();
   currentPage = page;
   const state = {
@@ -60,6 +62,13 @@ async function setup(viewport) {
     errors: [],
   };
   page.on("pageerror", (error) => state.errors.push(error.message));
+  await context.route("**/*", async (route) => {
+    if (!["GET", "HEAD", "OPTIONS"].includes(route.request().method())) {
+      state.errors.push("Prevented a mutation outside the isolated fixtures");
+      return route.abort("blockedbyclient");
+    }
+    return route.continue();
+  });
   await page.route("**/_serverFn/**", async (route) => {
     const encoded = new URL(route.request().url()).pathname.split("/").pop();
     const id = encoded;

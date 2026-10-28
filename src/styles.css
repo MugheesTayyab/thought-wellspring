@@ -806,7 +806,10 @@
 }
 @media (max-height: 650px) {
   .duel-page > footer {
-    padding-block: 8px;
+    padding-block: 4px;
+  }
+  .duel-option {
+    padding: 8px;
   }
   .duel-main {
     padding-block: 6px;
@@ -821,6 +824,7 @@
   }
   .duel-option-text {
     font-size: 13px;
+    line-height: 1.25;
     margin-top: 6px;
   }
   .duel-option > .relative {
