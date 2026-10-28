@@ -1,5 +1,9 @@
 # Marketing release candidate — 29 October 2026
 
+> Subsequent authorization and completed production release are recorded in
+> PRODUCTION_RELEASE_2026-10-29.md. The candidate-stage statements below remain
+> as historical evidence; consult the production record for current status.
+
 Status: locally implemented and tested; not released or certified for promotion. Read LAUNCH_IMPLEMENTATION_PLAN.md and LAUNCH_ACCEPTANCE.md for the release sequence and required evidence. The original audit is preserved as a baseline rather than rewritten as if production had changed.
 
 ## Implemented

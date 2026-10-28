@@ -30,7 +30,7 @@ async function navigate(page, url) {
   let lastError;
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
-      return await page.goto(url);
+      return await page.goto(url, { waitUntil: "domcontentloaded" });
     } catch (error) {
       lastError = error;
       if (!String(error).includes("net::ERR_") || attempt === 4) throw error;
