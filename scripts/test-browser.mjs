@@ -14,7 +14,8 @@ const browser = await browserType.launch({
   headless: true,
   ...(engine === "chromium" ? { args: ["--disable-quic"] } : {}),
 });
-mkdirSync("artifacts/browser", { recursive: true });
+const screenshotDir = engine === "chromium" ? "artifacts/browser" : `artifacts/browser-${engine}`;
+mkdirSync(screenshotDir, { recursive: true });
 const postId = "33333333-3333-4333-8333-333333333333";
 const duelId = "00000000-0000-0000-0000-000000000001";
 const resolverFile = readdirSync(".output/server").find((name) =>
@@ -29,6 +30,7 @@ const serverFunctionNames = new Map(
 );
 assert.ok(serverFunctionNames.size > 0, "Could not read server-function IDs from the production build");
 let checks = 0;
+let currentPage;
 async function navigate(page, url) {
   let lastError;
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -45,6 +47,7 @@ async function navigate(page, url) {
 async function setup(viewport) {
   const context = await browser.newContext({ viewport, reducedMotion: "reduce" });
   const page = await context.newPage();
+  currentPage = page;
   const state = {
     voteFails: false,
     feedFails: false,
@@ -189,7 +192,7 @@ async function setup(viewport) {
   return { context, page, state };
 }
 async function fits(page) {
-  await page.screenshot({ path: "artifacts/browser/latest.png", fullPage: true });
+  await page.screenshot({ path: `${screenshotDir}/latest.png`, fullPage: true });
   const dimensions = await page.evaluate(() => ({
     height: innerHeight,
     scrollHeight: document.documentElement.scrollHeight,
@@ -217,7 +220,7 @@ try {
     await fits(page);
     assert.equal(await page.getByRole("navigation").getByRole("link").count(), 3);
     assert.deepEqual(state.errors, []);
-    await page.screenshot({ path: `artifacts/browser/duel-${width}.png`, fullPage: true });
+    await page.screenshot({ path: `${screenshotDir}/duel-${width}.png`, fullPage: true });
     console.log(`PASS Duel fits ${width}x${height} before and after voting`);
     await context.close();
   }
@@ -328,7 +331,7 @@ try {
       await matrix.page.getByRole("heading").first().waitFor();
       const overflow = await matrix.page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
       assert.equal(overflow, false, `${path} overflows at ${width}px`);
-      await matrix.page.screenshot({ path: `artifacts/browser/page-${path.replaceAll("/", "_") || "wall"}-${width}.png`, fullPage: true });
+      await matrix.page.screenshot({ path: `${screenshotDir}/page-${path.replaceAll("/", "_") || "wall"}-${width}.png`, fullPage: true });
       checks++;
     }
   }
@@ -378,6 +381,12 @@ try {
   console.log(
     `${checks} browser checks passed. These are controlled UI checks, not live OAuth/backend verification.`,
   );
+} catch (error) {
+  if (currentPage && !currentPage.isClosed()) {
+    await currentPage.screenshot({ path: `${screenshotDir}/failure.png`, fullPage: true }).catch(() => {});
+    console.error("Browser failure page:", (await currentPage.locator("body").innerText().catch(() => "unavailable")).slice(0, 1800));
+  }
+  throw error;
 } finally {
   await browser.close();
 }

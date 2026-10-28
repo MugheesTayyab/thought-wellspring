@@ -13,7 +13,11 @@ self.addEventListener("fetch", (event) => {
   // Cache only the generic offline shell, never accounts, feeds or responses.
   event.respondWith(fetch(event.request).catch(async () => {
     const fallback = await caches.match("/offline.html");
-    return fallback || new Response("You are offline. Reconnect and try again.", { status: 503 });
+    // Cloudflare canonicalizes offline.html to /offline. Rebuild cached responses
+    // so a redirected response is valid for a navigation with manual redirects.
+    return fallback ? new Response(fallback.body, {
+      status: fallback.status, statusText: fallback.statusText, headers: fallback.headers,
+    }) : new Response("You are offline. Reconnect and try again.", { status: 503 });
   }));
 });
 self.addEventListener("push", (event) => {
