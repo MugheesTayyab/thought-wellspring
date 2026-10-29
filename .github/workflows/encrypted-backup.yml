@@ -2,7 +2,7 @@ name: Encrypted database backup and restore verification
 on:
   workflow_dispatch:
   schedule:
-    - cron: '23 1 * * *'
+    - cron: "23 1 * * *"
 permissions:
   contents: read
 concurrency:
@@ -19,7 +19,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '22'
+          node-version: "22"
           cache: npm
       - run: npm ci --ignore-scripts
       - name: Install PostgreSQL 18 from its official signed repository
@@ -30,18 +30,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-18
       - name: Create consistent read-only production snapshot and encrypt it
-        run: node scripts/backup-database.mjs
+        id: create
+        run: node scripts/backup-database.mjs --verify
         env:
           SUPABASE_DATABASE_URL: ${{ secrets.BAJIHEARS_BACKUP_DATABASE_URL }}
-          BACKUP_ENCRYPTION_KEY: ${{ secrets.BAJIHEARS_BACKUP_ENCRYPTION_KEY }}
           PG_DUMP_PATH: /usr/lib/postgresql/18/bin/pg_dump
-      - name: Restore only to a disposable loopback instance and verify data and permissions
-        run: node scripts/restore-backup-check.mjs
-        env:
-          BACKUP_ENCRYPTION_KEY: ${{ secrets.BAJIHEARS_BACKUP_ENCRYPTION_KEY }}
           PG_BIN_DIR: /usr/lib/postgresql/18/bin
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: always()
+        if: steps.create.outcome == 'success'
         with:
           name: encrypted-database-backup-${{ github.run_id }}
           path: |

@@ -30,6 +30,7 @@ supabase/.temp/
 *.sqlite3
 *.db
 *.pem
+!config/backup-public-key.pem
 *.key
 *.p12
 *.pfx

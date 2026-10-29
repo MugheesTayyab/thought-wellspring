@@ -1,7 +1,28 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { createECDH } from "node:crypto";
+import { hasProtectedSecret, readProtectedSecret } from "./lib/backup-storage.mjs";
 const secrets = new Map();
 const localEnv = new Map();
+if (process.platform === "win32") {
+  for (const [name, label] of [
+    ["backup-private-key", "BACKUP_PRIVATE_KEY"],
+    ["legacy-aes-key", "BACKUP_LEGACY_KEY"],
+    ["backup-recovery-code", "BACKUP_RECOVERY_CODE"],
+  ]) {
+    if (hasProtectedSecret(name)) {
+      const bytes = readProtectedSecret(name);
+      secrets.set(
+        label,
+        name === "legacy-aes-key"
+          ? bytes.toString("base64")
+          : name === "backup-recovery-code"
+            ? bytes.toString("base64url")
+            : bytes.toString(),
+      );
+      bytes.fill(0);
+    }
+  }
+}
 try {
   for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
     const envMatch = line.match(/^([A-Z_0-9]+)=(.*)$/);
@@ -20,7 +41,7 @@ try {
 for (const filename of readdirSync(".").filter((name) => /^\.env\..+\.local$/.test(name))) {
   for (const line of readFileSync(filename, "utf8").split(/\r?\n/)) {
     const match = line.match(
-      /^(SUPABASE_SERVICE_ROLE_KEY|VAPID_PRIVATE_KEY|CRON_SECRET|STAGING_DATABASE_URL|STAGING_DATABASE_PASSWORD)=(.+)$/,
+      /^(SUPABASE_SERVICE_ROLE_KEY|VAPID_PRIVATE_KEY|CRON_SECRET|STAGING_DATABASE_URL|STAGING_DATABASE_PASSWORD|BACKUP_ENCRYPTION_KEY)=(.+)$/,
     );
     if (match && match[2].length > 12)
       secrets.set(`${filename}:${match[1]}`, match[2].replace(/^['"]|['"]$/g, ""));
@@ -32,6 +53,7 @@ for (const key of [
   "VITE_VAPID_PRIVATE_KEY",
   "VITE_CRON_SECRET",
   "VITE_SUPABASE_DATABASE_URL",
+  "VITE_BACKUP_ENCRYPTION_KEY",
 ]) {
   if (localEnv.get(key) || process.env[key]) {
     throw new Error(`${key} is server-only and must never use the VITE_ public prefix.`);

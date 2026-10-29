@@ -10,28 +10,51 @@ const engine = process.env.TEST_BROWSER_ENGINE || "chromium";
 const browserType = { chromium, firefox, webkit }[engine];
 assert.ok(browserType, "Unknown test browser engine");
 const address = process.env.TEST_RESOLVE_ADDRESS;
-if (address) assert.ok(["104.21.92.25", "172.67.185.85"].includes(address), "Use a verified public address only");
+if (address)
+  assert.ok(
+    ["104.21.92.25", "172.67.185.85"].includes(address),
+    "Use a verified public address only",
+  );
 const browser = await browserType.launch({
   ...(engine === "chromium" ? { channel: process.env.TEST_BROWSER_CHANNEL || "chrome" } : {}),
   headless: true,
-  ...(engine === "chromium" ? { args: ["--disable-quic", ...(address ? [`--host-resolver-rules=MAP bajihears.app ${address}`] : []), ...(process.env.TEST_NETLOG === "1" ? [`--log-net-log=${join(process.cwd(),"artifacts/chrome-netlog.json")}`] : [])] } : {}),
+  ...(engine === "chromium"
+    ? {
+        args: [
+          ...(process.env.TEST_NORMAL_NETWORK === "1" ? [] : ["--disable-quic"]),
+          ...(address ? [`--host-resolver-rules=MAP bajihears.app ${address}`] : []),
+          ...(process.env.TEST_NETLOG === "1"
+            ? [`--log-net-log=${join(process.cwd(), "artifacts/chrome-netlog.json")}`]
+            : []),
+        ],
+      }
+    : {}),
 });
 const screenshotDir = engine === "chromium" ? "artifacts/browser" : `artifacts/browser-${engine}`;
 mkdirSync(screenshotDir, { recursive: true });
-if (address) console.log("DIAGNOSTIC: public address pinned in this browser only; this run does not clear normal DNS/TLS reliability");
+if (address)
+  console.log(
+    "DIAGNOSTIC: public address pinned in this browser only; this run does not clear normal DNS/TLS reliability",
+  );
 const postId = "33333333-3333-4333-8333-333333333333";
 const duelId = "00000000-0000-0000-0000-000000000001";
 const resolverFile = readdirSync(".output/server").find((name) =>
   name.includes("tanstack-start-server-fn-resolver"),
 );
-assert.ok(resolverFile, "Run the production build before browser tests so server-function IDs can be mapped");
+assert.ok(
+  resolverFile,
+  "Run the production build before browser tests so server-function IDs can be mapped",
+);
 const resolverSource = readFileSync(join(".output/server", resolverFile), "utf8");
 const serverFunctionNames = new Map(
   [...resolverSource.matchAll(/"([a-f0-9]{64})":\s*\{\s*functionName:\s*"([^"]+)"/g)].map(
     ([, id, name]) => [id, name.replace(/_createServerFn_handler$/, "")],
   ),
 );
-assert.ok(serverFunctionNames.size > 0, "Could not read server-function IDs from the production build");
+assert.ok(
+  serverFunctionNames.size > 0,
+  "Could not read server-function IDs from the production build",
+);
 let checks = 0;
 let currentPage;
 async function navigate(page, url) {
@@ -50,7 +73,11 @@ async function navigate(page, url) {
 async function setup(viewport) {
   // Service-worker-owned requests bypass Playwright routing in some engines.
   // UI mutations must stay intercepted; real SW behavior has a separate suite.
-  const context = await browser.newContext({ viewport, reducedMotion: "reduce", serviceWorkers: "block" });
+  const context = await browser.newContext({
+    viewport,
+    reducedMotion: "reduce",
+    serviceWorkers: "block",
+  });
   const page = await context.newPage();
   currentPage = page;
   const state = {
@@ -69,12 +96,18 @@ async function setup(viewport) {
     if (!["GET", "HEAD", "OPTIONS"].includes(route.request().method())) {
       const requestUrl = new URL(route.request().url());
       if (requestUrl.pathname.startsWith("/cdn-cgi/rum")) {
-        return route.fulfill({ status: 204, headers: {
-          "access-control-allow-origin": new URL(base).origin,
-          "access-control-allow-credentials": "true",
-        } });
+        return route.fulfill({
+          status: 204,
+          headers: {
+            "access-control-allow-origin": new URL(base).origin,
+            "access-control-allow-credentials": "true",
+          },
+        });
       }
-      if (requestUrl.origin === new URL(base).origin && !requestUrl.pathname.startsWith("/cdn-cgi/")) {
+      if (
+        requestUrl.origin === new URL(base).origin &&
+        !requestUrl.pathname.startsWith("/cdn-cgi/")
+      ) {
         state.errors.push(`Prevented an unmocked application mutation: ${requestUrl.pathname}`);
       }
       // Also suppress background telemetry; it is not an application mutation.
@@ -89,7 +122,10 @@ async function setup(viewport) {
     if (!name) {
       try {
         const decoded = JSON.parse(Buffer.from(id, "base64").toString("utf8"));
-        name = (decoded.export || decoded.functionName || "").replace(/_createServerFn_handler$/, "");
+        name = (decoded.export || decoded.functionName || "").replace(
+          /_createServerFn_handler$/,
+          "",
+        );
       } catch {
         // Not base64 encoded
       }
@@ -196,10 +232,18 @@ async function setup(viewport) {
     else if (name.includes("apiReport")) data = { reported: true, message: "Report received." };
     else if (name.includes("apiRefreshProfile")) {
       state.profileCalls++;
-      data = { profile: { id: postId, handle: "@test_reader", avatarSeed: 1, warmthTotal: 0,
-        warmthLog: [], purchasedItems: [], tabsUnlocked: { duel: true, read: true } } };
-    }
-    else if (name.includes("apiSyncWarmth")) data = { serverTotal: 0 };
+      data = {
+        profile: {
+          id: postId,
+          handle: "@test_reader",
+          avatarSeed: 1,
+          warmthTotal: 0,
+          warmthLog: [],
+          purchasedItems: [],
+          tabsUnlocked: { duel: true, read: true },
+        },
+      };
+    } else if (name.includes("apiSyncWarmth")) data = { serverTotal: 0 };
     else throw new Error(`Unhandled fixture request: ${name}`);
     await route.fulfill({
       contentType: "application/json",
@@ -266,17 +310,17 @@ try {
   const react = targetPost.getByRole("button", { name: /^Relate(?: \d+)? to this thought$/ });
   await react.click();
   await page.waitForFunction(
-    () =>
-      document
-        .querySelector('[aria-label^="Relate"]')
-        ?.getAttribute("aria-pressed") === "true",
+    () => document.querySelector('[aria-label^="Relate"]')?.getAttribute("aria-pressed") === "true",
   );
   checks++;
   console.log("PASS Reaction persists after server acknowledgment");
   await targetPost.getByRole("button", { name: "Echo", exact: true }).click();
   await page.getByRole("textbox", { name: "Want to leave an Echo?" }).fill("I feel the same.");
   await page.getByRole("button", { name: "Send Echo", exact: true }).click();
-  await page.getByRole("paragraph").filter({ hasText: /^I feel the same\.$/ }).waitFor();
+  await page
+    .getByRole("paragraph")
+    .filter({ hasText: /^I feel the same\.$/ })
+    .waitFor();
   await page.getByRole("button", { name: "Close Echoes", exact: true }).click();
   checks++;
   console.log("PASS Echo is acknowledged and appears in the thread");
@@ -297,9 +341,14 @@ try {
   await navigate(page, `${base}/`);
   await page.getByText("Verified Manus fixture story 01.", { exact: true }).waitFor();
   assert.equal(await page.getByText("BajiHears Original · Fictional", { exact: true }).count(), 30);
-  assert.equal(await page.getByText("Verified Manus fixture story 30.", { exact: true }).count(), 1);
+  assert.equal(
+    await page.getByText("Verified Manus fixture story 30.", { exact: true }).count(),
+    1,
+  );
   checks++;
-  console.log("PASS Exactly 30 ordered Originals render with explicit fictional labels in default feed");
+  console.log(
+    "PASS Exactly 30 ordered Originals render with explicit fictional labels in default feed",
+  );
   await navigate(page, `${base}/`);
   await page.getByText("Some days I just need a quiet place to think.", { exact: true }).waitFor();
   await page.getByRole("button", { name: "Write a thought", exact: true }).click();
@@ -348,12 +397,25 @@ try {
   const matrix = await setup({ width: 320, height: 844 });
   for (const width of [320, 390, 768, 1440]) {
     await matrix.page.setViewportSize({ width, height: 900 });
-    for (const path of ["/", "/duel", "/corner", "/about", "/privacy", "/terms", "/admin/moderation"]) {
+    for (const path of [
+      "/",
+      "/duel",
+      "/corner",
+      "/about",
+      "/privacy",
+      "/terms",
+      "/admin/moderation",
+    ]) {
       await navigate(matrix.page, `${base}${path}`);
       await matrix.page.getByRole("heading").first().waitFor();
-      const overflow = await matrix.page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
+      const overflow = await matrix.page.evaluate(
+        () => document.documentElement.scrollWidth > innerWidth,
+      );
       assert.equal(overflow, false, `${path} overflows at ${width}px`);
-      await matrix.page.screenshot({ path: `${screenshotDir}/page-${path.replaceAll("/", "_") || "wall"}-${width}.png`, fullPage: true });
+      await matrix.page.screenshot({
+        path: `${screenshotDir}/page-${path.replaceAll("/", "_") || "wall"}-${width}.png`,
+        fullPage: true,
+      });
       checks++;
     }
   }
@@ -364,7 +426,10 @@ try {
   let scriptLoads = 0;
   await consent.page.route("https://www.googletagmanager.com/**", async (route) => {
     scriptLoads++;
-    await route.fulfill({ contentType: "application/javascript", body: "/* isolated analytics fixture */" });
+    await route.fulfill({
+      contentType: "application/javascript",
+      body: "/* isolated analytics fixture */",
+    });
   });
   await navigate(consent.page, `${base}/`);
   await consent.page.getByRole("button", { name: "Accept Analytics", exact: true }).waitFor();
@@ -373,40 +438,82 @@ try {
   await consent.page.waitForFunction(() => Boolean(document.getElementById("bh-analytics")));
   await consent.page.waitForTimeout(250);
   assert.equal(scriptLoads, 1);
-  await consent.page.getByRole("navigation").getByRole("link", { name: "Duel", exact: true }).click();
-  await consent.page.waitForFunction(() => window.dataLayer?.some((entry) => entry[0] === "event" && entry[2]?.page_path === "/duel"));
+  await consent.page
+    .getByRole("navigation")
+    .getByRole("link", { name: "Duel", exact: true })
+    .click();
+  await consent.page.waitForFunction(() =>
+    window.dataLayer?.some((entry) => entry[0] === "event" && entry[2]?.page_path === "/duel"),
+  );
   assert.equal(scriptLoads, 1, "Navigation does not reload Google tag");
   assert.deepEqual(consent.state.errors, []);
   await consent.context.close();
   checks++;
-  console.log("PASS real DOM consent-gated script loading and SPA page tracking (Google requests intercepted)");
+  console.log(
+    "PASS real DOM consent-gated script loading and SPA page tracking (Google requests intercepted)",
+  );
 
   const auth = await setup({ width: 390, height: 844 });
-  await auth.context.route(/^https:\/\/[^/]+\.supabase\.co\//, (route) => route.fulfill({ contentType: "application/json", body: "{}" }));
+  await auth.context.route(/^https:\/\/[^/]+\.supabase\.co\//, (route) =>
+    route.fulfill({ contentType: "application/json", body: "{}" }),
+  );
   const supabaseUrl = JSON.parse(readFileSync("wrangler.json", "utf8")).vars.SUPABASE_URL;
   const storageKey = `sb-${new URL(supabaseUrl).hostname.split(".")[0]}-auth-token`;
   const expiry = Math.floor(Date.now() / 1000) + 3600;
   const jwt = `${Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url")}.${Buffer.from(JSON.stringify({ sub: postId, aud: "authenticated", exp: expiry })).toString("base64url")}.fixture-signature`;
-  await auth.context.addInitScript(({ key, token, expires, userId }) => {
-    localStorage.setItem(key, JSON.stringify({ access_token: token, refresh_token: "isolated-fixture",
-      token_type: "bearer", expires_in: 3600, expires_at: expires,
-      user: { id: userId, aud: "authenticated", role: "authenticated", app_metadata: {}, user_metadata: {} } }));
-  }, { key: storageKey, token: jwt, expires: expiry, userId: postId });
+  await auth.context.addInitScript(
+    ({ key, token, expires, userId }) => {
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          access_token: token,
+          refresh_token: "isolated-fixture",
+          token_type: "bearer",
+          expires_in: 3600,
+          expires_at: expires,
+          user: {
+            id: userId,
+            aud: "authenticated",
+            role: "authenticated",
+            app_metadata: {},
+            user_metadata: {},
+          },
+        }),
+      );
+    },
+    { key: storageKey, token: jwt, expires: expiry, userId: postId },
+  );
   await navigate(auth.page, `${base}/`);
   await auth.page.getByRole("navigation").waitFor();
   await auth.page.waitForTimeout(1800);
-  assert.equal(auth.state.profileCalls, 1, "Initial auth event and getSession must share one profile restoration");
+  assert.equal(
+    auth.state.profileCalls,
+    1,
+    "Initial auth event and getSession must share one profile restoration",
+  );
   assert.deepEqual(auth.state.errors, []);
   await auth.context.close();
   checks++;
-  console.log("PASS stored session restores profile once (all identity/backend requests intercepted)");
+  console.log(
+    "PASS stored session restores profile once (all identity/backend requests intercepted)",
+  );
   console.log(
     `${checks} browser checks passed. These are controlled UI checks, not live OAuth/backend verification.`,
   );
 } catch (error) {
   if (currentPage && !currentPage.isClosed()) {
-    await currentPage.screenshot({ path: `${screenshotDir}/failure.png`, fullPage: true }).catch(() => {});
-    console.error("Browser failure page:", (await currentPage.locator("body").innerText().catch(() => "unavailable")).slice(0, 1800));
+    await currentPage
+      .screenshot({ path: `${screenshotDir}/failure.png`, fullPage: true })
+      .catch(() => {});
+    console.error(
+      "Browser failure page:",
+      (
+        await currentPage
+          .locator("body")
+          .innerText()
+          .catch(() => "unavailable")
+      ).slice(0, 1800),
+    );
   }
   throw error;
 } finally {
