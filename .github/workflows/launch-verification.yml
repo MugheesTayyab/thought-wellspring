@@ -11,12 +11,17 @@ on:
       - scripts/test-in-app-auth.mjs
       - scripts/test-browser.mjs
       - scripts/check-public-health.mjs
+      - scripts/lib/verify-backup-health.mjs
+      - scripts/backup-monitor.test.mjs
 permissions:
   contents: read
 jobs:
   public-health:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -26,8 +31,12 @@ jobs:
           node-version: "22"
           cache: npm
       - run: npm ci --ignore-scripts
+      - name: Check backup monitor failure cases
+        run: node --test scripts/backup-monitor.test.mjs
       - name: Verify public feed and recent recoverable backup
         run: node scripts/check-public-health.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
   public-smoke:
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04

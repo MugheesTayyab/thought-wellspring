@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import { createClient } from "@supabase/supabase-js";
 import { toJSON, fromCrossJSON } from "seroval";
 import pg from "pg";
+import https from "node:https";
 
 // Fixed disposable staging targets. Never reads production credentials or writes production.
 const ref = "yolnsxesyosrozfobaen";
@@ -86,22 +87,40 @@ async function call(name, data, jwt, expectedError) {
   const method =
     name.startsWith("apiFetch") && !["apiFetchUserActivity"].includes(name) ? "GET" : "POST";
   const body = JSON.stringify(toJSON({ data }));
-  const response = await fetch(
-    `${base}/_serverFn/${id}${method === "GET" ? `?payload=${encodeURIComponent(body)}` : ""}`,
-    {
-      method,
-      redirect: "error",
-      headers: {
-        "content-type": "application/json",
-        "x-tsr-serverfn": "true",
-        "sec-fetch-site": "same-origin",
-        Origin: base,
-        ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
+  // Fresh TLS connections avoid reusing stale local pooled sockets. This tests
+  // backend behavior, not ordinary browser networking or connection capacity.
+  const response = await new Promise((resolve, reject) => {
+    const request = https.request(
+      `${base}/_serverFn/${id}${method === "GET" ? `?payload=${encodeURIComponent(body)}` : ""}`,
+      {
+        method,
+        agent: false,
+        timeout: 20000,
+        headers: {
+          "content-type": "application/json",
+          "x-tsr-serverfn": "true",
+          "sec-fetch-site": "same-origin",
+          Origin: base,
+          ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
+        },
       },
-      ...(method === "POST" ? { body } : {}),
-      signal: AbortSignal.timeout(20000),
-    },
-  );
+      (incoming) => {
+        const chunks = [];
+        incoming.on("data", (chunk) => chunks.push(chunk));
+        incoming.on("error", reject);
+        incoming.on("end", () =>
+          resolve({
+            ok: incoming.statusCode === 200,
+            status: incoming.statusCode,
+            json: async () => JSON.parse(Buffer.concat(chunks).toString()),
+          }),
+        );
+      },
+    );
+    request.on("error", reject);
+    request.on("timeout", () => request.destroy(new Error("Staging request timeout")));
+    request.end(method === "POST" ? body : undefined);
+  });
   assert.ok(response.ok, `HTTP ${response.status} from ${name}`);
   const { result } = fromCrossJSON(await response.json(), { refs: new Map() });
   if (expectedError) {
@@ -109,7 +128,11 @@ async function call(name, data, jwt, expectedError) {
     assert.equal(result.error.code, expectedError, `${name} unexpected rejection category`);
     return;
   }
-  assert.equal(result?.ok, true, `${name}: ${result?.error?.code || "missing result"}`);
+  assert.equal(
+    result?.ok,
+    true,
+    `${name}: ${result?.error?.code || "missing result"}: ${String(result?.error?.message || "").slice(0, 180)}`,
+  );
   return result.data;
 }
 try {
@@ -199,6 +222,25 @@ try {
       "POST_COOLDOWN",
     );
   });
+  await check("self-reporting is rejected and guest attribution cannot be spoofed", async () => {
+    await call(
+      "apiReportPost",
+      { postId: named.id, reason: "Synthetic self report", deviceToken: deviceB },
+      b.jwt,
+      "SELF_VETO_FORBIDDEN",
+    );
+    await call(
+      "apiSubmitPost",
+      {
+        text: "Synthetic attempted named guest post.",
+        category: "Silent Thoughts",
+        deviceToken: token(),
+        handle: "pretend_account",
+      },
+      undefined,
+      "VALIDATION_ERROR",
+    );
+  });
   await check("real reaction add, duplicate idempotence and removal persist", async () => {
     const input = { postId: named.id, reactionKey: "heart", deviceToken: deviceA };
     assert.equal((await call("apiReactToPost", input, a.jwt)).reactions.heart, 1);
@@ -270,6 +312,67 @@ try {
     const { entries } = await call("apiFetchModerationAuditLog", { limit: 100 }, mod.jwt);
     assert.ok(
       entries.some((item) => item.targetId === named.id && item.actionType === "manual_restore"),
+    );
+  });
+  await check("post approval, rejection and report dismissal persist", async () => {
+    const action = async (value) =>
+      call(
+        "apiExecutePostModeration",
+        { postId: named.id, action: value, reason: "Synthetic staged moderation lifecycle" },
+        mod.jwt,
+      );
+    await action("hide");
+    await action("approve");
+    assert.ok((await call("apiFetchPostById", { id: named.id })).post);
+    await action("reject");
+    assert.equal((await call("apiFetchPostById", { id: named.id })).post, null);
+    await action("restore");
+    await call("apiReportPost", {
+      postId: named.id,
+      reason: "Synthetic dismissal check",
+      deviceToken: token(),
+    });
+    await action("dismiss_reports");
+    const open = await database.query(
+      "SELECT count(*)::int AS count FROM public.post_reports WHERE post_id=$1 AND status='open'",
+      [named.id],
+    );
+    assert.equal(open.rows[0].count, 0);
+  });
+  await check("Echo approval, rejection, restore and dismissal persist", async () => {
+    const action = async (value) =>
+      call(
+        "apiExecuteEchoModeration",
+        { echoId: echo.id, action: value, reason: "Synthetic staged Echo lifecycle" },
+        mod.jwt,
+      );
+    await action("approve");
+    await action("reject");
+    assert.equal(
+      (await database.query("SELECT status FROM public.echoes WHERE id=$1", [echo.id])).rows[0]
+        .status,
+      "rejected",
+    );
+    await action("restore");
+    await call("apiReportEcho", {
+      echoId: echo.id,
+      reason: "Synthetic dismissal check",
+      deviceToken: token(),
+    });
+    await action("dismiss_reports");
+    assert.equal(
+      (
+        await database.query(
+          "SELECT count(*)::int AS count FROM public.echo_reports WHERE echo_id=$1 AND status='open'",
+          [echo.id],
+        )
+      ).rows[0].count,
+      0,
+    );
+    assert.equal(
+      (await database.query("SELECT status FROM public.echoes WHERE id=$1", [echo.id])).rows[0]
+        .status,
+      "published",
     );
   });
   await check("account switching does not expose another profile", async () => {

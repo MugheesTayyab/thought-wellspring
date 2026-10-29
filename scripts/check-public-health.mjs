@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { toJSON, fromCrossJSON } from "seroval";
+import { verifyBackupHealth } from "./lib/verify-backup-health.mjs";
 
 // Read-only public checks. No credentials, mutations, load testing or plan changes.
 const feedId = "0adb6a8478d457523eb2fccf20aff0eee86bfb18d20643fb4b83b2628f5517fb";
@@ -30,16 +31,5 @@ for (const target of targets) {
     await verifySite(target);
   }
 }
-const runs = await fetch(
-  "https://api.github.com/repos/MugheesTayyab/thought-wellspring/actions/workflows/encrypted-backup.yml/runs?status=success&per_page=1",
-  {
-    headers: { "User-Agent": "BajiHears-public-health" },
-    signal: AbortSignal.timeout(15000),
-  },
-);
-assert.equal(runs.status, 200, "Backup status must be readable");
-const latest = (await runs.json()).workflow_runs?.[0];
-assert.ok(latest?.updated_at, "A successful encrypted backup is required");
-const ageHours = (Date.now() - Date.parse(latest.updated_at)) / 3600000;
-assert.ok(ageHours >= 0 && ageHours < 30, "No successful encrypted backup in the last 30 hours");
+const { ageHours } = await verifyBackupHealth();
 console.log(`PASS encrypted backup freshness: ${ageHours.toFixed(1)} hours`);
