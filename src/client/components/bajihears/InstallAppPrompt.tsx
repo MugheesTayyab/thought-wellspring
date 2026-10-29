@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
+import { embeddedAuthBrowserName } from "@/client/lib/embedded-browser";
 import { Bell, Heart, Loader2, Smartphone, Zap } from "lucide-react";
 import {
   Dialog,
@@ -55,6 +56,7 @@ export function InstallAppPrompt() {
   const pushConfigured = Boolean(import.meta.env["VITE_VAPID_PUBLIC_KEY"]);
 
   useEffect(() => {
+    if (embeddedAuthBrowserName(navigator.userAgent)) return;
     setIos(isIosDevice());
     setInstalled(isStandalonePwa() || read(INSTALLED_KEY) === "true");
     const onPrompt = (event: Event) => {
@@ -78,6 +80,7 @@ export function InstallAppPrompt() {
   }, []);
 
   useEffect(() => {
+    if (embeddedAuthBrowserName(navigator.userAgent)) return;
     if (pathname !== "/" || shown.current) return;
     const canNotify =
       installed &&

@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/client/lib/supabase";
 import { authHeaders } from "@/client/lib/auth-headers";
+import { useAuth } from "@/client/stores/auth-context";
 import {
   apiFetchModerationDashboard,
   apiExecutePostModeration,
@@ -49,9 +50,8 @@ interface ActionModalState {
 }
 
 function AdminModerationPage() {
-  const [sessionUser, setSessionUser] = useState<{ id: string; email: string | null } | null>(
-    null,
-  );
+  const { signInWithGoogle } = useAuth();
+  const [sessionUser, setSessionUser] = useState<{ id: string; email: string | null } | null>(null);
   const [authChecking, setAuthChecking] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -156,12 +156,7 @@ function AdminModerationPage() {
 
   const handleSignInWithGoogle = async () => {
     try {
-      await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
+      await signInWithGoogle();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to initiate sign-in");
     }

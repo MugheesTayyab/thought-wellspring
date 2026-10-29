@@ -6,6 +6,13 @@ import { apiRefreshProfile } from "@/routes/api/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { authHeaders } from "@/client/lib/auth-headers";
+import { embeddedAuthBrowserName, BROWSER_SIGNIN_URL } from "@/client/lib/embedded-browser";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/client/components/ui/dialog";
 
 export interface AuthContextType {
   user: User | null;
@@ -26,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<DbProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [embeddedBrowser, setEmbeddedBrowser] = useState<string | null>(null);
   const profileEpoch = useRef(0);
   const invalidateProfileRequests = () => {
     profileEpoch.current += 1;
@@ -58,9 +66,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (next?.access_token) {
         // Supabase auth callbacks hold a lock; start profile work afterwards.
         window.setTimeout(() => {
-          if (mounted) void fetchProfile().finally(() => {
-            if (mounted) setIsLoading(false);
-          });
+          if (mounted)
+            void fetchProfile().finally(() => {
+              if (mounted) setIsLoading(false);
+            });
         }, 0);
       } else {
         setProfile(null);
@@ -96,6 +105,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async () => {
     if (typeof window === "undefined") return;
+    const embedded = embeddedAuthBrowserName(window.navigator.userAgent);
+    if (embedded) {
+      setEmbeddedBrowser(embedded);
+      return;
+    }
     try {
       const origin = window.location.origin;
       const { error } = await supabase.auth.signInWithOAuth({
@@ -149,6 +163,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
+      <Dialog
+        open={embeddedBrowser !== null}
+        onOpenChange={(open) => {
+          if (!open) setEmbeddedBrowser(null);
+        }}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogTitle>Open BajiHears in your browser</DialogTitle>
+          <DialogDescription>
+            For Google sign-in, open {embeddedBrowser}&apos;s menu and choose Open in browser. You
+            can keep reading and post anonymously here.
+          </DialogDescription>
+          <button
+            type="button"
+            className="tap-44 rounded-xl bg-coral px-4 text-sm font-semibold text-white"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(BROWSER_SIGNIN_URL);
+                toast.success("Browser link copied.");
+              } catch {
+                toast.error("Copy the link below, then open it in Chrome or Safari.");
+              }
+            }}
+          >
+            Copy browser link
+          </button>
+          <input
+            aria-label="Browser link"
+            type="url"
+            readOnly
+            value={BROWSER_SIGNIN_URL}
+            className="w-full min-w-0 rounded-xl border border-border bg-secondary px-3 py-2 text-xs"
+          />
+          <button
+            type="button"
+            className="tap-44 rounded-xl border border-border px-4 text-sm"
+            onClick={() => setEmbeddedBrowser(null)}
+          >
+            Continue reading
+          </button>
+        </DialogContent>
+      </Dialog>
     </AuthContext.Provider>
   );
 }
