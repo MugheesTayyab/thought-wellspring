@@ -69,7 +69,9 @@ export async function submitDuelVote(
   },
 ): Promise<{ choiceIndex: 0 | 1; votesA: number; votesB: number }> {
   const token = validateDeviceToken(input.deviceToken);
-  const duelId = z.string().uuid().parse(input.duelId);
+  // The original seeded duels use canonical PostgreSQL UUIDs without RFC
+  // version/variant bits. Preserve their IDs and vote history, validating shape.
+  const duelId = z.guid().parse(input.duelId);
 
   if (input.choiceIndex !== 0 && input.choiceIndex !== 1) {
     throw new Error("Invalid choice index. Must be 0 or 1.");

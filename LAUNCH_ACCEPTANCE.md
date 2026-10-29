@@ -1,6 +1,6 @@
 # Release acceptance and operator handoff
 
-The code changes are local. Do not start marketing on the strength of local test results alone.
+The authorized fixes have been deployed. Current acceptance evidence and remaining gaps are recorded in `LAUNCH_FINAL_RETEST_2026-10-29.md`; the checklist below retains the full acceptance scope. Passing staging throughput does not establish monthly quota headroom or disaster recovery.
 
 ## Local verification
 

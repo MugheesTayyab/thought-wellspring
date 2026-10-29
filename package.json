@@ -24,7 +24,10 @@
     "check:launch": "npm run check:release && npm run check:production",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
-    "deploy": "vite build && wrangler deploy",
+    "deploy": "vite build && node scripts/check-client-secrets.mjs && node scripts/check-production-build.mjs && wrangler deploy",
+    "deploy:staging": "vite build --mode staging && node scripts/check-client-secrets.mjs && node scripts/deploy-hosted-staging.mjs --deploy",
+    "test:load:hosted": "node scripts/test-hosted-load.mjs",
+    "test:load:soak": "node scripts/test-hosted-load.mjs --soak",
     "lint": "eslint .",
     "format": "prettier --write ."
   },

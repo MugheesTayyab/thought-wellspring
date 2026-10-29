@@ -64,7 +64,17 @@ async function setup(viewport) {
   page.on("pageerror", (error) => state.errors.push(error.message));
   await context.route("**/*", async (route) => {
     if (!["GET", "HEAD", "OPTIONS"].includes(route.request().method())) {
-      state.errors.push("Prevented a mutation outside the isolated fixtures");
+      const requestUrl = new URL(route.request().url());
+      if (requestUrl.pathname.startsWith("/cdn-cgi/rum")) {
+        return route.fulfill({ status: 204, headers: {
+          "access-control-allow-origin": new URL(base).origin,
+          "access-control-allow-credentials": "true",
+        } });
+      }
+      if (requestUrl.origin === new URL(base).origin && !requestUrl.pathname.startsWith("/cdn-cgi/")) {
+        state.errors.push(`Prevented an unmocked application mutation: ${requestUrl.pathname}`);
+      }
+      // Also suppress background telemetry; it is not an application mutation.
       return route.abort("blockedbyclient");
     }
     return route.continue();

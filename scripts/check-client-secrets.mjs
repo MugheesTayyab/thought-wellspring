@@ -15,6 +15,18 @@ try {
   /* CI values come from the environment. */
 }
 
+// Include isolated staging credentials in the scan without changing which VAPID
+// pair is validated for the production release.
+for (const filename of readdirSync(".").filter((name) => /^\.env\..+\.local$/.test(name))) {
+  for (const line of readFileSync(filename, "utf8").split(/\r?\n/)) {
+    const match = line.match(
+      /^(SUPABASE_SERVICE_ROLE_KEY|VAPID_PRIVATE_KEY|CRON_SECRET|STAGING_DATABASE_URL|STAGING_DATABASE_PASSWORD)=(.+)$/,
+    );
+    if (match && match[2].length > 12)
+      secrets.set(`${filename}:${match[1]}`, match[2].replace(/^['"]|['"]$/g, ""));
+  }
+}
+
 for (const key of [
   "VITE_SUPABASE_SERVICE_ROLE_KEY",
   "VITE_VAPID_PRIVATE_KEY",

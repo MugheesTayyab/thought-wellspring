@@ -5,6 +5,7 @@ import { executeWinnerSelection } from "../jobs/winner-selection";
 import { drainPushOutbox } from "../jobs/push-outbox";
 import { drainModerationNotifications } from "../lib/moderation/notifications";
 import { runScheduledTasks } from "../jobs/scheduled";
+import { submitDuelVote } from "../functions/duels";
 
 vi.mock("../db/client", () => ({ getSupabaseAdminClient: vi.fn() }));
 vi.mock("@tanstack/react-start/server", () => ({ getRequestHeader: () => "203.0.113.12" }));
@@ -16,6 +17,20 @@ vi.mock("../lib/moderation/notifications", () => ({ drainModerationNotifications
 beforeEach(() => vi.clearAllMocks());
 
 describe("Campaign traffic and scheduled failure recovery", () => {
+  it("accepts the existing seeded Duel identifiers without changing vote history", async () => {
+    const rpc = vi.fn(async (name: string) => ({ data: name === "record_and_check_rate_limit"
+      ? { allowed: true, remaining: 9 } : { success: true, votes_a: 1, votes_b: 0 }, error: null }));
+    vi.mocked(getSupabaseAdminClient).mockReturnValue({ rpc } as never);
+    await expect(submitDuelVote(undefined, { duelId: "00000000-0000-0000-0000-000000000001", choiceIndex: 0, deviceToken: "1234567890abcdef" }))
+      .resolves.toEqual({ choiceIndex: 0, votesA: 1, votesB: 0 });
+    expect(rpc).toHaveBeenCalledWith("record_duel_vote_atomic", expect.objectContaining({ p_duel_id: "00000000-0000-0000-0000-000000000001" }));
+  });
+  it("rejects malformed Duel identifiers before any database call", async () => {
+    const rpc = vi.fn();
+    vi.mocked(getSupabaseAdminClient).mockReturnValue({ rpc } as never);
+    await expect(submitDuelVote(undefined, { duelId: "not-a-uuid", choiceIndex: 0, deviceToken: "1234567890abcdef" })).rejects.toThrow();
+    expect(rpc).not.toHaveBeenCalled();
+  });
   it("allows independent visitors on one network while enforcing individual quotas", async () => {
     const counts = new Map<string, number>();
     const rpc = vi.fn(async (_name, args) => {

@@ -584,7 +584,7 @@ function CornerPage() {
               </h3>
             </div>
             <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-              Experience BajiHears like a native phone app with instant loading and quiet alerts.
+              Keep BajiHears on your home screen. An internet connection is needed to read and participate.
             </p>
 
             <div className="mt-4 space-y-3">
@@ -597,7 +597,7 @@ function CornerPage() {
                   </span>
                 </div>
                 <p className="mt-1 text-[11px] text-muted-foreground leading-relaxed">
-                  Always runs the latest release of BajiHears automatically. No manual app store downloads or binary reinstallations required.
+                  Gets updates when you reconnect and reopen the app. If you lose connection, a reconnect page helps you return safely.
                 </p>
                 <div className="mt-2 text-xs text-ink/80 flex items-center gap-2">
                   <span className="text-coral font-bold">&bull;</span>
@@ -609,28 +609,9 @@ function CornerPage() {
                 </div>
               </div>
 
-              {/* Option 2: Standalone APK Binary */}
-              <div className="rounded-2xl border border-border/80 bg-paper/60 p-3.5">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold text-ink">Standalone Android APK</span>
-                  <span className="rounded-full bg-secondary text-muted-foreground px-2 py-0.5 text-[10px] font-semibold">
-                    Manual Binary
-                  </span>
-                </div>
-                <p className="mt-1 text-[11px] text-muted-foreground leading-relaxed">
-                  Direct package installer for sideloading on Android devices. Unlike the live web app, binary APK updates must be downloaded manually when new features ship.
-                </p>
-                <div className="mt-2.5 flex items-center gap-2">
-                  <a
-                    href="https://github.com/MugheesTayyab/thought-wellspring/releases"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-white px-3 py-1.5 text-xs font-semibold text-ink shadow-2xs hover:bg-cream transition cursor-pointer"
-                  >
-                    <span>View GitHub Releases &amp; APKs</span>
-                  </a>
-                </div>
-              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                A standalone Android APK is not available yet. Use the home screen app above.
+              </p>
             </div>
           </div>
           <div className="rounded-2xl border border-border/80 bg-paper/60 p-4 text-xs leading-relaxed text-muted-foreground flex items-start gap-2.5">

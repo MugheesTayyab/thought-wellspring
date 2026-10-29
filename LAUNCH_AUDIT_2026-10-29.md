@@ -1,5 +1,7 @@
 # BajiHears pre-launch audit — 29 October 2026
 
+Historical baseline below. Subsequent authorized fixes, deployments, real Google login, user-confirmed phone installation, and hosted staging tests are recorded in `LAUNCH_FINAL_RETEST_2026-10-29.md` and `PRODUCTION_RELEASE_2026-10-29.md`. Do not use the original counts below as current status.
+
 Scope: local source, isolated PostgreSQL tests, controlled Chrome UI fixtures, read-only production browser smoke checks on both domains, read-only Supabase schema/permission/aggregate inspection, and an independent agent's security review followed by a review of the fixes. No production rows, DNS, Cloudflare settings, database policies, deployment versions, Git commits, or remote branches were changed. Build output and local source changes are not deployed.
 
 ## Checklist accounting
