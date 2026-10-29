@@ -1,6 +1,8 @@
 name: Independent production verification
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
   push:
     branches: [main]
     paths:
@@ -8,10 +10,26 @@ on:
       - scripts/test-live-smoke.mjs
       - scripts/test-in-app-auth.mjs
       - scripts/test-browser.mjs
+      - scripts/check-public-health.mjs
 permissions:
   contents: read
 jobs:
+  public-health:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Verify public feed and recent recoverable backup
+        run: node scripts/check-public-health.mjs
   public-smoke:
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -43,6 +61,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
   browser-regression:
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     strategy:
