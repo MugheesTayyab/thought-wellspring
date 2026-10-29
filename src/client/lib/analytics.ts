@@ -85,8 +85,11 @@ export function initGoogleAnalytics(): void {
 
   window.dataLayer = window.dataLayer || [];
   if (!window.gtag) {
-    window.gtag = function (...args: unknown[]) {
-      window.dataLayer?.push(args);
+    window.gtag = function () {
+      // gtag.js consumes the Arguments command format from Google's bootstrap.
+      // Plain arrays are dataLayer values, not this documented command format.
+      // eslint-disable-next-line prefer-rest-params -- Google's gtag command protocol requires Arguments.
+      window.dataLayer?.push(arguments);
     };
   }
 
@@ -95,6 +98,14 @@ export function initGoogleAnalytics(): void {
     return;
   }
   isInitialized = true;
+
+  // A privacy choice applies to every open BajiHears tab, including the loaded
+  // Google SDK's automatic engagement events, not only our explicit events.
+  window.addEventListener?.("storage", (event: StorageEvent) => {
+    if (event.key === CONSENT_STORAGE_KEY || event.key === null) {
+      setAnalyticsConsent(event.newValue === "granted" ? "granted" : "denied");
+    }
+  });
 
   const initialConsent = getAnalyticsConsent();
   window["ga-disable-G-YK9LL21171"] = initialConsent !== "granted";

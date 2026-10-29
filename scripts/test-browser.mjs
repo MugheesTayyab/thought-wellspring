@@ -12,7 +12,7 @@ assert.ok(browserType, "Unknown test browser engine");
 const browser = await browserType.launch({
   ...(engine === "chromium" ? { channel: process.env.TEST_BROWSER_CHANNEL || "chrome" } : {}),
   headless: true,
-  ...(engine === "chromium" ? { args: ["--disable-quic"] } : {}),
+  ...(engine === "chromium" ? { args: ["--disable-quic", ...(process.env.TEST_NETLOG === "1" ? [`--log-net-log=${join(process.cwd(),"artifacts/chrome-netlog.json")}`] : [])] } : {}),
 });
 const screenshotDir = engine === "chromium" ? "artifacts/browser" : `artifacts/browser-${engine}`;
 mkdirSync(screenshotDir, { recursive: true });

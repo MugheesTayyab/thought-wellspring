@@ -63,8 +63,8 @@ describe("Google Analytics 4 & Consent Mode v2", () => {
     expect(typeof window.gtag).toBe("function");
 
     const consentCalls = (window.dataLayer || []).filter(
-      (args) => Array.isArray(args) && args[0] === "consent",
-    ) as unknown[][];
+      (args) => Object.prototype.toString.call(args) === "[object Arguments]" && (args as IArguments)[0] === "consent",
+    ) as IArguments[];
     expect(consentCalls.length).toBeGreaterThan(0);
     expect(consentCalls[0]?.[1]).toBe("default");
     expect(consentCalls[0]?.[2]).toMatchObject({
@@ -73,8 +73,8 @@ describe("Google Analytics 4 & Consent Mode v2", () => {
     });
 
     const configCalls = (window.dataLayer || []).filter(
-      (args) => Array.isArray(args) && args[0] === "config",
-    ) as unknown[][];
+      (args) => Object.prototype.toString.call(args) === "[object Arguments]" && (args as IArguments)[0] === "config",
+    ) as IArguments[];
     expect(configCalls.length).toBe(1);
     expect(configCalls[0]?.[1]).toBe("G-YK9LL21171");
     expect((configCalls[0]?.[2] as Record<string, unknown>)?.[
@@ -182,5 +182,19 @@ describe("Google Analytics 4 & Consent Mode v2", () => {
     initGoogleAnalytics();
     initGoogleAnalytics();
     expect(appendChild).toHaveBeenCalledOnce();
+  });
+
+  it("withdraws the loaded SDK consent when another tab changes privacy preferences", () => {
+    const listeners: Record<string, (event: Partial<StorageEvent>) => void> = {};
+    window.addEventListener = vi.fn((name: string, callback: any) => { listeners[name] = callback; }) as typeof window.addEventListener;
+    localStorage.setItem("bh:analytics-consent", "granted");
+    initGoogleAnalytics();
+    const spy = vi.spyOn(window, "gtag");
+    listeners["storage"]?.({ key: "bh:analytics-consent", newValue: "denied" });
+    expect(window["ga-disable-G-YK9LL21171"]).toBe(true);
+    expect(spy).toHaveBeenCalledWith("consent", "update", { analytics_storage: "denied" });
+    spy.mockClear();
+    trackPageView("/corner");
+    expect(spy).not.toHaveBeenCalled();
   });
 });
