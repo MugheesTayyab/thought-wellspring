@@ -58,6 +58,9 @@ assert.ok(
 let checks = 0;
 let currentPage;
 async function navigate(page, url) {
+  // Finish the previous document's intercepted requests before replacing it.
+  // Otherwise WebKit can report fixture responses as cross-document CORS errors.
+  if (page.url().startsWith("http")) await page.waitForLoadState("networkidle");
   let lastError;
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
