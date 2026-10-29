@@ -1,4 +1,11 @@
-import { writeFileSync, mkdtempSync, existsSync, rmSync } from "node:fs";
+import {
+  writeFileSync,
+  appendFileSync,
+  readFileSync,
+  mkdtempSync,
+  existsSync,
+  rmSync,
+} from "node:fs";
 import { resolve, join, sep } from "node:path";
 import { randomBytes, createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
@@ -33,10 +40,20 @@ export async function verifyRestore(manifest, dump) {
       ...(name === "pg_ctl" ? { stdio: "ignore" } : {}),
       env: { ...process.env, PGPASSWORD: password, PGCONNECT_TIMEOUT: "10" },
     });
-    if (result.status !== 0)
+    if (result.status !== 0) {
+      // Before startup succeeds there is no production SQL/data in this cluster.
+      const startupLog =
+        name === "pg_ctl" && args.includes("start") && existsSync(join(directory, "server.log"))
+          ? readFileSync(join(directory, "server.log"), "utf8")
+              .split(/\r?\n/)
+              .filter((line) => /FATAL|PANIC|could not|permission denied/i.test(line))
+              .slice(-5)
+              .join(" ")
+          : "";
       throw new Error(
-        `${name} failed (exit ${result.status ?? result.error?.code ?? "unknown"}); private SQL output suppressed`,
+        `${name} failed (exit ${result.status ?? result.error?.code ?? "unknown"}); private SQL output suppressed ${startupLog}`,
       );
+    }
   }
   const port = 55432;
   let started = false;
@@ -53,6 +70,10 @@ export async function verifyRestore(manifest, dump) {
       "--encoding=UTF8",
       "--no-locale",
     ]);
+    // Debian's default Unix socket directory belongs to the system postgres
+    // service. This disposable cluster needs only password-protected loopback TCP.
+    if (process.platform !== "win32")
+      appendFileSync(join(data, "postgresql.conf"), "\nunix_socket_directories = ''\n");
     started = true;
     run("pg_ctl", [
       "-D",
