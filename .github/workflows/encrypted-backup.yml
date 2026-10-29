@@ -1,0 +1,51 @@
+name: Encrypted database backup and restore verification
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 1 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: production-encrypted-backup
+  cancel-in-progress: false
+jobs:
+  backup:
+    if: vars.BAJIHEARS_BACKUPS_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Install PostgreSQL 18 from its official signed repository
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get update
+          sudo apt-get install -y postgresql-18
+      - name: Create consistent read-only production snapshot and encrypt it
+        run: node scripts/backup-database.mjs
+        env:
+          SUPABASE_DATABASE_URL: ${{ secrets.BAJIHEARS_BACKUP_DATABASE_URL }}
+          BACKUP_ENCRYPTION_KEY: ${{ secrets.BAJIHEARS_BACKUP_ENCRYPTION_KEY }}
+          PG_DUMP_PATH: /usr/lib/postgresql/18/bin/pg_dump
+      - name: Restore only to a disposable loopback instance and verify data and permissions
+        run: node scripts/restore-backup-check.mjs
+        env:
+          BACKUP_ENCRYPTION_KEY: ${{ secrets.BAJIHEARS_BACKUP_ENCRYPTION_KEY }}
+          PG_BIN_DIR: /usr/lib/postgresql/18/bin
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: encrypted-database-backup-${{ github.run_id }}
+          path: |
+            artifacts/backups/*.dump.enc
+            artifacts/backups/restore-result.json
+          if-no-files-found: error
+          retention-days: 30

@@ -27,6 +27,7 @@ const result = {
   verifiedApprovedEmailDestinations: Array.isArray(addresses.result) ? addresses.result.filter((v) => v.verified && approved.includes(v.email?.toLowerCase())).length : 0,
   emailAddressRead: { status: addresses.status, success: addresses.success, errors: addresses.errors },
   domainFound: Boolean(zoneId),
+  zonePlan: zones.result?.[0]?.plan?.name ?? null,
   routing: routing ? { status: routing.status, enabled: routing.result?.enabled, errors: routing.errors } : null,
   workersSettings: settings,
   planRead: { status: subscriptions.status, success: subscriptions.success,

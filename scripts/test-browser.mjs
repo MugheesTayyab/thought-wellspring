@@ -9,13 +9,16 @@ const base = process.env.TEST_BASE_URL || "http://127.0.0.1:4175";
 const engine = process.env.TEST_BROWSER_ENGINE || "chromium";
 const browserType = { chromium, firefox, webkit }[engine];
 assert.ok(browserType, "Unknown test browser engine");
+const address = process.env.TEST_RESOLVE_ADDRESS;
+if (address) assert.ok(["104.21.92.25", "172.67.185.85"].includes(address), "Use a verified public address only");
 const browser = await browserType.launch({
   ...(engine === "chromium" ? { channel: process.env.TEST_BROWSER_CHANNEL || "chrome" } : {}),
   headless: true,
-  ...(engine === "chromium" ? { args: ["--disable-quic", ...(process.env.TEST_NETLOG === "1" ? [`--log-net-log=${join(process.cwd(),"artifacts/chrome-netlog.json")}`] : [])] } : {}),
+  ...(engine === "chromium" ? { args: ["--disable-quic", ...(address ? [`--host-resolver-rules=MAP bajihears.app ${address}`] : []), ...(process.env.TEST_NETLOG === "1" ? [`--log-net-log=${join(process.cwd(),"artifacts/chrome-netlog.json")}`] : [])] } : {}),
 });
 const screenshotDir = engine === "chromium" ? "artifacts/browser" : `artifacts/browser-${engine}`;
 mkdirSync(screenshotDir, { recursive: true });
+if (address) console.log("DIAGNOSTIC: public address pinned in this browser only; this run does not clear normal DNS/TLS reliability");
 const postId = "33333333-3333-4333-8333-333333333333";
 const duelId = "00000000-0000-0000-0000-000000000001";
 const resolverFile = readdirSync(".output/server").find((name) =>
