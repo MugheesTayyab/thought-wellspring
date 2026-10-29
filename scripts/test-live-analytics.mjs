@@ -8,7 +8,6 @@ const browser =
     : await chromium.launch({
         channel: process.env.TEST_BROWSER_CHANNEL || "chrome",
         headless: true,
-        args: ["--disable-quic"],
       });
 const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
 const page = await context.newPage();

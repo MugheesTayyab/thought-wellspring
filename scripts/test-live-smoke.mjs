@@ -5,7 +5,7 @@ const base = (process.env.TEST_BASE_URL || "https://bajihears.mugheestayyab4.wor
   /\/$/,
   "",
 );
-const browser = await chromium.launch({ channel: "chrome", headless: true, args: ["--disable-quic"] });
+const browser = await chromium.launch({ channel: "chrome", headless: true });
 const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
 const page = await context.newPage();
 const pageErrors = [];
@@ -22,6 +22,7 @@ async function safeGoto(targetUrl) {
       return await page.goto(targetUrl, { waitUntil: "domcontentloaded" });
     } catch (error) {
       lastError = error;
+      console.warn(`Navigation attempt ${attempt + 1} failed: ${String(error).split("\n")[0]}`);
       if (!String(error).includes("net::ERR_") || attempt === 4) throw error;
       await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
     }
@@ -53,12 +54,16 @@ try {
 
   await safeGoto(`${base}/`);
   await page.getByText("BajiHears Original · Fictional", { exact: true }).first().waitFor();
-  for (let i = 0; i < 5 && (await page.getByText("BajiHears Original · Fictional", { exact: true }).count()) < 30; i++) {
+  for (
+    let i = 0;
+    i < 5 && (await page.getByText("BajiHears Original · Fictional", { exact: true }).count()) < 30;
+    i++
+  ) {
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await page.waitForTimeout(1000);
   }
   assert.equal(await page.getByText("BajiHears Original · Fictional", { exact: true }).count(), 30);
-  const originalCards = page.locator('article[data-editorial-seed-id]');
+  const originalCards = page.locator("article[data-editorial-seed-id]");
   if ((await originalCards.count()) > 0) {
     assert.equal(await originalCards.count(), 30);
     assert.deepEqual(
@@ -74,7 +79,10 @@ try {
 
   await safeGoto(`${base}/admin/moderation`);
   await page.getByText("Sign in with Google", { exact: true }).waitFor();
-  assert.equal(await page.locator('meta[name="robots"]').getAttribute("content"), "noindex, nofollow");
+  assert.equal(
+    await page.locator('meta[name="robots"]').getAttribute("content"),
+    "noindex, nofollow",
+  );
   console.log("PASS signed-out moderation route exposes no dashboard and is noindex");
 
   const readResponse = await safeGoto(`${base}/read`);
