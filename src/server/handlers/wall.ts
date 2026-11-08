@@ -8,6 +8,7 @@ import type {
 } from "@/shared/types/api";
 import { wrapServerFn } from "@/server/lib/wrap-server-fn";
 import { getServerEnv } from "@/server/lib/get-env";
+import { cachedPublicRead } from "@/server/lib/edge-cache";
 import { verifiedProfileId } from "@/server/lib/authorization";
 import { validateDeviceToken } from "@/server/middleware/device-token";
 import { z } from "zod";
@@ -38,7 +39,10 @@ export async function handleFetchFeed(data?: {
 export async function handleFetchWinner(): Promise<ServerFnResult<WinnerResponseData>> {
   return wrapServerFn(async () => {
     const env = getServerEnv();
-    return fetchWinner(env);
+    // Identical for every visitor and only changes once per winner cycle (hours),
+    // so a short edge cache absorbs traffic bursts without ever showing a wrong
+    // winner for more than a few seconds after a cycle rolls over.
+    return cachedPublicRead("winner", 20, () => fetchWinner(env));
   });
 }
 
@@ -101,7 +105,9 @@ export async function handleFetchPostById(data: {
 export async function handleFetchEditorialOriginals(): Promise<ServerFnResult<{ posts: Unsaid[] }>> {
   return wrapServerFn(async () => {
     const env = getServerEnv();
-    return getEditorialOriginals(env);
+    // Static seeded reference content with no per-visitor state; safe to cache
+    // longer than the winner since it almost never changes.
+    return cachedPublicRead("editorial-originals", 60, () => getEditorialOriginals(env));
   });
 }
 

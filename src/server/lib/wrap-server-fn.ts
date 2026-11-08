@@ -8,6 +8,7 @@
 import { DeviceTokenError } from "../middleware/device-token";
 import { RateLimitError } from "../middleware/rate-limit";
 import { ZodError } from "zod";
+import { reportOperationalError } from "./alerts/operational-errors";
 
 export type ServerFnSuccess<T> = {
   ok: true;
@@ -268,7 +269,11 @@ export async function wrapServerFn<T>(handler: () => Promise<T>): Promise<Server
       data: result,
     };
   } catch (error) {
-    return mapErrorToResponse(error);
+    const response = mapErrorToResponse(error);
+    if (response.error.code === "UNEXPECTED_ERROR") {
+      await reportOperationalError(error);
+    }
+    return response;
   }
 }
 

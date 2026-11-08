@@ -7,7 +7,7 @@ export default defineConfig({
     include: [
       "src/server/__tests__/release-reliability.test.ts",
       "src/server/__tests__/embedded-browser.test.ts",
-      "src/server/__tests__/{phase5-moderation,phase6-winner,phase7-push,profanity,psychological-ranking,release-security,legal-transparency,production-moderation-engine,editorial-collection,analytics}.test.ts",
+      "src/server/__tests__/{phase5-moderation,phase6-winner,phase7-push,profanity,psychological-ranking,release-security,legal-transparency,production-moderation-engine,editorial-collection,analytics,operational-alerts,edge-cache}.test.ts",
     ],
     testTimeout: 15000,
     clearMocks: true,

@@ -85,6 +85,18 @@ try {
       false,
     );
   });
+  await test("Operational alert claim is one-shot per cooldown window and counts occurrences", async () => {
+    assert.equal(await rpc("claim_operational_alert", ["TypeError_abc123", 900]), true);
+    assert.equal(await rpc("claim_operational_alert", ["TypeError_abc123", 900]), false);
+    assert.equal(await rpc("claim_operational_alert", ["TypeError_abc123", 900]), false);
+    const [row] = await query(
+      "SELECT occurrence_count::int AS n FROM public.operational_alerts_sent WHERE error_code=$1",
+      ["TypeError_abc123"],
+    );
+    assert.equal(row.n, 3);
+    assert.equal(await rpc("claim_operational_alert", ["TypeError_other", 900]), true);
+    assert.equal(await rpc("claim_operational_alert", ["TypeError_abc123", 0]), true);
+  });
   await test("Echo cap is enforced in a transaction and unpublished posts reject replies", async () => {
     for (let i = 0; i < 50; i++)
       await rpc("insert_echo_atomic", [post, `Reply ${i}`, null, device, null]);

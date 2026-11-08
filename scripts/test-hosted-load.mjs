@@ -96,7 +96,7 @@ try {
   );
   console.log("PASS hosted real Duel vote persistence and duplicate rejection");
 
-  for (const sessions of soak ? [3000] : [30, 150, 300]) {
+  for (const sessions of soak ? [3000, 9000] : [30, 150, 300, 900]) {
     measurements = [];
     const sessionMs = [];
     const errors = [];
