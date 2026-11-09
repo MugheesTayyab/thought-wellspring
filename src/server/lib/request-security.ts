@@ -1,3 +1,5 @@
+import { ADSENSE, SITE_HOST } from "@/shared/constants/site";
+
 export const MAX_REQUEST_BODY_BYTES = 64 * 1024;
 
 function getSupabaseOrigin(): string {
@@ -29,13 +31,41 @@ function getSupabaseOrigin(): string {
   return fallback;
 }
 
-export function contentSecurityPolicy(nonce?: string): string {
+const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
+
+// Only added once ads are switched on. The ad creatives themselves load inside
+// these frames, where this page's CSP no longer applies.
+const AD_SCRIPT_HOSTS = "https://pagead2.googlesyndication.com";
+const AD_FRAME_HOSTS =
+  "https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://*.safeframe.googlesyndication.com https://www.google.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com";
+const AD_IMAGE_HOSTS =
+  "https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.g.doubleclick.net https://www.google.com https://*.adtrafficquality.google https://*.gstatic.com";
+const AD_CONNECT_HOSTS =
+  "https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://csi.gstatic.com";
+
+export function contentSecurityPolicy(
+  nonce?: string,
+  { adsEnabled = ADSENSE.adsEnabled }: { adsEnabled?: boolean } = {},
+): string {
+  const scriptHosts = `https://www.googletagmanager.com ${TURNSTILE_ORIGIN}${adsEnabled ? ` ${AD_SCRIPT_HOSTS}` : ""}`;
   const scripts = nonce
-    ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://www.googletagmanager.com`
-    : "script-src 'self' https://www.googletagmanager.com";
+    ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${scriptHosts}`
+    : `script-src 'self' ${scriptHosts}`;
   const supabaseOrigin = getSupabaseOrigin();
   const wssOrigin = supabaseOrigin.replace(/^http/, "ws");
-  return `default-src 'self'; ${scripts}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' ${supabaseOrigin} ${wssOrigin} https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'`;
+  const frames = `frame-src ${TURNSTILE_ORIGIN}${adsEnabled ? ` ${AD_FRAME_HOSTS}` : ""}`;
+  const images = `img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com${adsEnabled ? ` ${AD_IMAGE_HOSTS}` : ""}`;
+  const connections = `connect-src 'self' ${supabaseOrigin} ${wssOrigin} https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com ${TURNSTILE_ORIGIN}${adsEnabled ? ` ${AD_CONNECT_HOSTS}` : ""}`;
+  return `default-src 'self'; ${scripts}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; ${images}; ${connections}; ${frames}; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'`;
+}
+
+// Plain-HTTP requests reach the Worker directly on the custom domain. Other
+// hosts (localhost, workers.dev previews) are left alone.
+export function httpsRedirect(request: Request): Response | null {
+  const url = new URL(request.url);
+  if (url.protocol !== "http:" || url.hostname !== SITE_HOST) return null;
+  url.protocol = "https:";
+  return new Response(null, { status: 301, headers: { Location: url.toString() } });
 }
 
 export function isCrossOriginMutation(request: Request): boolean {

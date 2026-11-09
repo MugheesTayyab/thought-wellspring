@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { apiFetchPostById } from "@/routes/api/wall";
+import { apiFetchPostById, apiFetchWallSnapshot } from "@/routes/api/wall";
 import { queryKeys } from "@/client/lib/query-keys";
 import { ArrowUp, Info, PencilLine, Sparkles, X } from "lucide-react";
 import { UnsaidCard } from "@/client/components/bajihears/UnsaidCard";
@@ -11,6 +11,7 @@ import { CornerMenu } from "@/client/components/bajihears/CornerMenu";
 import { Logo } from "@/client/components/bajihears/Logo";
 import { BottomNav } from "@/client/components/bajihears/BottomNav";
 import { HeroIntro } from "@/client/components/bajihears/HeroIntro";
+import { SiteFooter } from "@/client/components/bajihears/SiteFooter";
 
 import { FeedWritingPrompt } from "@/client/components/bajihears/FeedWritingPrompt";
 import { PushPermissionSheet } from "@/client/components/bajihears/PushPermissionSheet";
@@ -39,19 +40,33 @@ import {
 } from "@/client/lib/local-storage";
 
 export const Route = createFileRoute("/")({
+  // The first page of the Wall is rendered on the server so readers and crawlers
+  // get real thoughts without running JavaScript. Client-side navigations skip
+  // this and use the normal feed query.
+  loader: async () => {
+    const renderedAt = Date.now();
+    if (typeof window !== "undefined") return { snapshot: null, renderedAt };
+    try {
+      const result = await apiFetchWallSnapshot();
+      return { snapshot: result.ok ? result.data : null, renderedAt };
+    } catch (error) {
+      console.error("[wall] server-rendered snapshot unavailable", error);
+      return { snapshot: null, renderedAt };
+    }
+  },
   head: () => ({
     meta: [
-      { title: "BajiHears | Say the unsaid" },
+      { title: "BajiHears | Anonymous thoughts people never got to say" },
       {
         name: "description",
         content:
-          "The Wall: anonymous Unsaids, one per cycle. Read what people never got to say, react, echo, and share the ones that hit.",
+          "BajiHears is an anonymous wall of short, honest thoughts. Read what people never got to say, react, reply kindly, or share your own without signing up.",
       },
       { property: "og:title", content: "BajiHears | Say the unsaid" },
       {
         property: "og:description",
         content:
-          "Anonymous Unsaids, one per cycle. Read, react, echo, and share the ones that hit.",
+          "An anonymous wall of short, honest thoughts. Read, react, reply kindly, or share your own.",
       },
       { property: "og:url", content: "https://bajihears.app/" },
     ],
@@ -61,6 +76,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const { snapshot, renderedAt } = Route.useLoaderData();
   const { user, profile } = useAuth();
   const { deviceToken } = useDeviceToken();
   const { totalWarmth, awardWarmth, openWarmthSheet, isFlashingOrb } = useWarmth();
@@ -83,7 +99,7 @@ function Home() {
     myReactions,
     myEchoedIds,
     refetch,
-  } = useWall();
+  } = useWall({ initialFeed: snapshot?.feed ?? null, initialFeedAt: renderedAt });
 
   const {
     winner,
@@ -92,7 +108,7 @@ function Home() {
     userReaction: winnerUserReaction,
     isFallback: winnerIsFallback,
     isLoading: winnerIsLoading,
-  } = useWinner();
+  } = useWinner({ initialWinner: snapshot?.winner ?? null, initialWinnerAt: renderedAt });
 
   const [myReports, setMyReports] = useState<string[]>([]);
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
@@ -128,20 +144,25 @@ function Home() {
   });
 
   type FeedSortOption = "for-you" | "latest" | "most-loved";
-  const [feedSort, setFeedSort] = useState<FeedSortOption>(() => {
-    if (typeof window === "undefined") return "for-you";
-    const saved = sessionStorage.getItem("bh:wall-sort");
-    if (saved === "recent" || saved === "latest") return "latest";
-    if (saved === "most-reacted" || saved === "most-loved") return "most-loved";
-    if (saved === "for-you") return "for-you";
-    return "for-you";
-  });
-  const [showTipsCard, setShowTipsCard] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("bh:tips-dismissed") !== "1";
-  });
+  // Starts as "for-you" on server and client alike so hydration matches; the
+  // reader's saved sort and tips state are applied in the effect below.
+  const [feedSort, setFeedSort] = useState<FeedSortOption>("for-you");
+  const [showTipsCard, setShowTipsCard] = useState(false);
+  // A fixed clock keeps the server's and the first client render's ranking identical.
+  const [rankedAt] = useState(renderedAt);
 
   const backdrop = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const saved = sessionStorage.getItem("bh:wall-sort");
+    if (saved === "recent" || saved === "latest") setFeedSort("latest");
+    else if (saved === "most-reacted" || saved === "most-loved") setFeedSort("most-loved");
+    try {
+      setShowTipsCard(localStorage.getItem("bh:tips-dismissed") !== "1");
+    } catch {
+      /* The tips card simply stays hidden without storage. */
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -265,7 +286,7 @@ function Home() {
         ? [sharedPost, ...posts]
         : posts;
     const unhidden = combined.filter((u) => !hiddenIds.includes(u.id));
-    const now = Date.now();
+    const now = rankedAt;
 
     if (feedSort === "latest") {
       return [...unhidden].sort((a, b) => {
@@ -313,7 +334,7 @@ function Home() {
       const scoreB = score(b);
       return scoreB - scoreA;
     });
-  }, [posts, sharedPost, hiddenIds, feedSort]);
+  }, [posts, sharedPost, hiddenIds, feedSort, rankedAt]);
 
   useEffect(() => {
     if (!sharedPostId) return;
@@ -539,13 +560,14 @@ function Home() {
                     );
                   });
                 }}
-                onSubmit={async ({ text, handle: postHandle, category, preset }) => {
+                onSubmit={async ({ text, handle: postHandle, category, preset, captchaToken }) => {
                   const result = await submitPost({
                     text,
                     handle: postHandle,
                     category,
                     preset,
                     profileId: user?.id ?? null,
+                    ...(captchaToken ? { captchaToken } : {}),
                   });
                   const ts = Date.now();
                   writeLastSubmit(ts);
@@ -703,20 +725,7 @@ function Home() {
               )}
           </div>
 
-          {/* Shared Site Footer */}
-          <footer className="mt-8 pt-4 pb-2 flex items-center justify-center gap-3 text-[11px] text-muted-foreground font-medium border-t border-border/40">
-            <Link to="/about" className="hover:text-foreground transition">
-              About
-            </Link>
-            <span>&middot;</span>
-            <Link to="/privacy" className="hover:text-foreground transition">
-              Privacy Policy
-            </Link>
-            <span>&middot;</span>
-            <Link to="/terms" className="hover:text-foreground transition">
-              Terms of Service
-            </Link>
-          </footer>
+          <SiteFooter />
         </div>
       </div>
 

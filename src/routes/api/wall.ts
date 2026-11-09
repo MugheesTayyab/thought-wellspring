@@ -16,6 +16,7 @@ export interface SubmitPostClientInput {
   handle?: string | null;
   deviceToken: string;
   profileId?: string | null;
+  captchaToken?: string;
 }
 
 export const apiFetchFeed = createServerFn({ method: "GET" })
@@ -23,6 +24,18 @@ export const apiFetchFeed = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     const { handleFetchFeed } = await import("@/server/handlers/wall");
     return handleFetchFeed(data);
+  });
+
+export const apiFetchWallSnapshot = createServerFn({ method: "GET" }).handler(async () => {
+  const { handleFetchWallSnapshot } = await import("@/server/handlers/wall");
+  return handleFetchWallSnapshot();
+});
+
+export const apiFetchCollection = createServerFn({ method: "GET" })
+  .validator((data: { category: Category }) => data)
+  .handler(async ({ data }) => {
+    const { handleFetchCollection } = await import("@/server/handlers/wall");
+    return handleFetchCollection(data);
   });
 
 export const apiFetchWinner = createServerFn({ method: "GET" }).handler(async () => {

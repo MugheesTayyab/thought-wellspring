@@ -48,6 +48,8 @@ export const Route = createFileRoute("/corner")({
         content:
           "A spot for the things you choose to keep close. Your thoughts, saved notes, identity, and settings.",
       },
+      // Personal to each visitor, so there is nothing here for search engines to index.
+      { name: "robots", content: "noindex, follow" },
       { property: "og:url", content: "https://bajihears.app/corner" },
     ],
     links: [{ rel: "canonical", href: "https://bajihears.app/corner" }],

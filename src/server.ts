@@ -6,6 +6,7 @@ import { renderErrorPage } from "./server/lib/error-page";
 import { setWorkerEnv } from "./server/lib/get-env";
 import {
   enforceRequestBodyLimit,
+  httpsRedirect,
   isCrossOriginMutation,
   secureResponse,
 } from "./server/lib/request-security";
@@ -66,6 +67,9 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, _ctx: unknown) {
     setWorkerEnv(env);
+
+    const redirect = httpsRedirect(request);
+    if (redirect) return redirect;
 
     const nonce = createCspNonce();
     const requestHeaders = new Headers(request.headers);

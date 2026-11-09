@@ -12,6 +12,9 @@ import { cachedPublicRead } from "@/server/lib/edge-cache";
 import { verifiedProfileId } from "@/server/lib/authorization";
 import { validateDeviceToken } from "@/server/middleware/device-token";
 import { z } from "zod";
+import { CATEGORIES } from "@/shared/constants/categories";
+import { COLLECTIONS, COLLECTION_MIN_POSTS } from "@/shared/constants/collections";
+import { renderSitemap, sitemapEntries } from "@/server/lib/sitemap";
 import {
   fetchFeed,
   fetchWinner,
@@ -44,6 +47,59 @@ export async function handleFetchWinner(): Promise<ServerFnResult<WinnerResponse
     // winner for more than a few seconds after a cycle rolls over.
     return cachedPublicRead("winner", 20, () => fetchWinner(env));
   });
+}
+
+// Server-rendered first paint for crawlers and first-time readers. Separate from
+// apiFetchFeed (see edge-cache.ts): this only seeds the page, and any later feed
+// refetch still goes to the live uncached endpoint.
+export async function handleFetchWallSnapshot(): Promise<
+  ServerFnResult<{ feed: FeedResponseData; winner: WinnerResponseData }>
+> {
+  return wrapServerFn(async () => {
+    const env = getServerEnv();
+    return cachedPublicRead("ssr/wall/v1", 30, async () => {
+      const [feed, winner] = await Promise.all([
+        fetchFeed(env, { page: 0, limit: 20 }),
+        fetchWinner(env),
+      ]);
+      return { feed, winner };
+    });
+  });
+}
+
+export async function handleFetchCollection(data: {
+  category: Category;
+}): Promise<ServerFnResult<{ posts: Unsaid[] }>> {
+  return wrapServerFn(async () => {
+    const env = getServerEnv();
+    const category = z.enum(CATEGORIES).parse(data.category);
+    return cachedPublicRead(`ssr/collection/v1/${encodeURIComponent(category)}`, 60, async () => {
+      const { posts } = await fetchFeed(env, { category, page: 0, limit: 50 });
+      return { posts };
+    });
+  });
+}
+
+export async function handleSitemap(): Promise<string> {
+  const env = getServerEnv();
+  const counts = await cachedPublicRead("ssr/sitemap-counts/v1", 3600, async () => {
+    const entries = await Promise.all(
+      COLLECTIONS.map(async (collection) => {
+        const { posts } = await fetchFeed(env, {
+          category: collection.category,
+          page: 0,
+          limit: COLLECTION_MIN_POSTS,
+        });
+        return [collection.slug, posts.length] as const;
+      }),
+    );
+    return Object.fromEntries(entries);
+  }).catch((error: unknown) => {
+    // A database blip should still serve the always-indexable pages.
+    console.error("[sitemap] collection counts unavailable", error);
+    return {};
+  });
+  return renderSitemap(sitemapEntries(counts));
 }
 
 export async function handleSubmitPost(

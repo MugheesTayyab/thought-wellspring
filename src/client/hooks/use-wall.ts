@@ -35,6 +35,10 @@ interface FeedPage {
 export interface UseWallOptions {
   initialCategories?: Category[];
   pageSize?: number;
+  /** Server-rendered first page of the unfiltered feed. */
+  initialFeed?: FeedPage | null;
+  /** When initialFeed was rendered, so it ages out on the normal staleTime. */
+  initialFeedAt?: number;
 }
 
 export interface UseWallReturn {
@@ -54,6 +58,7 @@ export interface UseWallReturn {
     preset?: string;
     handle?: string | null;
     profileId?: string | null;
+    captchaToken?: string;
   }) => Promise<SubmitPostResult>;
   isSubmitting: boolean;
   submitError: string | null;
@@ -74,34 +79,28 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
   const { deviceToken } = useDeviceToken();
   const pageSize = options?.pageSize ?? 20;
 
-  const [filters, setFilters] = useState<Category[]>(() => {
-    if (options?.initialCategories) return options.initialCategories;
-    if (typeof window === "undefined") return [];
-    try {
-      const saved = JSON.parse(sessionStorage.getItem("bh:wall-filters") ?? "[]");
-      return Array.isArray(saved) ? (saved as Category[]) : [];
-    } catch {
-      return [];
-    }
-  });
-  const [myReactions, setMyReactions] = useState<MyReactions>(() => {
-    if (typeof window === "undefined") return {};
-    return readMyReactions();
-  });
-  const [myEchoedIds, setMyEchoedIds] = useState<string[]>(() => {
-    if (typeof window === "undefined") return [];
-    return readMyEchoes();
-  });
+  // The feed is server-rendered, so the first client render must match it. Browser
+  // state (filters, reactions, echoes) is applied right after hydration instead.
+  const [filters, setFilters] = useState<Category[]>(options?.initialCategories ?? []);
+  const [myReactions, setMyReactions] = useState<MyReactions>({});
+  const [myEchoedIds, setMyEchoedIds] = useState<string[]>([]);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [reactionError, setReactionError] = useState<string | null>(null);
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setMyReactions(readMyReactions());
-      setMyEchoedIds(readMyEchoes());
+    setMyReactions(readMyReactions());
+    setMyEchoedIds(readMyEchoes());
+    if (options?.initialCategories) return;
+    try {
+      const saved = JSON.parse(sessionStorage.getItem("bh:wall-filters") ?? "[]");
+      if (Array.isArray(saved) && saved.length > 0) setFilters(saved as Category[]);
+    } catch {
+      /* Filters are a convenience; the unfiltered feed still works. */
     }
+    // Restores once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -144,6 +143,13 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.page + 1 : undefined),
+    // Only the unfiltered key may be seeded: options apply to every key this hook visits.
+    ...(filters.length === 0 && options?.initialFeed
+      ? {
+          initialData: { pages: [options.initialFeed], pageParams: [0] },
+          ...(options.initialFeedAt ? { initialDataUpdatedAt: options.initialFeedAt } : {}),
+        }
+      : {}),
     staleTime: 120_000, // 2 minutes
     retry: 1,
     gcTime: 600_000, // 10 minutes
@@ -404,6 +410,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       preset?: string;
       handle?: string | null;
       profileId?: string | null;
+      captchaToken?: string;
     }) => {
       if (!deviceToken) throw new Error("No device identity available");
       setSubmitError(null);
@@ -414,6 +421,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
         preset?: string;
         handle?: string | null;
         profileId?: string | null;
+        captchaToken?: string;
       } = {
         text: input.text,
         category: input.category,
@@ -428,6 +436,9 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       }
       if (input.profileId !== undefined) {
         postPayload.profileId = input.profileId;
+      }
+      if (input.captchaToken !== undefined) {
+        postPayload.captchaToken = input.captchaToken;
       }
 
       const res = await apiSubmitPost({ data: postPayload, headers: await authHeaders() });
@@ -450,6 +461,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       preset?: string;
       handle?: string | null;
       profileId?: string | null;
+      captchaToken?: string;
     }) => {
       return await submitMutation.mutateAsync(input);
     },

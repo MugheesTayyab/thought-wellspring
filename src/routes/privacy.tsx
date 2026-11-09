@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Shield, Clock, Mail, Lock, ExternalLink, FileText } from "lucide-react";
 import { Logo } from "@/client/components/bajihears/Logo";
+import { SiteFooter } from "@/client/components/bajihears/SiteFooter";
+import { ADSENSE } from "@/shared/constants/site";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
@@ -26,7 +28,7 @@ export const Route = createFileRoute("/privacy")({
 });
 
 function PrivacyPolicyPage() {
-  const lastUpdated = "October 24, 2026";
+  const lastUpdated = "November 9, 2026";
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased selection:bg-accent selection:text-foreground">
@@ -161,7 +163,7 @@ function PrivacyPolicyPage() {
             </li>
             <li>
               <a href="#advertising" className="hover:text-primary hover:underline">
-                15. Future Advertising &amp; AdSense
+                15. Advertising &amp; AdSense
               </a>
             </li>
             <li>
@@ -364,6 +366,9 @@ function PrivacyPolicyPage() {
                 <p className="font-semibold text-ink">Cloudflare, Inc.</p>
                 <p className="text-xs text-muted-foreground">
                   Edge routing, serverless Worker compute, CDN asset delivery, and DDoS mitigation.
+                  Cloudflare Turnstile may also check that a post is coming from a person, which
+                  involves Cloudflare processing technical signals from your browser when you open
+                  the composer.
                 </p>
               </div>
               <div className="rounded-xl border border-border bg-card p-3">
@@ -522,29 +527,48 @@ function PrivacyPolicyPage() {
           {/* Section 15 */}
           <section id="advertising" className="scroll-mt-20">
             <h2 className="font-serif text-lg font-bold text-ink sm:text-xl">
-              15. Future Advertising &amp; Google AdSense Disclosures
+              15. Advertising &amp; Google AdSense
             </h2>
             <div className="rounded-2xl border border-primary/20 bg-accent/40 p-5">
-              <h3 className="font-display text-sm font-bold text-ink">
-                Prospective Advertising Notice
-              </h3>
-              <p className="mt-1">
-                <strong>Current State:</strong> BajiHears is currently free of third-party
-                advertisements and commercial tracking scripts.
-              </p>
-              <p className="mt-2">
-                <strong>Future State (Google AdSense):</strong> In the future, BajiHears may partner
-                with Google AdSense to serve online advertisements to sustain operational costs. When
-                advertising is activated:
+              <p>
+                {ADSENSE.adsEnabled ? (
+                  <>
+                    BajiHears uses Google AdSense to show advertisements on some pages, which helps
+                    cover the cost of running the service.
+                  </>
+                ) : (
+                  <>
+                    BajiHears is preparing to use Google AdSense to help cover the cost of running
+                    the service. No advertisements are shown at the moment. This section describes
+                    how advertising will work on pages where ads appear.
+                  </>
+                )}{" "}
+                Ads appear only on editorial articles, not on the Wall, beside the composer, or in
+                your Corner.
               </p>
               <ul className="mt-2 list-disc pl-5 space-y-1.5">
                 <li>
-                  Third-party vendors, including Google, will use cookies to serve ads based on your
-                  prior visits to BajiHears or other websites.
+                  Third-party vendors, including Google, use cookies to serve ads based on your prior
+                  visits to BajiHears or other websites.
                 </li>
                 <li>
                   Google&apos;s use of advertising cookies enables it and its partners to serve ads
-                  based on your browsing patterns.
+                  based on your visits to BajiHears and other sites. These parties may place and read
+                  cookies on your browser, or use web beacons or IP addresses, to collect information
+                  as a result of ad serving.
+                </li>
+                <li>
+                  Learn more about{" "}
+                  <a
+                    href="https://www.google.com/policies/privacy/partners/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-primary underline"
+                  >
+                    how Google uses data when you use our partners&apos; sites or apps{" "}
+                    <ExternalLink className="size-3" />
+                  </a>
+                  .
                 </li>
                 <li>
                   You can opt out of personalized advertising by visiting{" "}
@@ -568,10 +592,10 @@ function PrivacyPolicyPage() {
                   .
                 </li>
                 <li>
-                  <strong>EEA, UK, and Swiss Visitors:</strong> Prior to serving ads in these
-                  jurisdictions, BajiHears will implement a certified Consent Management Platform
-                  (CMP) adhering to the IAB Europe Transparency and Consent Framework (TCF v2.2) to
-                  collect user consent.
+                  <strong>EEA, UK, and Swiss Visitors:</strong> Before serving personalized ads in
+                  these regions, BajiHears asks for your consent through a Google-certified Consent
+                  Management Platform that integrates with the IAB Europe Transparency and Consent
+                  Framework.
                 </li>
               </ul>
             </div>
@@ -605,25 +629,7 @@ function PrivacyPolicyPage() {
           </section>
         </div>
 
-        {/* Footer */}
-        <footer className="mt-12 border-t border-border pt-6 text-center text-xs text-muted-foreground">
-          <p className="font-sans">
-            &copy; {new Date().getFullYear()} BajiHears &middot; Designed for quiet relief.
-          </p>
-          <div className="mt-2 flex items-center justify-center gap-4 text-xs font-medium">
-            <Link to="/about" className="hover:text-foreground transition">
-              About
-            </Link>
-            <span>&middot;</span>
-            <Link to="/privacy" className="text-primary font-semibold">
-              Privacy Policy
-            </Link>
-            <span>&middot;</span>
-            <Link to="/terms" className="hover:text-foreground transition">
-              Terms of Service
-            </Link>
-          </div>
-        </footer>
+        <SiteFooter />
       </main>
     </div>
   );

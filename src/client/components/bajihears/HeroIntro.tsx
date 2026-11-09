@@ -57,7 +57,8 @@ export function HeroIntro() {
           For the thoughts you keep to yourself.
         </h2>
         <p className="mt-1 text-xs sm:text-sm leading-5 text-muted-foreground">
-          Read what others are thinking. Share when you feel like it.
+          BajiHears is an anonymous wall of short, honest thoughts. Read what others are thinking,
+          reply kindly, and share your own when you feel like it, with no sign-up needed.
         </p>
         <p className="mt-2.5 text-xs font-medium text-[#7D3028]">
           Just here to read? That&apos;s welcome too.

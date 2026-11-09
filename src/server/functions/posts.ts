@@ -17,6 +17,7 @@ import { normalizeText } from "../lib/moderation/normalize";
 import { checkHardFilters } from "../lib/moderation/hard-filters";
 import { checkSoftFilters } from "../lib/moderation/soft-filters";
 import { FALLBACK_WINNER } from "../lib/fallback-winner";
+import { verifyCaptcha } from "../lib/turnstile";
 import { CATEGORIES } from "@/shared/constants/categories";
 import type { Category, Echo, ReactionKey, Unsaid } from "@/shared/types/unsaid";
 
@@ -27,6 +28,7 @@ export interface SubmitPostInput {
   handle?: string | null;
   deviceToken: string;
   profileId?: string | null;
+  captchaToken?: string;
 }
 
 export interface SubmitPostResult {
@@ -90,6 +92,8 @@ export async function submitPost(
   if (!CATEGORIES.includes(input.category)) {
     throw new Error(`Invalid category: ${input.category}`);
   }
+
+  await verifyCaptcha(env?.TURNSTILE_SECRET_KEY, input.captchaToken);
 
   // 1. Rate limiting: 3 posts per hour
   await checkRateLimit(env, "submit_post", token);

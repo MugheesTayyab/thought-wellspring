@@ -19,6 +19,7 @@ import { registerServiceWorker } from "@/client/lib/notifications";
 import { Toaster } from "@/client/components/ui/sonner";
 import { InstallAppPrompt } from "@/client/components/bajihears/InstallAppPrompt";
 import { AnalyticsTracker } from "@/client/components/bajihears/AnalyticsTracker";
+import { ADSENSE } from "@/shared/constants/site";
 
 export { useWarmth, WarmthProvider, type WarmthContextType };
 
@@ -95,6 +96,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "description",
         content: "A place to share a thought, find a familiar feeling, or just read for a bit.",
       },
+      // Lets AdSense verify site ownership without loading any ad code.
+      { name: "google-adsense-account", content: ADSENSE.client },
       { name: "theme-color", content: "#FAF7F3" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },

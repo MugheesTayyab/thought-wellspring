@@ -11,14 +11,21 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CornerRouteImport } from './routes/corner'
 import { Route as DiagnosticsRouteImport } from './routes/diagnostics'
 import { Route as DuelRouteImport } from './routes/duel'
+import { Route as GuidelinesRouteImport } from './routes/guidelines'
+import { Route as HelpRouteImport } from './routes/help'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ReadRouteImport } from './routes/read'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AdminModerationRouteImport } from './routes/admin.moderation'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as GuidesIndexRouteImport } from './routes/guides.index'
+import { Route as GuidesSlugRouteImport } from './routes/guides.$slug'
+import { Route as WallSlugRouteImport } from './routes/wall.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,6 +35,11 @@ const IndexRoute = IndexRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CornerRoute = CornerRouteImport.update({
@@ -45,6 +57,16 @@ const DuelRoute = DuelRouteImport.update({
   path: '/duel',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuidelinesRoute = GuidelinesRouteImport.update({
+  id: '/guidelines',
+  path: '/guidelines',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -53,6 +75,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const ReadRoute = ReadRouteImport.update({
   id: '/read',
   path: '/read',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -70,94 +97,158 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuidesIndexRoute = GuidesIndexRouteImport.update({
+  id: '/guides/',
+  path: '/guides/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuidesSlugRoute = GuidesSlugRouteImport.update({
+  id: '/guides/$slug',
+  path: '/guides/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WallSlugRoute = WallSlugRouteImport.update({
+  id: '/wall/$slug',
+  path: '/wall/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/contact': typeof ContactRoute
   '/corner': typeof CornerRoute
   '/diagnostics': typeof DiagnosticsRoute
   '/duel': typeof DuelRoute
+  '/guidelines': typeof GuidelinesRoute
+  '/help': typeof HelpRoute
   '/privacy': typeof PrivacyRoute
   '/read': typeof ReadRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/guides/$slug': typeof GuidesSlugRoute
+  '/wall/$slug': typeof WallSlugRoute
+  '/guides/': typeof GuidesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/contact': typeof ContactRoute
   '/corner': typeof CornerRoute
   '/diagnostics': typeof DiagnosticsRoute
   '/duel': typeof DuelRoute
+  '/guidelines': typeof GuidelinesRoute
+  '/help': typeof HelpRoute
   '/privacy': typeof PrivacyRoute
   '/read': typeof ReadRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/guides/$slug': typeof GuidesSlugRoute
+  '/wall/$slug': typeof WallSlugRoute
+  '/guides': typeof GuidesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/contact': typeof ContactRoute
   '/corner': typeof CornerRoute
   '/diagnostics': typeof DiagnosticsRoute
   '/duel': typeof DuelRoute
+  '/guidelines': typeof GuidelinesRoute
+  '/help': typeof HelpRoute
   '/privacy': typeof PrivacyRoute
   '/read': typeof ReadRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/guides/$slug': typeof GuidesSlugRoute
+  '/wall/$slug': typeof WallSlugRoute
+  '/guides/': typeof GuidesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/about'
+    | '/contact'
     | '/corner'
     | '/diagnostics'
     | '/duel'
+    | '/guidelines'
+    | '/help'
     | '/privacy'
     | '/read'
+    | '/sitemap.xml'
     | '/terms'
     | '/admin/moderation'
     | '/auth/callback'
+    | '/guides/$slug'
+    | '/wall/$slug'
+    | '/guides/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
+    | '/contact'
     | '/corner'
     | '/diagnostics'
     | '/duel'
+    | '/guidelines'
+    | '/help'
     | '/privacy'
     | '/read'
+    | '/sitemap.xml'
     | '/terms'
     | '/admin/moderation'
     | '/auth/callback'
+    | '/guides/$slug'
+    | '/wall/$slug'
+    | '/guides'
   id:
     | '__root__'
     | '/'
     | '/about'
+    | '/contact'
     | '/corner'
     | '/diagnostics'
     | '/duel'
+    | '/guidelines'
+    | '/help'
     | '/privacy'
     | '/read'
+    | '/sitemap.xml'
     | '/terms'
     | '/admin/moderation'
     | '/auth/callback'
+    | '/guides/$slug'
+    | '/wall/$slug'
+    | '/guides/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  ContactRoute: typeof ContactRoute
   CornerRoute: typeof CornerRoute
   DiagnosticsRoute: typeof DiagnosticsRoute
   DuelRoute: typeof DuelRoute
+  GuidelinesRoute: typeof GuidelinesRoute
+  HelpRoute: typeof HelpRoute
   PrivacyRoute: typeof PrivacyRoute
   ReadRoute: typeof ReadRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   AdminModerationRoute: typeof AdminModerationRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  GuidesSlugRoute: typeof GuidesSlugRoute
+  WallSlugRoute: typeof WallSlugRoute
+  GuidesIndexRoute: typeof GuidesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -174,6 +265,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/corner': {
@@ -197,6 +295,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DuelRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/guidelines': {
+      id: '/guidelines'
+      path: '/guidelines'
+      fullPath: '/guidelines'
+      preLoaderRoute: typeof GuidelinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
@@ -209,6 +321,13 @@ declare module '@tanstack/react-router' {
       path: '/read'
       fullPath: '/read'
       preLoaderRoute: typeof ReadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -232,20 +351,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/guides/': {
+      id: '/guides/'
+      path: '/guides'
+      fullPath: '/guides/'
+      preLoaderRoute: typeof GuidesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guides/$slug': {
+      id: '/guides/$slug'
+      path: '/guides/$slug'
+      fullPath: '/guides/$slug'
+      preLoaderRoute: typeof GuidesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wall/$slug': {
+      id: '/wall/$slug'
+      path: '/wall/$slug'
+      fullPath: '/wall/$slug'
+      preLoaderRoute: typeof WallSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  ContactRoute: ContactRoute,
   CornerRoute: CornerRoute,
   DiagnosticsRoute: DiagnosticsRoute,
   DuelRoute: DuelRoute,
+  GuidelinesRoute: GuidelinesRoute,
+  HelpRoute: HelpRoute,
   PrivacyRoute: PrivacyRoute,
   ReadRoute: ReadRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   AdminModerationRoute: AdminModerationRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  GuidesSlugRoute: GuidesSlugRoute,
+  WallSlugRoute: WallSlugRoute,
+  GuidesIndexRoute: GuidesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

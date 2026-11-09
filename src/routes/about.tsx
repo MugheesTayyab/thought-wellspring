@@ -1,6 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Heart, Shield, Sparkles, Scale, Feather, MessageSquare } from "lucide-react";
 import { Logo } from "@/client/components/bajihears/Logo";
+import { SiteFooter } from "@/client/components/bajihears/SiteFooter";
+import { COLLECTIONS } from "@/shared/constants/collections";
+import { OPERATOR_NAME } from "@/shared/constants/site";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -87,9 +90,20 @@ function AboutPage() {
               </div>
               <h3 className="mt-3 font-display text-sm font-bold text-ink">The Thought Wall</h3>
               <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                Read raw, honest expressions from strangers across categories of love, regret, fear,
-                gratitude, and secrets. Every thought is capped at 280 characters to keep it brief and
-                focused.
+                Read honest thoughts from strangers, grouped into{" "}
+                {COLLECTIONS.map((collection, index) => (
+                  <span key={collection.slug}>
+                    {index > 0 && (index === COLLECTIONS.length - 1 ? ", and " : ", ")}
+                    <Link
+                      to="/wall/$slug"
+                      params={{ slug: collection.slug }}
+                      className="text-primary hover:underline"
+                    >
+                      {collection.category}
+                    </Link>
+                  </span>
+                ))}
+                . Every thought is capped at 280 characters to keep it brief and focused.
               </p>
             </div>
 
@@ -155,8 +169,13 @@ function AboutPage() {
                 sign up or disclose an email to read, react, vote, or post.
               </li>
               <li>
-                <strong className="text-foreground">Zero vanity tracking:</strong> We do not deploy
-                third-party behavioral trackers or sell personal profiles.
+                <strong className="text-foreground">No selling your data:</strong> We do not sell
+                personal profiles or send what you write to analytics or advertising services.
+                Analytics only run if you accept them. Our{" "}
+                <Link to="/privacy" hash="advertising" className="text-primary underline">
+                  Privacy Policy
+                </Link>{" "}
+                explains how advertising and its cookies work on BajiHears.
               </li>
               <li>
                 <strong className="text-foreground">Protected public projection:</strong> Even if you link a
@@ -165,11 +184,41 @@ function AboutPage() {
               </li>
               <li>
                 <strong className="text-foreground">Community safety:</strong> Anonymity is not a license for
-                cruelty. We enforce automated profanity filters and community reporting to swiftly
-                shelter our space from harassment, doxxing, and hate speech.
+                cruelty. Automated filters and reader reports help us remove harassment, doxxing, and
+                hate speech. Read our{" "}
+                <Link to="/guidelines" className="text-primary underline">
+                  community guidelines
+                </Link>
+                .
               </li>
             </ul>
           </div>
+        </section>
+
+        {/* Who runs this */}
+        <section className="mt-10 sm:mt-14" aria-labelledby="who-runs-heading">
+          <h2
+            id="who-runs-heading"
+            className="font-serif text-xl font-bold tracking-tight text-ink"
+          >
+            Who runs BajiHears
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            {OPERATOR_NAME
+              ? `BajiHears is run by ${OPERATOR_NAME}. `
+              : "BajiHears is an independently run project, not a company with a large team. "}
+            Posts labelled &ldquo;BajiHears Original · Fictional&rdquo; are made-up scenarios that we
+            write ourselves. Everything else was submitted through the Wall. To get in touch, visit
+            our{" "}
+            <Link to="/contact" className="text-primary underline">
+              contact page
+            </Link>
+            . BajiHears is not a crisis service; if you need support, please see{" "}
+            <Link to="/help" className="text-primary underline">
+              where to get help
+            </Link>
+            .
+          </p>
         </section>
 
         {/* Call to action */}
@@ -194,25 +243,7 @@ function AboutPage() {
           </div>
         </div>
 
-        {/* Footer navigation */}
-        <footer className="mt-12 border-t border-border pt-6 text-center text-xs text-muted-foreground">
-          <p className="font-sans">
-            &copy; {new Date().getFullYear()} BajiHears &middot; An intentional sanctuary.
-          </p>
-          <div className="mt-2 flex items-center justify-center gap-4 text-xs font-medium">
-            <Link to="/about" className="text-primary font-semibold">
-              About
-            </Link>
-            <span>&middot;</span>
-            <Link to="/privacy" className="hover:text-foreground transition">
-              Privacy Policy
-            </Link>
-            <span>&middot;</span>
-            <Link to="/terms" className="hover:text-foreground transition">
-              Terms of Service
-            </Link>
-          </div>
-        </footer>
+        <SiteFooter />
       </main>
     </div>
   );

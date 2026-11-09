@@ -10,7 +10,12 @@ export const apiFetchActiveDuel = createServerFn({ method: "POST" })
     return handleFetchActiveDuel(data);
   });
 
-export const apiSubmitDuelVote = createServerFn({ method: "POST" })
+export const apiFetchDuelSnapshot = createServerFn({ method: "GET" }).handler(async () => {
+  const { handleFetchDuelSnapshot } = await import("@/server/handlers/duels");
+  return handleFetchDuelSnapshot();
+});
+
+export const apiSubmitDuelVote =createServerFn({ method: "POST" })
   .validator(
     (data: {
       duelId: string;

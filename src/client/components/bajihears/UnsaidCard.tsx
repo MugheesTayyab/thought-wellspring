@@ -284,7 +284,10 @@ export function UnsaidCard({
                 </span>
               )}
               <span className="text-muted-foreground/40 text-xs select-none shrink-0">·</span>
-              <span className="text-[11px] sm:text-[12px] text-muted-foreground whitespace-nowrap shrink-0">
+              <span
+                suppressHydrationWarning
+                className="text-[11px] sm:text-[12px] text-muted-foreground whitespace-nowrap shrink-0"
+              >
                 {relativeTime(unsaid.createdAt)}
               </span>
             </div>

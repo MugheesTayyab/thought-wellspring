@@ -31,7 +31,7 @@ export interface UseDuelReturn {
  * and optimistic voting state with warmth award integration.
  * Guaranteed never to freeze indefinitely in loading state.
  */
-export function useDuel(): UseDuelReturn {
+export function useDuel(options?: { initialDuel?: Duel | null }): UseDuelReturn {
   const hydrated = useHydrated();
   const queryClient = useQueryClient();
   const { deviceToken } = useDeviceToken();
@@ -48,13 +48,18 @@ export function useDuel(): UseDuelReturn {
     }
   }, []);
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, isPlaceholderData, error, refetch } = useQuery({
     queryKey: queryKeys.duels.active(deviceToken),
     queryFn: async () => {
       const res = await apiFetchActiveDuel({ data: deviceToken ? { deviceToken } : undefined });
       if (!res.ok) throw new Error(res.error.message);
       return res.data;
     },
+    // The server-rendered Duel shows immediately; this device's vote status replaces
+    // it once the real query returns, and voting stays off until then.
+    ...(options?.initialDuel
+      ? { placeholderData: { duel: options.initialDuel, alreadyVoted: false } }
+      : {}),
     retry: 1,
     staleTime: 60_000,
     gcTime: 300_000,
@@ -176,7 +181,7 @@ export function useDuel(): UseDuelReturn {
   });
 
   const vote = async (choiceIndex: 0 | 1) => {
-    if (!duel?.id || alreadyVoted || voteMutation.isPending) return;
+    if (!duel?.id || alreadyVoted || voteMutation.isPending || isPlaceholderData) return;
     try {
       await voteMutation.mutateAsync({ duelId: duel.id, choiceIndex });
     } catch {
@@ -193,7 +198,7 @@ export function useDuel(): UseDuelReturn {
     votesA,
     votesB,
     isLoading,
-    isVoting: voteMutation.isPending,
+    isVoting: voteMutation.isPending || isPlaceholderData,
     error: voteMutation.error || (error as Error) || null,
     vote,
     refetch,

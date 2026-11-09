@@ -4,6 +4,7 @@ import { queryKeys } from "@/client/lib/query-keys";
 import { apiFetchWinner, apiReactToPost, apiUnreactToPost } from "@/routes/api/wall";
 import { FALLBACK_WINNER } from "@/shared/constants/fallback-winner";
 import { useDeviceToken } from "@/client/hooks/use-device-token";
+import { useHydrated } from "@/client/hooks/use-hydrated";
 import { readMyReactions, writeMyReactions } from "@/client/lib/local-storage";
 import { nextRevealAt } from "@/shared/utils";
 import type { ReactionKey, Unsaid } from "@/shared/types/unsaid";
@@ -22,9 +23,13 @@ export interface UseWinnerReturn {
  * Manages fetching the current 12-hour cycle winner post, caching it for 5 minutes,
  * and handling optimistic reaction synchronization across the winner card and feed.
  */
-export function useWinner(): UseWinnerReturn {
+export function useWinner(options?: {
+  initialWinner?: { winner: Unsaid; hook: string; isFallback: boolean } | null;
+  initialWinnerAt?: number;
+}): UseWinnerReturn {
   const queryClient = useQueryClient();
   const { deviceToken } = useDeviceToken();
+  const hydrated = useHydrated();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: queryKeys.posts.winner(),
@@ -39,6 +44,12 @@ export function useWinner(): UseWinnerReturn {
         isFallback: true,
       };
     },
+    ...(options?.initialWinner
+      ? {
+          initialData: options.initialWinner,
+          ...(options.initialWinnerAt ? { initialDataUpdatedAt: options.initialWinnerAt } : {}),
+        }
+      : {}),
     staleTime: 300_000, // 5 minutes
     gcTime: 900_000, // 15 minutes
   });
@@ -62,7 +73,7 @@ export function useWinner(): UseWinnerReturn {
   const isFallback = data?.isFallback ?? true;
 
   // Determine if this device already reacted to the winner post
-  const myReactions = typeof window !== "undefined" ? readMyReactions() : {};
+  const myReactions = hydrated ? readMyReactions() : {};
   const activeReactionsForWinner = winner?.id ? myReactions[winner.id] || [] : [];
   const userReaction = activeReactionsForWinner.length > 0 ? activeReactionsForWinner[0]! : null;
 

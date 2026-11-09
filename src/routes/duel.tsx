@@ -2,16 +2,29 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, RotateCw, Scale } from "lucide-react";
 import { DuelCard } from "@/client/components/bajihears/DuelCard";
 import { BottomNav } from "@/client/components/bajihears/BottomNav";
+import { SiteFooter } from "@/client/components/bajihears/SiteFooter";
+import { apiFetchDuelSnapshot } from "@/routes/api/duels";
 import { useWarmth } from "@/client/stores/warmth-context";
 import { useDuel } from "@/client/hooks/use-duel";
 
 export const Route = createFileRoute("/duel")({
+  loader: async () => {
+    if (typeof window !== "undefined") return { initialDuel: null };
+    try {
+      const result = await apiFetchDuelSnapshot();
+      return { initialDuel: result.ok ? result.data.duel : null };
+    } catch (error) {
+      console.error("[duel] server-rendered snapshot unavailable", error);
+      return { initialDuel: null };
+    }
+  },
   head: () => ({
     meta: [
       { title: "The Duel · Two Thoughts | BajiHears" },
       {
         name: "description",
-        content: "Choose between two relatable thoughts. One feels more you.",
+        content:
+          "The Duel puts two relatable thoughts side by side. Pick the one that feels closer today and see how other readers chose, anonymously.",
       },
       { property: "og:url", content: "https://bajihears.app/duel" },
     ],
@@ -21,6 +34,7 @@ export const Route = createFileRoute("/duel")({
 });
 
 function DuelPage() {
+  const { initialDuel } = Route.useLoaderData();
   const { totalWarmth, openWarmthSheet, isFlashingOrb } = useWarmth();
   const {
     duel,
@@ -36,7 +50,7 @@ function DuelPage() {
     vote,
     refetch,
     answeredCount,
-  } = useDuel();
+  } = useDuel({ initialDuel });
 
   const answered =
     alreadyVoted && userChoice !== undefined ? { choiceIndex: userChoice, pctA, pctB } : null;
@@ -128,6 +142,35 @@ function DuelPage() {
           <span>View Ember · {totalWarmth}</span>
         </button>
       </footer>
+
+      <section
+        aria-labelledby="duel-about-heading"
+        className="mx-auto w-full max-w-lg pt-4 text-sm leading-6 text-muted-foreground"
+      >
+        <h2 id="duel-about-heading" className="font-display text-base font-bold text-ink">
+          How the Duel works
+        </h2>
+        <p className="mt-1.5">
+          The Duel puts two short thoughts side by side and asks one question. There is no right
+          answer. Pick the one that feels closer to you today. Your choice is anonymous, and once at
+          least five people have chosen, you can see how the split landed.
+        </p>
+        <p className="mt-2">
+          You can vote once per Duel without signing up. Want to read more first? The{" "}
+          <Link to="/" className="font-semibold text-primary hover:underline">
+            Wall
+          </Link>{" "}
+          has every published thought, and our{" "}
+          <Link to="/guidelines" className="font-semibold text-primary hover:underline">
+            community guidelines
+          </Link>{" "}
+          explain what belongs here.
+        </p>
+      </section>
+
+      <div className="mx-auto w-full max-w-lg">
+        <SiteFooter />
+      </div>
 
       <BottomNav
         totalWarmth={totalWarmth}

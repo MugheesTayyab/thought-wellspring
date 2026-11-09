@@ -135,6 +135,7 @@ export function getServerEnv(): DatabaseEnv {
     TELEGRAM_CHAT_ID: getVal("TELEGRAM_CHAT_ID"),
     MODERATION_WEBHOOK_URL: getVal("MODERATION_WEBHOOK_URL"),
     MODERATION_EMAIL_TO: getVal("MODERATION_EMAIL_TO"),
+    TURNSTILE_SECRET_KEY: getVal("TURNSTILE_SECRET_KEY"),
     MODERATION_EMAIL: sources.map((source) => source?.["MODERATION_EMAIL"])
       .find((binding) => binding && typeof binding.send === "function"),
   };

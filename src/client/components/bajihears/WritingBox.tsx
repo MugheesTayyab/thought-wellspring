@@ -9,6 +9,7 @@ import { PRESETS } from "@/shared/constants/presets";
 import { triggerHaptic } from "@/client/lib/haptics";
 import { detectProfanity } from "@/shared/lib/profanity";
 import { useAuth } from "@/client/stores/auth-context";
+import { TURNSTILE_SITE_KEY, TurnstileWidget } from "./TurnstileWidget";
 
 const DRAFT_KEY = "bh:wall-composer-draft-v1";
 
@@ -28,6 +29,7 @@ type Props = {
     handle: string | null;
     category: Category;
     preset: string;
+    captchaToken?: string;
   }) => Promise<SubmitPostResult>;
   onClose: () => void;
   onSeePost?: (id: string) => void;
@@ -86,6 +88,8 @@ export function WritingBox({
   const [result, setResult] = useState<SubmitPostResult | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaAttempt, setCaptchaAttempt] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const submitInFlightRef = useRef(false);
 
@@ -105,6 +109,7 @@ export function WritingBox({
     !profanityCheck.hasProfanity &&
     !missingCategory &&
     !invalidHandle;
+  const awaitingCaptcha = Boolean(TURNSTILE_SITE_KEY) && !captchaToken;
   const selectedMood = PRESETS.find((mood) => mood.key === preset) ?? PRESETS[0]!;
 
   useEffect(() => {
@@ -148,7 +153,7 @@ export function WritingBox({
   };
 
   const submit = async () => {
-    if (!valid || !category || sending || submitInFlightRef.current) return;
+    if (!valid || awaitingCaptcha || !category || sending || submitInFlightRef.current) return;
     submitInFlightRef.current = true;
     triggerHaptic("impactMedium");
     setLocalError(null);
@@ -159,6 +164,7 @@ export function WritingBox({
         handle: anonymous ? null : `@${cleanHandle}`,
         category,
         preset,
+        ...(captchaToken ? { captchaToken } : {}),
       });
       try {
         localStorage.removeItem(DRAFT_KEY);
@@ -169,6 +175,9 @@ export function WritingBox({
       triggerHaptic("celebration");
     } catch (error) {
       setLocalError(error instanceof Error ? error.message : "Couldn't post that just yet.");
+      // The token was spent on this attempt, so a retry needs a new one.
+      setCaptchaToken(null);
+      setCaptchaAttempt((attempt) => attempt + 1);
     } finally {
       submitInFlightRef.current = false;
       setLocalSending(false);
@@ -515,6 +524,14 @@ export function WritingBox({
                 </div>
               )}
 
+              {TURNSTILE_SITE_KEY && (
+                <TurnstileWidget
+                  key={captchaAttempt}
+                  siteKey={TURNSTILE_SITE_KEY}
+                  onToken={setCaptchaToken}
+                />
+              )}
+
               <p className="mt-4 text-center text-xs text-muted-foreground">
                 Draft saved only in this browser. It is not synced between devices.
               </p>
@@ -537,7 +554,7 @@ export function WritingBox({
               <button
                 type="button"
                 onClick={submit}
-                disabled={!valid || sending}
+                disabled={!valid || awaitingCaptcha || sending}
                 className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-5 text-sm font-semibold text-white disabled:bg-secondary disabled:text-muted-foreground"
               >
                 {sending && <LoaderCircle className="size-4 animate-spin" aria-hidden />}

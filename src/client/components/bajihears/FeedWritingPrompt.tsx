@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { Feather } from "lucide-react";
 import { triggerHaptic } from "@/client/lib/haptics";
 
@@ -20,8 +20,10 @@ interface FeedWritingPromptProps {
 }
 
 export const FeedWritingPrompt: React.FC<FeedWritingPromptProps> = ({ onWriteClick }) => {
-  const subtext = useMemo(() => {
-    return PROMPT_SUBTEXTS[Math.floor(Math.random() * PROMPT_SUBTEXTS.length)]!;
+  // Starts fixed so the server and first client render match, then varies per visit.
+  const [subtext, setSubtext] = useState(PROMPT_SUBTEXTS[0]!);
+  useEffect(() => {
+    setSubtext(PROMPT_SUBTEXTS[Math.floor(Math.random() * PROMPT_SUBTEXTS.length)]!);
   }, []);
 
   const handleClick = () => {

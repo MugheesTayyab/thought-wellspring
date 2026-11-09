@@ -2,7 +2,6 @@ import type { Category, MyReactions, ReactionKey, Unsaid } from "@/shared/types/
 import type { AnsweredDuelRecord } from "@/shared/types/duel";
 import type { DailyCapState, StreakState, WarmthLogEntry } from "@/shared/types/warmth";
 import { getTodayKey } from "@/shared/utils";
-import { SEED_DATA } from "./seedData";
 import { getOrCreateIdentity } from "./identity";
 
 /* ---------- local storage keys ---------- */
@@ -123,24 +122,6 @@ export const FALLBACK_MOCK_UNSAIDS: Unsaid[] = [
 export const readUnsaids = (): Unsaid[] => read<Unsaid[]>(UNSAIDS_KEY, FALLBACK_MOCK_UNSAIDS);
 export const writeUnsaids = (v: Unsaid[]) => write(UNSAIDS_KEY, v);
 export { WINNER, FALLBACK_WINNER } from "@/shared/constants/fallback-winner";
-
-export function initializeWall(): void {
-  if (typeof window === "undefined") return;
-  const key = "bh:wallInitialized_v1";
-  if (localStorage.getItem(key)) return;
-  const existing = readUnsaids();
-  if (!existing || existing.length === 0 || existing.length <= FALLBACK_MOCK_UNSAIDS.length) {
-    const seeded: Unsaid[] = SEED_DATA.map((post) => ({
-      ...post,
-      status: "published",
-      vetoCount: 0,
-      vetoedBy: [],
-      type: "confession",
-    }));
-    writeUnsaids(seeded);
-  }
-  localStorage.setItem(key, "true");
-}
 
 export function scorePost(post: Unsaid): number {
   const ageHours = (Date.now() - post.createdAt) / 3_600_000;

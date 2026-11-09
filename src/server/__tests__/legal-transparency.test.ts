@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { contentSecurityPolicy } from "../lib/request-security";
+import { renderSitemap, sitemapEntries } from "../lib/sitemap";
 
 describe("Legal pages, transparency & AdSense readiness", () => {
   it("provides ads.txt in public/ conforming to authorized seller format", () => {
@@ -23,16 +24,17 @@ describe("Legal pages, transparency & AdSense readiness", () => {
     expect(activeLines.length).toBe(1);
   });
 
-  it("provides sitemap.xml listing all canonical public routes", () => {
-    const sitemapPath = resolve(process.cwd(), "public/sitemap.xml");
-    expect(existsSync(sitemapPath)).toBe(true);
-    const xml = readFileSync(sitemapPath, "utf8");
-    expect(xml).toContain("https://bajihears.app/");
-    expect(xml).toContain("https://bajihears.app/about");
-    expect(xml).toContain("https://bajihears.app/privacy");
-    expect(xml).toContain("https://bajihears.app/terms");
-    expect(xml).toContain("https://bajihears.app/duel");
-    expect(xml).toContain("https://bajihears.app/corner");
+  it("generates a sitemap of indexable public routes, without the personal Corner", () => {
+    // A static file would be served ahead of the dynamic /sitemap.xml route.
+    expect(existsSync(resolve(process.cwd(), "public/sitemap.xml"))).toBe(false);
+    const xml = renderSitemap(sitemapEntries({}));
+    for (const path of ["", "/about", "/privacy", "/terms", "/duel", "/contact", "/guidelines", "/help"]) {
+      expect(xml).toContain(`<loc>https://bajihears.app${path === "" ? "/" : path}</loc>`);
+    }
+    expect(xml).not.toContain("/corner");
+    expect(readFileSync(resolve(process.cwd(), "src/routes/corner.tsx"), "utf8")).toContain(
+      '{ name: "robots", content: "noindex, follow" }',
+    );
   });
 
   it("declares sitemap in robots.txt", () => {
@@ -75,11 +77,10 @@ describe("Legal pages, transparency & AdSense readiness", () => {
     expect(cspWithNonce).toContain("object-src 'none'");
   });
 
-  it("verifies public headers include ads.txt and sitemap.xml cache rules", () => {
+  it("verifies public headers include ads.txt cache rules", () => {
     const headersPath = resolve(process.cwd(), "public/_headers");
     const headers = readFileSync(headersPath, "utf8");
     expect(headers).toContain("/ads.txt");
-    expect(headers).toContain("/sitemap.xml");
     expect(headers).toContain("Strict-Transport-Security");
   });
 
