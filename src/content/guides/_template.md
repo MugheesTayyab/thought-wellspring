@@ -11,7 +11,9 @@ Copy this file, rename it (the file name becomes the web address, for example
 `why-unsent-letters-help.md` becomes `/guides/why-unsent-letters-help`), write
 your article, then delete the `draft: true` line to publish it.
 
-Files that start with an underscore, like this one, never go live.
+Keep unfinished articles in `drafts/guides/`, because anything in this folder is
+included in the site's public code. Only files that start with an underscore, like
+this one, are left out.
 
 ## A section heading
 

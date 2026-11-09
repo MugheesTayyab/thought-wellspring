@@ -39,7 +39,9 @@ export function parseGuide(fileName: string, raw: string): Guide | null {
   };
 }
 
-const files = import.meta.glob<string>("/src/content/guides/*.md", {
+// Everything matched here ships in the public JavaScript, so the template stays out
+// and unfinished articles belong in drafts/guides/ rather than in this folder.
+const files = import.meta.glob<string>(["/src/content/guides/*.md", "!/src/content/guides/_*.md"], {
   query: "?raw",
   import: "default",
   eager: true,
