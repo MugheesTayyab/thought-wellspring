@@ -6,6 +6,7 @@ import type { SubmitPostResult } from "@/shared/types/api";
 import { CATEGORIES } from "@/shared/constants/categories";
 import { LOCKOUT_MS, MAX_LEN, MIN_LEN } from "@/shared/constants/cycle";
 import { PRESETS } from "@/shared/constants/presets";
+import { isUnfinishedStarter } from "@/shared/constants/reel-prompts";
 import { triggerHaptic } from "@/client/lib/haptics";
 import { detectProfanity } from "@/shared/lib/profanity";
 import { useAuth } from "@/client/stores/auth-context";
@@ -24,12 +25,15 @@ type Draft = {
 type Props = {
   lastSubmitAt: number | null;
   myHandle: string | null;
+  /** Sentence to begin with when the visitor followed a prompt link. A saved draft wins. */
+  starter?: string | null;
   onSubmit: (input: {
     text: string;
     handle: string | null;
     category: Category;
     preset: string;
     captchaToken?: string;
+    reelConsent: boolean;
   }) => Promise<SubmitPostResult>;
   onClose: () => void;
   onSeePost?: (id: string) => void;
@@ -68,6 +72,7 @@ function readDraft(myHandle: string | null): Draft {
 export function WritingBox({
   lastSubmitAt,
   myHandle,
+  starter = null,
   onSubmit,
   onClose,
   onSeePost,
@@ -77,7 +82,12 @@ export function WritingBox({
   const { user, profile } = useAuth();
   const canAttribute = Boolean(user && profile?.handle);
   const initialDraft = useMemo(() => readDraft(myHandle), [myHandle]);
-  const [text, setText] = useState(initialDraft.text);
+  const [text, setText] = useState(() =>
+    starter && !initialDraft.text.trim() ? `${starter} ` : initialDraft.text,
+  );
+  // Asked afresh for every post and never saved in the draft, so agreeing once
+  // doesn't carry over to something written later.
+  const [reelConsent, setReelConsent] = useState(false);
   const [anonymous, setAnonymous] = useState(initialDraft.anonymous);
   const [handle, setHandle] = useState(initialDraft.handle);
   const [category, setCategory] = useState<Category | null>(initialDraft.category);
@@ -103,8 +113,10 @@ export function WritingBox({
   const overLimit = text.length > MAX_LEN;
   const missingCategory = category === null;
   const invalidHandle = !anonymous && (!canAttribute || cleanHandle.length < 2);
+  const unfinishedStarter = isUnfinishedStarter(text);
   const valid =
     text.trim().length >= MIN_LEN &&
+    !unfinishedStarter &&
     !overLimit &&
     !profanityCheck.hasProfanity &&
     !missingCategory &&
@@ -118,7 +130,13 @@ export function WritingBox({
   }, [profile?.handle, canAttribute]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => textareaRef.current?.focus(), 180);
+    const timer = window.setTimeout(() => {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+      textarea.focus();
+      // Leave the cursor after any starter sentence, ready to finish it.
+      textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    }, 180);
     return () => window.clearTimeout(timer);
   }, []);
 
@@ -130,13 +148,20 @@ export function WritingBox({
 
   useEffect(() => {
     if (result) return;
-    const draft: Draft = { text, anonymous, handle, category, preset };
+    const draft: Draft = {
+      // An untouched starter isn't a draft, and shouldn't reappear next time.
+      text: unfinishedStarter ? "" : text,
+      anonymous,
+      handle,
+      category,
+      preset,
+    };
     try {
       localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
     } catch {
       /* The composer remains usable when storage is blocked. */
     }
-  }, [anonymous, category, handle, preset, result, text]);
+  }, [anonymous, category, handle, preset, result, text, unfinishedStarter]);
 
   useEffect(() => {
     if (!sending) {
@@ -164,6 +189,7 @@ export function WritingBox({
         handle: anonymous ? null : `@${cleanHandle}`,
         category,
         preset,
+        reelConsent,
         ...(captchaToken ? { captchaToken } : {}),
       });
       try {
@@ -475,6 +501,30 @@ export function WritingBox({
                 </div>
               </div>
 
+              <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl border border-border-card bg-card p-4">
+                <input
+                  type="checkbox"
+                  checked={reelConsent}
+                  onChange={(event) => setReelConsent(event.target.checked)}
+                  className="mt-0.5 size-5 shrink-0 cursor-pointer accent-primary"
+                />
+                <span className="text-sm text-foreground">
+                  <span className="block font-semibold">Baji can read this in a reel (optional)</span>
+                  <span className="mt-1 block text-xs leading-5 text-muted-foreground">
+                    I&apos;m 18 or older, and this post can be read out or shown in Instagram reels.
+                    It will always appear as Anonymous, and I can ask for it to stop.{" "}
+                    <a
+                      href="/terms#content-ownership"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium underline"
+                    >
+                      Read the terms
+                    </a>
+                  </span>
+                </span>
+              </label>
+
               <button
                 type="button"
                 onClick={() => setShowPreview((value) => !value)}
@@ -542,13 +592,15 @@ export function WritingBox({
                 <p className="mb-2 text-center text-xs text-muted-foreground">
                   {overLimit
                     ? "Shorten the thought to share."
-                    : missingCategory
-                      ? "Choose a category before sharing."
-                      : invalidHandle
-                        ? "Enter the handle people will see."
-                        : text.trim().length < MIN_LEN
-                          ? "Write a little something first."
-                          : "Revise the highlighted text before sharing."}
+                    : unfinishedStarter
+                      ? "Finish the sentence first."
+                      : missingCategory
+                        ? "Choose a category before sharing."
+                        : invalidHandle
+                          ? "Enter the handle people will see."
+                          : text.trim().length < MIN_LEN
+                            ? "Write a little something first."
+                            : "Revise the highlighted text before sharing."}
                 </p>
               )}
               <button

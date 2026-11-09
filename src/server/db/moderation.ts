@@ -32,6 +32,73 @@ export interface ModerationCounts {
   recentlyResolved24h: number;
 }
 
+/** A live post whose writer agreed to it being used in a reel. Never carries a handle. */
+export interface ReelReadyPost {
+  id: string;
+  text: string;
+  category: string;
+  preset: string;
+  reactionCount: number;
+  createdAt: number;
+}
+
+/**
+ * Posts the owner may use in reels: opted in, published, written by a reader and
+ * never reported. Handles are left out so a reel can't reveal one by accident.
+ */
+export async function fetchReelReadyPosts(
+  env?: DatabaseEnv,
+  options?: { limit?: number },
+): Promise<{ data: ReelReadyPost[]; error: { code: string; message: string } | null }> {
+  try {
+    const { data, error } = await getSupabaseAdminClient(env)
+      .from("unsaids")
+      .select("id, text, category, preset, reactions, created_at")
+      .eq("reel_consent", true)
+      .eq("status", "published")
+      .eq("source_type", "community")
+      .eq("veto_count", 0)
+      .order("created_at", { ascending: false })
+      .limit(Math.min(options?.limit ?? 50, 100));
+
+    if (error) {
+      return { data: [], error: { code: error.code, message: error.message } };
+    }
+
+    const posts: ReelReadyPost[] = (data || []).map((row: any) => ({
+      id: row.id,
+      text: row.text,
+      category: row.category,
+      preset: row.preset || "midnight-static",
+      reactionCount: Object.values((row.reactions ?? {}) as Record<string, number>).reduce(
+        (sum, count) => sum + (count || 0),
+        0,
+      ),
+      createdAt: new Date(row.created_at).getTime(),
+    }));
+
+    return { data: posts, error: null };
+  } catch (err: any) {
+    return { data: [], error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
+  }
+}
+
+/** Honours a writer's request to stop: the post leaves the reel list but stays on the Wall. */
+export async function revokeReelConsent(
+  env: DatabaseEnv | undefined,
+  postId: string,
+): Promise<{ error: { code: string; message: string } | null }> {
+  try {
+    const { error } = await getSupabaseAdminClient(env)
+      .from("unsaids")
+      .update({ reel_consent: false })
+      .eq("id", postId);
+    return { error: error ? { code: error.code, message: error.message } : null };
+  } catch (err: any) {
+    return { error: { code: "UNEXPECTED_ERROR", message: err.message || String(err) } };
+  }
+}
+
 export interface ModerationAuditEntry {
   id: string;
   targetType: "post" | "echo";

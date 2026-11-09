@@ -176,6 +176,32 @@ try {
       /one thought every 12 hours/,
     );
   });
+  await test("Reel consent is off unless the writer opts in", async () => {
+    const consentOf = async (id) =>
+      (await query("SELECT reel_consent FROM public.unsaids WHERE id=$1", [id]))[0].reel_consent;
+    const without = await rpc("insert_post_atomic", [
+      "Older callers send seven arguments",
+      null,
+      "aaaaaaaaaaaaaaaa",
+      null,
+      "Silent Thoughts",
+      "midnight-static",
+      "published",
+    ]);
+    const withConsent = await rpc("insert_post_atomic", [
+      "This one opted in",
+      null,
+      "bbbbbbbbbbbbbbbb",
+      null,
+      "Silent Thoughts",
+      "midnight-static",
+      "published",
+      true,
+    ]);
+    assert.equal(await consentOf(without.id), false);
+    assert.equal(await consentOf(withConsent.id), true);
+    assert.equal(await consentOf(post), false);
+  });
   await test("Durable push queue is idempotent and retries undelivered messages", async () => {
     await db.query(
       "INSERT INTO public.anonymous_subscriptions(device_token,endpoint,p256dh,auth) VALUES($1,$2,$3,$4)",

@@ -14,10 +14,11 @@ import {
   Share2,
   SmilePlus,
   Feather,
+  Image as ImageIcon,
   UserRound,
 } from "lucide-react";
-import { RevealCountdown } from "./RevealCountdown";
 import { PublicProfileModal } from "./PublicProfileModal";
+import { QuoteCardDialog } from "./QuoteCardDialog";
 import { EchoThreadSheet } from "./EchoThreadSheet";
 import { triggerHaptic } from "@/client/lib/haptics";
 import { useWarmth } from "@/client/stores/warmth-context";
@@ -45,7 +46,6 @@ type Props = {
   reported: boolean;
   saved: boolean;
   myHandle: string | null;
-  hero?: boolean;
   isWinner?: boolean;
   hook?: string;
   onReact: (id: string, key: ReactionKey) => void;
@@ -63,7 +63,6 @@ export function UnsaidCard({
   reported,
   saved,
   myHandle,
-  hero = false,
   isWinner = false,
   hook,
   onReact,
@@ -84,6 +83,7 @@ export function UnsaidCard({
   const [vetoFeedback, setVetoFeedback] = useState<string | null>(null);
   const [showRxPicker, setShowRxPicker] = useState(false);
   const [profileModalId, setProfileModalId] = useState<string | null>(null);
+  const [cardOpen, setCardOpen] = useState(false);
 
   const lastTap = useRef(0);
   const cardRef = useRef<HTMLElement | null>(null);
@@ -229,7 +229,7 @@ export function UnsaidCard({
                   Featured thought
                 </span>
                 <span className="text-[10px] text-muted-foreground font-sans leading-tight">
-                  Featured on @bajihears
+                  Chosen from the Wall
                 </span>
               </div>
             </div>
@@ -309,13 +309,6 @@ export function UnsaidCard({
         >
           {unsaid.text}
         </p>
-
-        {/* Small muted status caption if Winner without header */}
-        {isWinner && !hero && (
-          <div className="mt-2.5 text-xs text-muted-foreground flex items-center gap-1.5 font-sans">
-            <RevealCountdown className="text-muted-foreground" />
-          </div>
-        )}
 
         {/* Pending status caption */}
         {unsaid.status === "pending" && (
@@ -461,7 +454,7 @@ export function UnsaidCard({
               type="button"
               onClick={() => onShare(unsaid)}
               className="flex size-9 sm:min-h-11 sm:w-auto sm:px-2.5 items-center justify-center gap-1.5 rounded-xl text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground cursor-pointer font-sans shrink-0"
-              title="Share Story Card"
+              title="Share a link"
             >
               <Share2 className="size-3.5 sm:size-4" />
               <span className="hidden md:inline">Share</span>
@@ -490,6 +483,18 @@ export function UnsaidCard({
                   >
                     <Copy className="size-3.5 text-[#9C8F87]" />
                     <span>Copy text</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setCardOpen(true);
+                    }}
+                    className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-xs text-foreground hover:bg-secondary transition-colors cursor-pointer"
+                  >
+                    <ImageIcon className="size-3.5 text-[#9C8F87]" />
+                    <span>Share as image</span>
                   </button>
 
                   <button
@@ -525,6 +530,7 @@ export function UnsaidCard({
         onEcho={onEcho}
         onReportEcho={onReportEcho}
       />
+      {cardOpen && <QuoteCardDialog unsaid={unsaid} onClose={() => setCardOpen(false)} />}
     </>
   );
 }

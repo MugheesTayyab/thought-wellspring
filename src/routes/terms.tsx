@@ -26,7 +26,7 @@ export const Route = createFileRoute("/terms")({
 });
 
 function TermsPage() {
-  const lastUpdated = "October 24, 2026";
+  const lastUpdated = "November 9, 2026";
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased selection:bg-accent selection:text-foreground">
@@ -173,6 +173,19 @@ function TermsPage() {
                 license to host, store, cache, format, display, distribute, and promote your content
                 solely in connection with operating and featuring the BajiHears service (such as on
                 The Wall and in the daily Duel).
+              </p>
+              <p>
+                <strong>Instagram reels, only if you opt in:</strong> If you tick the reel option
+                when you post, you confirm that you are 18 or older and you also allow BajiHears to
+                read out or show that post in short videos on Instagram accounts run by BajiHears,
+                and to keep those videos online. It will appear as Anonymous, even if you posted
+                with a handle. People who watch can share or copy those videos. To withdraw, email{" "}
+                <a href="mailto:support@bajihears.app" className="text-primary underline">
+                  support@bajihears.app
+                </a>{" "}
+                with the post&apos;s text or link. We will stop using it in new videos and take down
+                any of our videos that use it, but we can&apos;t remove copies made by others. Posts
+                without this option ticked are not used in reels.
               </p>
               <p>
                 <strong>Public Availability:</strong> Thoughts submitted to The Wall become public

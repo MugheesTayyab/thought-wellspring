@@ -3,9 +3,29 @@ import type {
   DashboardResponseData,
   ModerationActionResponseData,
   AuditLogResponseData,
+  ReelReadyResponseData,
 } from "@/server/handlers/admin-moderation";
 
-export type { DashboardResponseData, ModerationActionResponseData, AuditLogResponseData };
+export type {
+  DashboardResponseData,
+  ModerationActionResponseData,
+  AuditLogResponseData,
+  ReelReadyResponseData,
+};
+
+export const apiFetchReelReadyPosts = createServerFn({ method: "GET" })
+  .validator((data?: undefined) => data)
+  .handler(async () => {
+    const { handleFetchReelReadyPosts } = await import("@/server/handlers/admin-moderation");
+    return handleFetchReelReadyPosts();
+  });
+
+export const apiRevokeReelConsent = createServerFn({ method: "POST" })
+  .validator((data: { postId: string }) => data)
+  .handler(async ({ data }) => {
+    const { handleRevokeReelConsent } = await import("@/server/handlers/admin-moderation");
+    return handleRevokeReelConsent(data);
+  });
 
 export const apiFetchModerationDashboard = createServerFn({ method: "GET" })
   .validator((data?: undefined) => data)

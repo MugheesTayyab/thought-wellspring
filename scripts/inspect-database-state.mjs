@@ -24,7 +24,10 @@ try {
     SELECT
       to_regclass('public.push_outbox') IS NOT NULL AS push_outbox,
       to_regclass('public.moderation_notifications') IS NOT NULL AS moderation_notifications,
-      to_regprocedure('public.insert_post_atomic(text,text,text,uuid,text,text,text)') IS NOT NULL AS insert_post,
+      COALESCE(
+        to_regprocedure('public.insert_post_atomic(text,text,text,uuid,text,text,text,boolean)'),
+        to_regprocedure('public.insert_post_atomic(text,text,text,uuid,text,text,text)')
+      ) IS NOT NULL AS insert_post,
       to_regprocedure('public.enqueue_winner_push(bigint,jsonb)') IS NOT NULL AS enqueue_push,
       to_regprocedure('public.get_editorial_originals(text)') IS NOT NULL AS get_editorial_originals,
       has_table_privilege('anon', 'public.unsaids', 'select') AS anon_unsaids_select,

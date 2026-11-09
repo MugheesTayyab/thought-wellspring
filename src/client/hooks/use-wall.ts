@@ -59,6 +59,7 @@ export interface UseWallReturn {
     handle?: string | null;
     profileId?: string | null;
     captchaToken?: string;
+    reelConsent?: boolean;
   }) => Promise<SubmitPostResult>;
   isSubmitting: boolean;
   submitError: string | null;
@@ -411,6 +412,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       handle?: string | null;
       profileId?: string | null;
       captchaToken?: string;
+      reelConsent?: boolean;
     }) => {
       if (!deviceToken) throw new Error("No device identity available");
       setSubmitError(null);
@@ -422,6 +424,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
         handle?: string | null;
         profileId?: string | null;
         captchaToken?: string;
+        reelConsent?: boolean;
       } = {
         text: input.text,
         category: input.category,
@@ -439,6 +442,9 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       }
       if (input.captchaToken !== undefined) {
         postPayload.captchaToken = input.captchaToken;
+      }
+      if (input.reelConsent) {
+        postPayload.reelConsent = true;
       }
 
       const res = await apiSubmitPost({ data: postPayload, headers: await authHeaders() });
@@ -462,6 +468,7 @@ export function useWall(options?: UseWallOptions): UseWallReturn {
       handle?: string | null;
       profileId?: string | null;
       captchaToken?: string;
+      reelConsent?: boolean;
     }) => {
       return await submitMutation.mutateAsync(input);
     },

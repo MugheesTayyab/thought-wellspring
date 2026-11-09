@@ -8,10 +8,18 @@ import {
   apiExecutePostModeration,
   apiExecuteEchoModeration,
   apiFetchModerationAuditLog,
+  apiFetchReelReadyPosts,
+  apiRevokeReelConsent,
   type DashboardResponseData,
 } from "@/routes/api/admin.moderation";
-import type { ModerationQueueItem, ModerationAuditEntry } from "@/server/db/moderation";
+import type {
+  ModerationQueueItem,
+  ModerationAuditEntry,
+  ReelReadyPost,
+} from "@/server/db/moderation";
+import { QuoteCardDialog } from "@/client/components/bajihears/QuoteCardDialog";
 import {
+  Clapperboard,
   ShieldAlert,
   ShieldCheck,
   AlertTriangle,
@@ -42,7 +50,7 @@ export const Route = createFileRoute("/admin/moderation")({
   component: AdminModerationPage,
 });
 
-type TabType = "unresolved" | "posts" | "echoes" | "auto_flagged" | "audit";
+type TabType = "unresolved" | "posts" | "echoes" | "auto_flagged" | "audit" | "reels";
 
 interface ActionModalState {
   item: ModerationQueueItem;
@@ -63,6 +71,10 @@ function AdminModerationPage() {
   const [actionReason, setActionReason] = useState("");
   const [actionSubmitting, setActionSubmitting] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [reelPosts, setReelPosts] = useState<ReelReadyPost[]>([]);
+  const [reelLoading, setReelLoading] = useState(false);
+  const [reelError, setReelError] = useState<string | null>(null);
+  const [reelCard, setReelCard] = useState<ReelReadyPost | null>(null);
 
   // Check Supabase session
   useEffect(() => {
@@ -148,9 +160,45 @@ function AdminModerationPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionUser]);
 
+  // Loaded separately from the dashboard, so a problem here can't take the
+  // moderation queue down with it.
+  const loadReelPosts = async () => {
+    setReelLoading(true);
+    setReelError(null);
+    try {
+      const headers = await authHeaders();
+      const res = await apiFetchReelReadyPosts({ headers });
+      if (res.ok) {
+        setReelPosts(res.data.posts);
+      } else {
+        setReelError(res.error.message);
+      }
+    } catch (err: unknown) {
+      setReelError(err instanceof Error ? err.message : "Couldn't load the reel list");
+    } finally {
+      setReelLoading(false);
+    }
+  };
+
+  const removeFromReels = async (post: ReelReadyPost) => {
+    if (!window.confirm("Remove this post from the reel list? It stays on the Wall.")) return;
+    try {
+      const headers = await authHeaders();
+      const res = await apiRevokeReelConsent({ headers, data: { postId: post.id } });
+      if (!res.ok) throw new Error(res.error.message);
+      setReelPosts((posts) => posts.filter((item) => item.id !== post.id));
+      setNotice("Removed from the reel list. Take down any reel that already uses it.");
+    } catch (err: unknown) {
+      setReelError(err instanceof Error ? err.message : "Couldn't remove that post");
+    }
+  };
+
   useEffect(() => {
     if (activeTab === "audit" && sessionUser) {
       void loadAuditLog();
+    }
+    if (activeTab === "reels" && sessionUser) {
+      void loadReelPosts();
     }
   }, [activeTab, sessionUser]);
 
@@ -556,10 +604,79 @@ function AdminModerationPage() {
           >
             Audit History
           </button>
+
+          <button
+            onClick={() => setActiveTab("reels")}
+            className={`min-h-11 px-4 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+              activeTab === "reels"
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+            }`}
+          >
+            Reel-ready
+          </button>
         </div>
 
-        {/* Queue Items or Audit Tab */}
-        {activeTab === "audit" ? (
+        {/* Queue Items, Audit Tab or Reel List */}
+        {activeTab === "reels" ? (
+          <div className="space-y-3">
+            <p className="rounded-2xl border border-white/10 bg-card/40 p-4 text-xs leading-5 text-muted-foreground">
+              Only posts whose writer ticked the reel box, and that nobody has reported. Read each
+              one again before using it, and skip anything that could identify someone or suggests
+              someone may be at risk. Most-loved posts come first.
+            </p>
+
+            {reelLoading ? (
+              <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
+                <Loader2 className="mr-2 size-5 animate-spin text-primary" />
+                <span>Loading reel-ready posts...</span>
+              </div>
+            ) : reelError ? (
+              <div role="alert" className="rounded-3xl border border-rose-500/20 bg-card/40 p-8 text-center text-sm text-rose-400">
+                {reelError}
+              </div>
+            ) : reelPosts.length === 0 ? (
+              <div className="rounded-3xl border border-white/10 bg-card/40 p-8 text-center text-sm text-muted-foreground">
+                No posts have opted in yet.
+              </div>
+            ) : (
+              [...reelPosts]
+                .sort((a, b) => b.reactionCount - a.reactionCount || b.createdAt - a.createdAt)
+                .map((post) => (
+                  <div
+                    key={post.id}
+                    className="rounded-3xl border border-white/10 bg-card/60 p-5 shadow-lg backdrop-blur-xl"
+                  >
+                    <p className="whitespace-pre-wrap font-vibe text-sm leading-relaxed text-foreground sm:text-base">
+                      {post.text}
+                    </p>
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-4">
+                      <span className="text-[11px] text-muted-foreground">
+                        {post.category} · {post.reactionCount} reactions ·{" "}
+                        {new Date(post.createdAt).toLocaleDateString()}
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => setReelCard(post)}
+                          className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-primary/30 bg-primary/15 px-4 text-xs font-semibold text-primary active:scale-95"
+                        >
+                          <Clapperboard className="size-3.5" />
+                          <span>Make reel card</span>
+                        </button>
+                        <button
+                          onClick={() => void removeFromReels(post)}
+                          className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/10 px-4 text-xs font-medium text-muted-foreground hover:text-foreground active:scale-95"
+                        >
+                          <X className="size-3.5" />
+                          <span>Remove from list</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+            )}
+          </div>
+        ) : activeTab === "audit" ? (
           <div className="space-y-3">
             <div className="flex items-center justify-between mb-2">
               <h2 className="font-display text-sm font-semibold text-foreground">
@@ -794,6 +911,13 @@ function AdminModerationPage() {
           </div>
         )}
       </main>
+
+      {reelCard && (
+        <QuoteCardDialog
+          unsaid={{ text: reelCard.text, handle: null, sourceType: "community", preset: reelCard.preset }}
+          onClose={() => setReelCard(null)}
+        />
+      )}
 
       {/* Confirmation Action Modal */}
       {actionModal && (

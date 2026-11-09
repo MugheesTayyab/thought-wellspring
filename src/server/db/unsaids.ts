@@ -17,6 +17,7 @@ export interface InsertPostInput {
   category: Category;
   preset?: string;
   status?: "pending" | "published" | "review" | "rejected";
+  reelConsent?: boolean;
 }
 
 export function mapRowToUnsaid(row: any): Unsaid {
@@ -223,6 +224,8 @@ export async function insertPost(
       p_category: postData.category,
       p_preset: postData.preset || "midnight-static",
       p_status: postData.status || "published",
+      // Sent only when given, so ordinary posts don't depend on the newer signature.
+      ...(postData.reelConsent ? { p_reel_consent: true } : {}),
     });
 
     if (error) {

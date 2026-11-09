@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as BajiRouteImport } from './routes/baji'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CornerRouteImport } from './routes/corner'
 import { Route as DiagnosticsRouteImport } from './routes/diagnostics'
@@ -35,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BajiRoute = BajiRouteImport.update({
+  id: '/baji',
+  path: '/baji',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -116,6 +122,7 @@ const WallSlugRoute = WallSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/baji': typeof BajiRoute
   '/contact': typeof ContactRoute
   '/corner': typeof CornerRoute
   '/diagnostics': typeof DiagnosticsRoute
@@ -135,6 +142,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/baji': typeof BajiRoute
   '/contact': typeof ContactRoute
   '/corner': typeof CornerRoute
   '/diagnostics': typeof DiagnosticsRoute
@@ -155,6 +163,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/baji': typeof BajiRoute
   '/contact': typeof ContactRoute
   '/corner': typeof CornerRoute
   '/diagnostics': typeof DiagnosticsRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/baji'
     | '/contact'
     | '/corner'
     | '/diagnostics'
@@ -195,6 +205,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/baji'
     | '/contact'
     | '/corner'
     | '/diagnostics'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/baji'
     | '/contact'
     | '/corner'
     | '/diagnostics'
@@ -234,6 +246,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  BajiRoute: typeof BajiRoute
   ContactRoute: typeof ContactRoute
   CornerRoute: typeof CornerRoute
   DiagnosticsRoute: typeof DiagnosticsRoute
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/baji': {
+      id: '/baji'
+      path: '/baji'
+      fullPath: '/baji'
+      preLoaderRoute: typeof BajiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -378,6 +398,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  BajiRoute: BajiRoute,
   ContactRoute: ContactRoute,
   CornerRoute: CornerRoute,
   DiagnosticsRoute: DiagnosticsRoute,

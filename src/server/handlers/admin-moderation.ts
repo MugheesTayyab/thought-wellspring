@@ -9,9 +9,12 @@ import {
   executePostModeration,
   executeEchoModeration,
   fetchModerationAuditLog,
+  fetchReelReadyPosts,
+  revokeReelConsent,
   type ModerationQueueItem,
   type ModerationCounts,
   type ModerationAuditEntry,
+  type ReelReadyPost,
 } from "@/server/db/moderation";
 import { z } from "zod";
 
@@ -31,6 +34,10 @@ export interface ModerationActionResponseData {
 
 export interface AuditLogResponseData {
   entries: ModerationAuditEntry[];
+}
+
+export interface ReelReadyResponseData {
+  posts: ReelReadyPost[];
 }
 
 const ActionSchema = z.enum(["approve", "hide", "reject", "restore", "dismiss_reports"]);
@@ -149,6 +156,33 @@ export async function handleExecuteEchoModeration(data: {
       success: true,
       newStatus: result.newStatus,
     };
+  });
+}
+
+export async function handleFetchReelReadyPosts(): Promise<ServerFnResult<ReelReadyResponseData>> {
+  return wrapServerFn(async () => {
+    const env = getServerEnv();
+    await verifyModerator(env);
+
+    const result = await fetchReelReadyPosts(env);
+    if (result.error) throw new Error(result.error.message);
+
+    return { posts: result.data };
+  });
+}
+
+export async function handleRevokeReelConsent(data: {
+  postId: string;
+}): Promise<ServerFnResult<{ success: boolean }>> {
+  return wrapServerFn(async () => {
+    const env = getServerEnv();
+    await verifyModerator(env);
+
+    const postId = z.string().uuid().parse(data.postId);
+    const result = await revokeReelConsent(env, postId);
+    if (result.error) throw new Error(result.error.message);
+
+    return { success: true };
   });
 }
 

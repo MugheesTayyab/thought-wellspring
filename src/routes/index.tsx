@@ -25,6 +25,7 @@ import { apiReportEcho, apiReportPost } from "@/routes/api/moderation";
 import { triggerHaptic } from "@/client/lib/haptics";
 import { cn, randomSeed } from "@/shared/utils";
 import { CATEGORIES } from "@/shared/constants/categories";
+import { reelPromptByKey } from "@/shared/constants/reel-prompts";
 import type { Category, ReactionKey, Unsaid } from "@/shared/types/unsaid";
 import {
   appendMyPostCategory,
@@ -120,7 +121,24 @@ function Home() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showPushSheet, setShowPushSheet] = useState(false);
   const [showComposer, setShowComposer] = useState(false);
+  const [composerStarter, setComposerStarter] = useState<string | null>(null);
   const [sharedPostId, setSharedPostId] = useState("");
+
+  // Links from the reel landing page open the composer straight away. The param
+  // is dropped afterwards so a refresh or the back button doesn't reopen it.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has("write")) return;
+    setComposerStarter(reelPromptByKey(params.get("write"))?.starter ?? null);
+    setShowComposer(true);
+    params.delete("write");
+    const query = params.toString();
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`,
+    );
+  }, []);
   useEffect(() => {
     const readTarget = () => {
       const id =
@@ -343,6 +361,7 @@ function Home() {
   }, [visiblePosts.length, sharedPostId]);
 
   const openComposer = () => {
+    setComposerStarter(null);
     setShowComposer(true);
     triggerHaptic("selection");
   };
@@ -384,7 +403,6 @@ function Home() {
               {winner && !winnerIsFallback && (
                 <UnsaidCard
                   unsaid={winner}
-                  hero
                   isWinner
                   hook={winnerHook}
                   mine={winnerUserReaction ? [winnerUserReaction] : (myReactions[winner.id] ?? [])}
@@ -545,6 +563,7 @@ function Home() {
               <WritingBox
                 lastSubmitAt={lastSubmitAt}
                 myHandle={user ? profile?.handle ?? handle : null}
+                starter={composerStarter}
                 isSubmitting={isSubmitting}
                 submitError={submitError}
                 onClose={() => setShowComposer(false)}
@@ -560,12 +579,20 @@ function Home() {
                     );
                   });
                 }}
-                onSubmit={async ({ text, handle: postHandle, category, preset, captchaToken }) => {
+                onSubmit={async ({
+                  text,
+                  handle: postHandle,
+                  category,
+                  preset,
+                  captchaToken,
+                  reelConsent,
+                }) => {
                   const result = await submitPost({
                     text,
                     handle: postHandle,
                     category,
                     preset,
+                    reelConsent,
                     profileId: user?.id ?? null,
                     ...(captchaToken ? { captchaToken } : {}),
                   });

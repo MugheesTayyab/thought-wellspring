@@ -17,6 +17,7 @@ export interface SubmitPostClientInput {
   deviceToken: string;
   profileId?: string | null;
   captchaToken?: string;
+  reelConsent?: boolean;
 }
 
 export const apiFetchFeed = createServerFn({ method: "GET" })

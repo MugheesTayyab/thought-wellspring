@@ -29,6 +29,7 @@ export interface SubmitPostInput {
   deviceToken: string;
   profileId?: string | null;
   captchaToken?: string;
+  reelConsent?: boolean;
 }
 
 export interface SubmitPostResult {
@@ -77,6 +78,7 @@ export async function submitPost(
       .string()
       .refine((p) => PRESETS.some((x) => x.key === p), "Invalid preset")
       .optional(),
+    reelConsent: z.boolean().optional(),
   }).parse(input);
   const token = validateDeviceToken(input.deviceToken);
   const authorHandle = await resolveAuthorHandle(env, input.profileId, input.handle);
@@ -122,6 +124,7 @@ export async function submitPost(
     deviceToken: token,
     profileId: input.profileId ?? null,
     status,
+    reelConsent: input.reelConsent === true,
   });
 
   if (res.error || !res.data) {
