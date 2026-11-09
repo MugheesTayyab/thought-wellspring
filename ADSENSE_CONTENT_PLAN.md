@@ -1,7 +1,8 @@
 # AdSense: what is left for you to do
 
-The code is ready for review once deployed. These steps need you, because they are
-your writing, your accounts, or your decision.
+The code went live on 2026-11-09. These steps need you, because they are your writing,
+your accounts, or your decision. Six starter drafts are in `drafts/guides/`, and the
+outreach messages are in `SOFT_LAUNCH_PLAN.md`.
 
 ## Done: seed posts removed
 
@@ -54,14 +55,12 @@ stays out of Google until it has 10 posts, then joins the sitemap automatically.
 
 - **Publisher name:** set `OPERATOR_NAME` in `src/shared/constants/site.ts` to the name
   you want shown on About and Contact.
-- **Email:** confirm `support@bajihears.app` and `privacy@bajihears.app` both receive mail.
-  Send yourself a test message to each.
 - **CAPTCHA:** create a Turnstile widget at dash.cloudflare.com for `bajihears.app`. Set
   `VITE_TURNSTILE_SITE_KEY` for the build and `TURNSTILE_SECRET_KEY` as a Worker secret.
   Set both together: the secret alone rejects every post.
 - **www:** add a DNS record and a redirect for `www.bajihears.app` to `bajihears.app`.
-- **Search Console:** add the site, submit `https://bajihears.app/sitemap.xml`, and use URL
-  Inspection on `/` and a guide to confirm real text appears.
+- **Search Console:** resubmit `https://bajihears.app/sitemap.xml`, and use URL Inspection on
+  `/` and a guide to confirm real text appears.
 
 ## 4. Apply
 
